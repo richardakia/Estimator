@@ -3,20 +3,27 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: Structured Cabling Labor Estimator API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: estimates
+    description: Cabling labor estimates
+  - name: runs
+    description: Cable run groups within an estimate
+  - name: rates
+    description: Productivity rate configuration
+  - name: calculator
+    description: Stateless calculation preview
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,6 +31,219 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /estimates:
+    get:
+      operationId: listEstimates
+      tags: [estimates]
+      summary: List all estimates
+      responses:
+        "200":
+          description: List of estimates
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/EstimateSummary"
+    post:
+      operationId: createEstimate
+      tags: [estimates]
+      summary: Create a new estimate
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateEstimateBody"
+      responses:
+        "201":
+          description: Created estimate
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Estimate"
+
+  /estimates/{id}:
+    get:
+      operationId: getEstimate
+      tags: [estimates]
+      summary: Get an estimate with all runs and computed totals
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Estimate with runs
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EstimateDetail"
+        "404":
+          description: Not found
+    put:
+      operationId: updateEstimate
+      tags: [estimates]
+      summary: Update an estimate
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateEstimateBody"
+      responses:
+        "200":
+          description: Updated estimate
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Estimate"
+    delete:
+      operationId: deleteEstimate
+      tags: [estimates]
+      summary: Delete an estimate
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /estimates/{id}/runs:
+    post:
+      operationId: createRun
+      tags: [runs]
+      summary: Add a cable run to an estimate
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateRunBody"
+      responses:
+        "201":
+          description: Created run
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Run"
+
+  /runs/{id}:
+    put:
+      operationId: updateRun
+      tags: [runs]
+      summary: Update a cable run
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateRunBody"
+      responses:
+        "200":
+          description: Updated run
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Run"
+    delete:
+      operationId: deleteRun
+      tags: [runs]
+      summary: Delete a cable run
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /rates:
+    get:
+      operationId: getRates
+      tags: [rates]
+      summary: Get all productivity rates and multipliers
+      responses:
+        "200":
+          description: Rate config
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RatesConfig"
+    put:
+      operationId: updateRates
+      tags: [rates]
+      summary: Update productivity rates
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RatesConfig"
+      responses:
+        "200":
+          description: Updated rates
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RatesConfig"
+    post:
+      operationId: resetRates
+      tags: [rates]
+      summary: Reset rates to defaults
+      responses:
+        "200":
+          description: Reset rates
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RatesConfig"
+
+  /calculator/preview:
+    post:
+      operationId: previewCalculation
+      tags: [calculator]
+      summary: Stateless calculation of an estimate (no persistence)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CalculationInput"
+      responses:
+        "200":
+          description: Calculation result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CalculationResult"
+
 components:
   schemas:
     HealthStatus:
@@ -31,6 +251,497 @@ components:
       properties:
         status:
           type: string
-      required:
-        - status
+      required: [status]
 
+    CableType:
+      type: string
+      enum: [cat5e, cat6, cat6a, sm_fiber, mm_fiber, coax_rg6, coax_rg11]
+
+    InstallType:
+      type: string
+      enum: [new_install, retrofit, deinstall]
+
+    CeilingType:
+      type: string
+      enum: [open, drywall, hard_lid]
+
+    PathwayComplexity:
+      type: string
+      enum: [low, medium, high]
+
+    BuildingType:
+      type: string
+      enum: [office, warehouse, retail, healthcare]
+
+    WorkEnvironment:
+      type: string
+      enum: [occupied, unoccupied]
+
+    SkillLevel:
+      type: string
+      enum: [apprentice, journeyman, lead]
+
+    EstimateSummary:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        installType:
+          $ref: "#/components/schemas/InstallType"
+        buildingType:
+          $ref: "#/components/schemas/BuildingType"
+        environment:
+          $ref: "#/components/schemas/WorkEnvironment"
+        skillLevel:
+          $ref: "#/components/schemas/SkillLevel"
+        hourlyRate:
+          type: number
+        runCount:
+          type: integer
+        totalDrops:
+          type: integer
+        totalHoursAvg:
+          type: number
+        totalCostAvg:
+          type: number
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        [
+          id,
+          name,
+          installType,
+          buildingType,
+          environment,
+          skillLevel,
+          hourlyRate,
+          runCount,
+          totalDrops,
+          totalHoursAvg,
+          totalCostAvg,
+          createdAt,
+          updatedAt,
+        ]
+
+    Estimate:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        installType:
+          $ref: "#/components/schemas/InstallType"
+        buildingType:
+          $ref: "#/components/schemas/BuildingType"
+        environment:
+          $ref: "#/components/schemas/WorkEnvironment"
+        skillLevel:
+          $ref: "#/components/schemas/SkillLevel"
+        hourlyRate:
+          type: number
+        notes:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        [
+          id,
+          name,
+          installType,
+          buildingType,
+          environment,
+          skillLevel,
+          hourlyRate,
+          createdAt,
+          updatedAt,
+        ]
+
+    Run:
+      type: object
+      properties:
+        id:
+          type: integer
+        estimateId:
+          type: integer
+        label:
+          type: string
+        cableType:
+          $ref: "#/components/schemas/CableType"
+        numCables:
+          type: integer
+          description: Number of cables pulled together as a group
+        lengthFt:
+          type: number
+          description: Average cable length per cable in feet
+        ceilingType:
+          $ref: "#/components/schemas/CeilingType"
+        pathwayComplexity:
+          $ref: "#/components/schemas/PathwayComplexity"
+        sortOrder:
+          type: integer
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        [
+          id,
+          estimateId,
+          label,
+          cableType,
+          numCables,
+          lengthFt,
+          ceilingType,
+          pathwayComplexity,
+          sortOrder,
+          createdAt,
+        ]
+
+    RunCalculation:
+      type: object
+      description: Computed labor breakdown for a single cable run group
+      properties:
+        runId:
+          type: integer
+        label:
+          type: string
+        cableType:
+          $ref: "#/components/schemas/CableType"
+        numCables:
+          type: integer
+        lengthFt:
+          type: number
+        ceilingType:
+          $ref: "#/components/schemas/CeilingType"
+        pathwayComplexity:
+          $ref: "#/components/schemas/PathwayComplexity"
+        baseHoursPerDrop:
+          type: number
+        bulkPullFactor:
+          type: number
+          description: Multiplier applied to pull/pathway portion (lower = more efficient bulk pull)
+        adjustedHoursPerCable:
+          type: number
+        runHoursLow:
+          type: number
+        runHoursAvg:
+          type: number
+        runHoursHigh:
+          type: number
+        runCostLow:
+          type: number
+        runCostAvg:
+          type: number
+        runCostHigh:
+          type: number
+      required:
+        [
+          label,
+          cableType,
+          numCables,
+          lengthFt,
+          ceilingType,
+          pathwayComplexity,
+          baseHoursPerDrop,
+          bulkPullFactor,
+          adjustedHoursPerCable,
+          runHoursLow,
+          runHoursAvg,
+          runHoursHigh,
+          runCostLow,
+          runCostAvg,
+          runCostHigh,
+        ]
+
+    TaskBreakdownItem:
+      type: object
+      properties:
+        task:
+          type: string
+        percent:
+          type: number
+        hoursAvg:
+          type: number
+        costAvg:
+          type: number
+      required: [task, percent, hoursAvg, costAvg]
+
+    EstimateTotals:
+      type: object
+      properties:
+        totalCables:
+          type: integer
+        totalRuns:
+          type: integer
+        totalHoursLow:
+          type: number
+        totalHoursAvg:
+          type: number
+        totalHoursHigh:
+          type: number
+        totalCostLow:
+          type: number
+        totalCostAvg:
+          type: number
+        totalCostHigh:
+          type: number
+        bulkSavingsHours:
+          type: number
+          description: Hours saved by bulk pulling vs. pulling each cable individually
+        taskBreakdown:
+          type: array
+          items:
+            $ref: "#/components/schemas/TaskBreakdownItem"
+      required:
+        [
+          totalCables,
+          totalRuns,
+          totalHoursLow,
+          totalHoursAvg,
+          totalHoursHigh,
+          totalCostLow,
+          totalCostAvg,
+          totalCostHigh,
+          bulkSavingsHours,
+          taskBreakdown,
+        ]
+
+    EstimateDetail:
+      type: object
+      properties:
+        estimate:
+          $ref: "#/components/schemas/Estimate"
+        runs:
+          type: array
+          items:
+            $ref: "#/components/schemas/RunCalculation"
+        totals:
+          $ref: "#/components/schemas/EstimateTotals"
+      required: [estimate, runs, totals]
+
+    CreateEstimateBody:
+      type: object
+      properties:
+        name:
+          type: string
+        installType:
+          $ref: "#/components/schemas/InstallType"
+        buildingType:
+          $ref: "#/components/schemas/BuildingType"
+        environment:
+          $ref: "#/components/schemas/WorkEnvironment"
+        skillLevel:
+          $ref: "#/components/schemas/SkillLevel"
+        hourlyRate:
+          type: number
+        notes:
+          type: string
+          nullable: true
+      required:
+        [name, installType, buildingType, environment, skillLevel, hourlyRate]
+
+    UpdateEstimateBody:
+      type: object
+      properties:
+        name:
+          type: string
+        installType:
+          $ref: "#/components/schemas/InstallType"
+        buildingType:
+          $ref: "#/components/schemas/BuildingType"
+        environment:
+          $ref: "#/components/schemas/WorkEnvironment"
+        skillLevel:
+          $ref: "#/components/schemas/SkillLevel"
+        hourlyRate:
+          type: number
+        notes:
+          type: string
+          nullable: true
+      required:
+        [name, installType, buildingType, environment, skillLevel, hourlyRate]
+
+    CreateRunBody:
+      type: object
+      properties:
+        label:
+          type: string
+        cableType:
+          $ref: "#/components/schemas/CableType"
+        numCables:
+          type: integer
+        lengthFt:
+          type: number
+        ceilingType:
+          $ref: "#/components/schemas/CeilingType"
+        pathwayComplexity:
+          $ref: "#/components/schemas/PathwayComplexity"
+      required:
+        [
+          label,
+          cableType,
+          numCables,
+          lengthFt,
+          ceilingType,
+          pathwayComplexity,
+        ]
+
+    UpdateRunBody:
+      type: object
+      properties:
+        label:
+          type: string
+        cableType:
+          $ref: "#/components/schemas/CableType"
+        numCables:
+          type: integer
+        lengthFt:
+          type: number
+        ceilingType:
+          $ref: "#/components/schemas/CeilingType"
+        pathwayComplexity:
+          $ref: "#/components/schemas/PathwayComplexity"
+      required:
+        [
+          label,
+          cableType,
+          numCables,
+          lengthFt,
+          ceilingType,
+          pathwayComplexity,
+        ]
+
+    RatesConfig:
+      type: object
+      properties:
+        baseHoursPerDrop:
+          type: object
+          properties:
+            cat5e: { type: number }
+            cat6: { type: number }
+            cat6a: { type: number }
+            sm_fiber: { type: number }
+            mm_fiber: { type: number }
+            coax_rg6: { type: number }
+            coax_rg11: { type: number }
+          required:
+            [cat5e, cat6, cat6a, sm_fiber, mm_fiber, coax_rg6, coax_rg11]
+        installTypeMult:
+          type: object
+          properties:
+            new_install: { type: number }
+            retrofit: { type: number }
+            deinstall: { type: number }
+          required: [new_install, retrofit, deinstall]
+        ceilingMult:
+          type: object
+          properties:
+            open: { type: number }
+            drywall: { type: number }
+            hard_lid: { type: number }
+          required: [open, drywall, hard_lid]
+        pathwayMult:
+          type: object
+          properties:
+            low: { type: number }
+            medium: { type: number }
+            high: { type: number }
+          required: [low, medium, high]
+        buildingMult:
+          type: object
+          properties:
+            office: { type: number }
+            warehouse: { type: number }
+            retail: { type: number }
+            healthcare: { type: number }
+          required: [office, warehouse, retail, healthcare]
+        environmentMult:
+          type: object
+          properties:
+            occupied: { type: number }
+            unoccupied: { type: number }
+          required: [occupied, unoccupied]
+        skillMult:
+          type: object
+          properties:
+            apprentice: { type: number }
+            journeyman: { type: number }
+            lead: { type: number }
+          required: [apprentice, journeyman, lead]
+        bulkPullFactors:
+          type: object
+          description: Multiplier applied to the pull/pathway portion based on number of cables in a run
+          properties:
+            single: { type: number, description: "1 cable" }
+            small: { type: number, description: "2 cables" }
+            medium: { type: number, description: "3-4 cables" }
+            large: { type: number, description: "5-8 cables" }
+            xlarge: { type: number, description: "9-12 cables" }
+            xxlarge: { type: number, description: "13-24 cables" }
+            massive: { type: number, description: "25+ cables" }
+          required: [single, small, medium, large, xlarge, xxlarge, massive]
+        pullPortionPct:
+          type: number
+          description: Percent of base time that is pull/pathway work (subject to bulk savings)
+        lengthAdd150ft:
+          type: number
+          description: Hours added per cable when length > 150ft
+        lengthAdd250ft:
+          type: number
+          description: Hours added per cable when length > 250ft
+      required:
+        [
+          baseHoursPerDrop,
+          installTypeMult,
+          ceilingMult,
+          pathwayMult,
+          buildingMult,
+          environmentMult,
+          skillMult,
+          bulkPullFactors,
+          pullPortionPct,
+          lengthAdd150ft,
+          lengthAdd250ft,
+        ]
+
+    CalculationInput:
+      type: object
+      properties:
+        installType:
+          $ref: "#/components/schemas/InstallType"
+        buildingType:
+          $ref: "#/components/schemas/BuildingType"
+        environment:
+          $ref: "#/components/schemas/WorkEnvironment"
+        skillLevel:
+          $ref: "#/components/schemas/SkillLevel"
+        hourlyRate:
+          type: number
+        runs:
+          type: array
+          items:
+            $ref: "#/components/schemas/CreateRunBody"
+      required:
+        [installType, buildingType, environment, skillLevel, hourlyRate, runs]
+
+    CalculationResult:
+      type: object
+      properties:
+        runs:
+          type: array
+          items:
+            $ref: "#/components/schemas/RunCalculation"
+        totals:
+          $ref: "#/components/schemas/EstimateTotals"
+      required: [runs, totals]

@@ -1,389 +1,968 @@
-import React, { useMemo, useState } from "react";
-import { useRates, CableType, InstallType, CeilingType, PathwayComplexity, BuildingType, WorkEnvironment, SkillLevel } from "@/lib/store";
+import { useState } from "react";
+import {
+  useListEstimates,
+  useGetEstimate,
+  useCreateEstimate,
+  useUpdateEstimate,
+  useDeleteEstimate,
+  useCreateRun,
+  useUpdateRun,
+  useDeleteRun,
+  getGetEstimateQueryKey,
+} from "@workspace/api-client-react";
+import type {
+  CreateEstimateBody,
+  UpdateEstimateBody,
+  CreateRunBody,
+  UpdateRunBody,
+} from "@workspace/api-client-react";
+import { useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Switch } from "@/components/ui/switch";
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Printer, Calculator as CalculatorIcon, AlertCircle } from "lucide-react";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Cell } from "recharts";
+import { Badge } from "@/components/ui/badge";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Plus,
+  Trash2,
+  Pencil,
+  Calculator as CalcIcon,
+  FileText,
+  Cable,
+  Clock,
+  DollarSign,
+  TrendingDown,
+} from "lucide-react";
+import {
+  CABLE_TYPES,
+  INSTALL_TYPES,
+  CEILING_TYPES,
+  PATHWAY_LEVELS,
+  BUILDING_TYPES,
+  ENVIRONMENTS,
+  SKILL_LEVELS,
+  labelFor,
+} from "@/lib/options";
+
+const fmtHours = (n: number) => `${n.toFixed(1)} h`;
+const fmtMoney = (n: number) =>
+  `$${n.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+
+type EstimateForm = CreateEstimateBody;
+type RunForm = CreateRunBody;
+
+const DEFAULT_ESTIMATE: EstimateForm = {
+  name: "",
+  installType: "new_install",
+  buildingType: "office",
+  environment: "unoccupied",
+  skillLevel: "journeyman",
+  hourlyRate: 85,
+  notes: "",
+};
+
+const DEFAULT_RUN: RunForm = {
+  label: "",
+  cableType: "cat6",
+  numCables: 12,
+  lengthFt: 150,
+  ceilingType: "drywall",
+  pathwayComplexity: "medium",
+};
 
 export default function Estimator() {
-  const { rates, isLoaded } = useRates();
+  const queryClient = useQueryClient();
+  const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [newEstOpen, setNewEstOpen] = useState(false);
+  const [newEstForm, setNewEstForm] = useState<EstimateForm>(DEFAULT_ESTIMATE);
 
-  // State
-  const [projectName, setProjectName] = useState("");
-  const [installType, setInstallType] = useState<InstallType>("New Install");
-  const [buildingType, setBuildingType] = useState<BuildingType>("Office");
-  const [workEnv, setWorkEnv] = useState<WorkEnvironment>("Unoccupied");
+  const { data: estimates = [] } = useListEstimates();
+  const { data: detail } = useGetEstimate(selectedId ?? 0, {
+    query: {
+      enabled: selectedId !== null,
+      queryKey: getGetEstimateQueryKey(selectedId ?? 0),
+    },
+  });
 
-  const [numDrops, setNumDrops] = useState<number>(24);
-  const [cableType, setCableType] = useState<CableType>("Cat6");
-  const [avgLength, setAvgLength] = useState<number>(120);
+  const createEstimate = useCreateEstimate({
+    mutation: {
+      onSuccess: (created) => {
+        queryClient.invalidateQueries({ queryKey: ["/api/estimates"] });
+        setSelectedId(created.id);
+        setNewEstOpen(false);
+        setNewEstForm(DEFAULT_ESTIMATE);
+      },
+    },
+  });
 
-  const [ceilingType, setCeilingType] = useState<CeilingType>("Drywall/T-bar");
-  const [pathway, setPathway] = useState<PathwayComplexity>("Medium");
-  const [skillLevel, setSkillLevel] = useState<SkillLevel>("Journeyman");
+  const deleteEstimate = useDeleteEstimate({
+    mutation: {
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ["/api/estimates"] });
+        setSelectedId(null);
+      },
+    },
+  });
 
-  const [hourlyRate, setHourlyRate] = useState<number>(75);
+  return (
+    <div className="space-y-6">
+      <div className="flex items-start justify-between gap-4 flex-wrap">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">
+            Cabling Labor Estimator
+          </h1>
+          <p className="text-muted-foreground mt-1">
+            Build estimates with multiple cable runs. Bulk pulling efficiency is
+            applied automatically.
+          </p>
+        </div>
+        <Button
+          onClick={() => setNewEstOpen(true)}
+          data-testid="button-new-estimate"
+        >
+          <Plus className="w-4 h-4 mr-2" /> New Estimate
+        </Button>
+      </div>
 
-  // Derived calculations
-  const calculations = useMemo(() => {
-    if (!isLoaded) return null;
+      <div className="grid gap-6 lg:grid-cols-[320px_1fr]">
+        <Card className="h-fit">
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <FileText className="w-4 h-4" /> Saved Estimates
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            {estimates.length === 0 && (
+              <p className="text-sm text-muted-foreground">
+                No estimates yet. Click "New Estimate" to start.
+              </p>
+            )}
+            {estimates.map((e) => (
+              <button
+                key={e.id}
+                onClick={() => setSelectedId(e.id)}
+                data-testid={`estimate-item-${e.id}`}
+                className={`w-full text-left p-3 rounded-md border transition-colors ${
+                  selectedId === e.id
+                    ? "border-primary bg-primary/10"
+                    : "border-border hover:bg-muted"
+                }`}
+              >
+                <div className="font-medium text-sm truncate">{e.name}</div>
+                <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
+                  <Cable className="w-3 h-3" />
+                  {e.runCount} run{e.runCount === 1 ? "" : "s"} · {e.totalDrops}{" "}
+                  cables
+                </div>
+                <div className="flex items-center justify-between mt-1 text-xs">
+                  <span className="text-muted-foreground">
+                    {fmtHours(e.totalHoursAvg)}
+                  </span>
+                  <span className="font-medium">
+                    {fmtMoney(e.totalCostAvg)}
+                  </span>
+                </div>
+              </button>
+            ))}
+          </CardContent>
+        </Card>
 
-    const baseHrs = rates.cableTypes[cableType];
-    const mInstall = rates.installTypes[installType];
-    const mCeiling = rates.ceilingTypes[ceilingType];
-    const mPathway = rates.pathwayComplexity[pathway];
-    const mBuilding = rates.buildingTypes[buildingType];
-    const mEnv = rates.workEnvironment[workEnv];
-    const mSkill = rates.skillLevels[skillLevel];
+        <div className="min-w-0">
+          {!selectedId ? (
+            <Card>
+              <CardContent className="py-16 text-center text-muted-foreground">
+                <CalcIcon className="w-10 h-10 mx-auto mb-3 opacity-50" />
+                <p>Select an estimate or create a new one to get started.</p>
+              </CardContent>
+            </Card>
+          ) : detail ? (
+            <EstimateDetail
+              detail={detail}
+              onDelete={() =>
+                deleteEstimate.mutate({ id: detail.estimate.id })
+              }
+            />
+          ) : (
+            <Card>
+              <CardContent className="py-16 text-center text-muted-foreground">
+                Loading...
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      </div>
 
-    let lengthAdd = 0;
-    if (avgLength > 250) lengthAdd = 0.35;
-    else if (avgLength > 150) lengthAdd = 0.15;
+      <Dialog open={newEstOpen} onOpenChange={setNewEstOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>New Estimate</DialogTitle>
+            <DialogDescription>
+              Set the project context. You can add cable runs after.
+            </DialogDescription>
+          </DialogHeader>
+          <EstimateFormFields form={newEstForm} setForm={setNewEstForm} />
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setNewEstOpen(false)}
+              data-testid="button-cancel-estimate"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={() =>
+                createEstimate.mutate({
+                  data: {
+                    ...newEstForm,
+                    notes: newEstForm.notes || undefined,
+                  },
+                })
+              }
+              disabled={!newEstForm.name.trim() || createEstimate.isPending}
+              data-testid="button-save-estimate"
+            >
+              Create
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
 
-    const adjustedHoursPerDrop = (baseHrs * mInstall * mCeiling * mPathway * mBuilding * mEnv * mSkill) + lengthAdd;
-    const totalHoursAvg = adjustedHoursPerDrop * numDrops;
-    
-    const lowHours = totalHoursAvg * 0.85;
-    const highHours = totalHoursAvg * 1.20;
+function EstimateFormFields({
+  form,
+  setForm,
+}: {
+  form: EstimateForm;
+  setForm: (f: EstimateForm) => void;
+}) {
+  return (
+    <div className="grid gap-4">
+      <div>
+        <Label htmlFor="est-name">Estimate Name</Label>
+        <Input
+          id="est-name"
+          value={form.name}
+          onChange={(e) => setForm({ ...form, name: e.target.value })}
+          placeholder="e.g. Acme HQ Floor 3 Refresh"
+          data-testid="input-estimate-name"
+        />
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <Label>Install Type</Label>
+          <Select
+            value={form.installType}
+            onValueChange={(v) => setForm({ ...form, installType: v as EstimateForm["installType"] })}
+          >
+            <SelectTrigger data-testid="select-install-type">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {INSTALL_TYPES.map((o) => (
+                <SelectItem key={o.value} value={o.value}>
+                  {o.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div>
+          <Label>Building Type</Label>
+          <Select
+            value={form.buildingType}
+            onValueChange={(v) => setForm({ ...form, buildingType: v as EstimateForm["buildingType"] })}
+          >
+            <SelectTrigger data-testid="select-building-type">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {BUILDING_TYPES.map((o) => (
+                <SelectItem key={o.value} value={o.value}>
+                  {o.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div>
+          <Label>Environment</Label>
+          <Select
+            value={form.environment}
+            onValueChange={(v) => setForm({ ...form, environment: v as EstimateForm["environment"] })}
+          >
+            <SelectTrigger data-testid="select-environment">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {ENVIRONMENTS.map((o) => (
+                <SelectItem key={o.value} value={o.value}>
+                  {o.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div>
+          <Label>Skill Level</Label>
+          <Select
+            value={form.skillLevel}
+            onValueChange={(v) => setForm({ ...form, skillLevel: v as EstimateForm["skillLevel"] })}
+          >
+            <SelectTrigger data-testid="select-skill-level">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {SKILL_LEVELS.map((o) => (
+                <SelectItem key={o.value} value={o.value}>
+                  {o.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="col-span-2">
+          <Label htmlFor="est-rate">Hourly Rate ($)</Label>
+          <Input
+            id="est-rate"
+            type="number"
+            value={form.hourlyRate}
+            onChange={(e) =>
+              setForm({ ...form, hourlyRate: Number(e.target.value) || 0 })
+            }
+            data-testid="input-hourly-rate"
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
 
-    const avgCost = totalHoursAvg * hourlyRate;
-    const lowCost = lowHours * hourlyRate;
-    const highCost = highHours * hourlyRate;
+interface EstimateDetailData {
+  estimate: {
+    id: number;
+    name: string;
+    installType: string;
+    buildingType: string;
+    environment: string;
+    skillLevel: string;
+    hourlyRate: number;
+    notes?: string | null;
+  };
+  runs: Array<{
+    runId?: number;
+    label: string;
+    cableType: string;
+    numCables: number;
+    lengthFt: number;
+    ceilingType: string;
+    pathwayComplexity: string;
+    bulkPullFactor: number;
+    adjustedHoursPerCable: number;
+    runHoursLow: number;
+    runHoursAvg: number;
+    runHoursHigh: number;
+    runCostLow: number;
+    runCostAvg: number;
+    runCostHigh: number;
+  }>;
+  totals: {
+    totalCables: number;
+    totalRuns: number;
+    totalHoursLow: number;
+    totalHoursAvg: number;
+    totalHoursHigh: number;
+    totalCostLow: number;
+    totalCostAvg: number;
+    totalCostHigh: number;
+    bulkSavingsHours: number;
+    taskBreakdown: Array<{
+      task: string;
+      percent: number;
+      hoursAvg: number;
+      costAvg: number;
+    }>;
+  };
+}
 
-    const taskBreakdown = [
-      { name: "Cable Pull", pct: 0.35 },
-      { name: "Term & Test", pct: 0.30 },
-      { name: "Label & Doc", pct: 0.10 },
-      { name: "Pathway", pct: 0.15 },
-      { name: "Cleanup", pct: 0.10 },
-    ].map(t => ({
-      name: t.name,
-      hours: totalHoursAvg * t.pct,
-      cost: totalHoursAvg * t.pct * hourlyRate
-    }));
+function EstimateDetail({
+  detail,
+  onDelete,
+}: {
+  detail: EstimateDetailData;
+  onDelete: () => void;
+}) {
+  const queryClient = useQueryClient();
+  const { estimate, runs, totals } = detail;
+  const [editingContext, setEditingContext] = useState(false);
+  const [contextForm, setContextForm] = useState<EstimateForm>({
+    name: estimate.name,
+    installType: estimate.installType as EstimateForm["installType"],
+    buildingType: estimate.buildingType as EstimateForm["buildingType"],
+    environment: estimate.environment as EstimateForm["environment"],
+    skillLevel: estimate.skillLevel as EstimateForm["skillLevel"],
+    hourlyRate: estimate.hourlyRate,
+    notes: estimate.notes ?? "",
+  });
 
-    return {
-      baseHrs,
-      multipliers: { mInstall, mCeiling, mPathway, mBuilding, mEnv, mSkill, lengthAdd },
-      adjustedHoursPerDrop,
-      totalHoursAvg,
-      lowHours,
-      highHours,
-      avgCost,
-      lowCost,
-      highCost,
-      taskBreakdown
-    };
-  }, [rates, isLoaded, cableType, installType, ceilingType, pathway, buildingType, workEnv, skillLevel, avgLength, numDrops, hourlyRate]);
+  const [runDialogOpen, setRunDialogOpen] = useState(false);
+  const [runForm, setRunForm] = useState<RunForm>(DEFAULT_RUN);
+  const [editingRunId, setEditingRunId] = useState<number | null>(null);
 
-  if (!isLoaded || !calculations) return <div className="p-8 text-center text-muted-foreground animate-pulse">Loading engine...</div>;
+  const invalidate = () => {
+    queryClient.invalidateQueries({ queryKey: ["/api/estimates"] });
+    queryClient.invalidateQueries({
+      queryKey: [`/api/estimates/${estimate.id}`],
+    });
+  };
 
-  const chartData = [
-    { name: "Optimistic", hours: calculations.lowHours, fill: "hsl(var(--chart-3))" },
-    { name: "Expected", hours: calculations.totalHoursAvg, fill: "hsl(var(--primary))" },
-    { name: "Conservative", hours: calculations.highHours, fill: "hsl(var(--chart-4))" },
-  ];
+  const updateEstimate = useUpdateEstimate({
+    mutation: {
+      onSuccess: () => {
+        invalidate();
+        setEditingContext(false);
+      },
+    },
+  });
 
-  const handlePrint = () => {
-    window.print();
+  const createRun = useCreateRun({
+    mutation: {
+      onSuccess: () => {
+        invalidate();
+        setRunDialogOpen(false);
+        setRunForm(DEFAULT_RUN);
+      },
+    },
+  });
+
+  const updateRun = useUpdateRun({
+    mutation: {
+      onSuccess: () => {
+        invalidate();
+        setRunDialogOpen(false);
+        setEditingRunId(null);
+        setRunForm(DEFAULT_RUN);
+      },
+    },
+  });
+
+  const deleteRun = useDeleteRun({
+    mutation: { onSuccess: invalidate },
+  });
+
+  const openNewRun = () => {
+    setEditingRunId(null);
+    setRunForm({ ...DEFAULT_RUN, label: `Run ${runs.length + 1}` });
+    setRunDialogOpen(true);
+  };
+
+  const openEditRun = (r: EstimateDetailData["runs"][number]) => {
+    setEditingRunId(r.runId ?? null);
+    setRunForm({
+      label: r.label,
+      cableType: r.cableType as RunForm["cableType"],
+      numCables: r.numCables,
+      lengthFt: r.lengthFt,
+      ceilingType: r.ceilingType as RunForm["ceilingType"],
+      pathwayComplexity: r.pathwayComplexity as RunForm["pathwayComplexity"],
+    });
+    setRunDialogOpen(true);
+  };
+
+  const submitRun = () => {
+    if (editingRunId !== null) {
+      updateRun.mutate({ id: editingRunId, data: runForm });
+    } else {
+      createRun.mutate({ id: estimate.id, data: runForm });
+    }
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 max-w-7xl mx-auto pb-20">
-      <div className="lg:col-span-5 space-y-6 print:hidden">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
-            <CalculatorIcon className="w-8 h-8 text-primary" />
-            Estimator
-          </h1>
-          <p className="text-muted-foreground mt-1">Configure project variables to calculate labor requirements.</p>
-        </div>
-
-        <Card>
-          <CardHeader className="pb-4">
-            <CardTitle className="text-lg">1. Project Setup</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label>Project Name (Optional)</Label>
-              <Input value={projectName} onChange={e => setProjectName(e.target.value)} placeholder="e.g. Acme Corp HQ" data-testid="input-project-name" />
+    <div className="space-y-6">
+      <Card>
+        <CardHeader className="flex flex-row items-start justify-between gap-2 space-y-0">
+          <div>
+            <CardTitle data-testid="text-estimate-name">
+              {estimate.name}
+            </CardTitle>
+            <div className="flex flex-wrap gap-2 mt-2">
+              <Badge variant="secondary">
+                {labelFor(INSTALL_TYPES, estimate.installType)}
+              </Badge>
+              <Badge variant="secondary">
+                {labelFor(BUILDING_TYPES, estimate.buildingType)}
+              </Badge>
+              <Badge variant="secondary">
+                {labelFor(ENVIRONMENTS, estimate.environment)}
+              </Badge>
+              <Badge variant="secondary">
+                {labelFor(SKILL_LEVELS, estimate.skillLevel)}
+              </Badge>
+              <Badge variant="outline">${estimate.hourlyRate}/hr</Badge>
             </div>
-            
-            <div className="space-y-2">
-              <Label>Installation Type</Label>
-              <Select value={installType} onValueChange={(v: InstallType) => setInstallType(v)}>
-                <SelectTrigger data-testid="select-install-type">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="New Install">New Install</SelectItem>
-                  <SelectItem value="Retrofit">Retrofit</SelectItem>
-                  <SelectItem value="De-install">De-install</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+          </div>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setEditingContext(true)}
+              data-testid="button-edit-context"
+            >
+              <Pencil className="w-3.5 h-3.5 mr-1.5" /> Edit
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onDelete}
+              data-testid="button-delete-estimate"
+            >
+              <Trash2 className="w-3.5 h-3.5 mr-1.5 text-destructive" /> Delete
+            </Button>
+          </div>
+        </CardHeader>
+      </Card>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Building Type</Label>
-                <Select value={buildingType} onValueChange={(v: BuildingType) => setBuildingType(v)}>
-                  <SelectTrigger data-testid="select-building-type">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Office">Office</SelectItem>
-                    <SelectItem value="Warehouse">Warehouse</SelectItem>
-                    <SelectItem value="Retail">Retail</SelectItem>
-                    <SelectItem value="Healthcare">Healthcare</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label>Work Environment</Label>
-                <Select value={workEnv} onValueChange={(v: WorkEnvironment) => setWorkEnv(v)}>
-                  <SelectTrigger data-testid="select-work-env">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Unoccupied">Unoccupied</SelectItem>
-                    <SelectItem value="Occupied">Occupied</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+      {/* Totals */}
+      <div className="grid gap-4 md:grid-cols-4">
+        <StatCard
+          icon={<Cable className="w-4 h-4" />}
+          label="Cables / Runs"
+          value={`${totals.totalCables} / ${totals.totalRuns}`}
+        />
+        <StatCard
+          icon={<Clock className="w-4 h-4" />}
+          label="Total Hours (avg)"
+          value={fmtHours(totals.totalHoursAvg)}
+          sub={`${fmtHours(totals.totalHoursLow)} – ${fmtHours(totals.totalHoursHigh)}`}
+        />
+        <StatCard
+          icon={<DollarSign className="w-4 h-4" />}
+          label="Total Cost (avg)"
+          value={fmtMoney(totals.totalCostAvg)}
+          sub={`${fmtMoney(totals.totalCostLow)} – ${fmtMoney(totals.totalCostHigh)}`}
+          highlight
+        />
+        <StatCard
+          icon={<TrendingDown className="w-4 h-4" />}
+          label="Bulk Pull Savings"
+          value={fmtHours(totals.bulkSavingsHours)}
+          sub="vs. pulling each cable solo"
+        />
+      </div>
 
-        <Card>
-          <CardHeader className="pb-4">
-            <CardTitle className="text-lg">2. Cable Drops</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Number of Drops</Label>
-                <Input type="number" min={1} value={numDrops} onChange={e => setNumDrops(Number(e.target.value) || 1)} data-testid="input-num-drops" />
-              </div>
-              <div className="space-y-2">
-                <Label>Avg. Length (ft)</Label>
-                <Input type="number" min={1} value={avgLength} onChange={e => setAvgLength(Number(e.target.value) || 0)} data-testid="input-avg-length" />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Cable Type</Label>
-              <Select value={cableType} onValueChange={(v: CableType) => setCableType(v)}>
-                <SelectTrigger data-testid="select-cable-type">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {Object.keys(rates.cableTypes).map(type => (
-                    <SelectItem key={type} value={type}>{type}</SelectItem>
+      {/* Runs Table */}
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0">
+          <CardTitle className="text-base">Cable Runs</CardTitle>
+          <Button size="sm" onClick={openNewRun} data-testid="button-add-run">
+            <Plus className="w-4 h-4 mr-1.5" /> Add Run
+          </Button>
+        </CardHeader>
+        <CardContent>
+          {runs.length === 0 ? (
+            <p className="text-sm text-muted-foreground py-8 text-center">
+              No runs yet. Add the first cable run for this estimate.
+            </p>
+          ) : (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Label</TableHead>
+                    <TableHead>Cable</TableHead>
+                    <TableHead className="text-right"># Cables</TableHead>
+                    <TableHead className="text-right">Length</TableHead>
+                    <TableHead>Ceiling</TableHead>
+                    <TableHead>Pathway</TableHead>
+                    <TableHead className="text-right">Bulk Factor</TableHead>
+                    <TableHead className="text-right">Hrs / Cable</TableHead>
+                    <TableHead className="text-right">Hrs (avg)</TableHead>
+                    <TableHead className="text-right">Cost (avg)</TableHead>
+                    <TableHead></TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {runs.map((r, i) => (
+                    <TableRow
+                      key={r.runId ?? i}
+                      data-testid={`row-run-${r.runId}`}
+                    >
+                      <TableCell className="font-medium">{r.label}</TableCell>
+                      <TableCell>{labelFor(CABLE_TYPES, r.cableType)}</TableCell>
+                      <TableCell className="text-right">{r.numCables}</TableCell>
+                      <TableCell className="text-right">
+                        {r.lengthFt} ft
+                      </TableCell>
+                      <TableCell>
+                        {labelFor(CEILING_TYPES, r.ceilingType)}
+                      </TableCell>
+                      <TableCell>
+                        {labelFor(PATHWAY_LEVELS, r.pathwayComplexity)}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Badge
+                          variant={r.bulkPullFactor < 1 ? "default" : "outline"}
+                          className="font-mono"
+                        >
+                          {r.bulkPullFactor.toFixed(2)}×
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right font-mono">
+                        {r.adjustedHoursPerCable.toFixed(2)}
+                      </TableCell>
+                      <TableCell className="text-right font-mono">
+                        {r.runHoursAvg.toFixed(1)}
+                      </TableCell>
+                      <TableCell className="text-right font-mono font-medium">
+                        {fmtMoney(r.runCostAvg)}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex gap-1 justify-end">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7"
+                            onClick={() => openEditRun(r)}
+                            data-testid={`button-edit-run-${r.runId}`}
+                          >
+                            <Pencil className="w-3.5 h-3.5" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7"
+                            onClick={() =>
+                              r.runId && deleteRun.mutate({ id: r.runId })
+                            }
+                            data-testid={`button-delete-run-${r.runId}`}
+                          >
+                            <Trash2 className="w-3.5 h-3.5 text-destructive" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
                   ))}
-                </SelectContent>
-              </Select>
+                </TableBody>
+              </Table>
             </div>
-          </CardContent>
-        </Card>
+          )}
+        </CardContent>
+      </Card>
 
-        <Card>
-          <CardHeader className="pb-4">
-            <CardTitle className="text-lg">3. Environmental Factors</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label>Ceiling Type</Label>
-              <Select value={ceilingType} onValueChange={(v: CeilingType) => setCeilingType(v)}>
-                <SelectTrigger data-testid="select-ceiling">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Open">Open</SelectItem>
-                  <SelectItem value="Drywall/T-bar">Drywall/T-bar</SelectItem>
-                  <SelectItem value="Hard-lid/Concrete">Hard-lid/Concrete</SelectItem>
-                </SelectContent>
-              </Select>
+      {/* Task Breakdown & Range Table */}
+      {runs.length > 0 && (
+        <div className="grid gap-6 md:grid-cols-2">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Task Breakdown</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Task</TableHead>
+                    <TableHead className="text-right">% of Effort</TableHead>
+                    <TableHead className="text-right">Hours</TableHead>
+                    <TableHead className="text-right">Cost</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {totals.taskBreakdown.map((t) => (
+                    <TableRow key={t.task}>
+                      <TableCell>{t.task}</TableCell>
+                      <TableCell className="text-right font-mono">
+                        {(t.percent * 100).toFixed(0)}%
+                      </TableCell>
+                      <TableCell className="text-right font-mono">
+                        {t.hoursAvg.toFixed(1)}
+                      </TableCell>
+                      <TableCell className="text-right font-mono">
+                        {fmtMoney(t.costAvg)}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Estimate Range</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Scenario</TableHead>
+                    <TableHead className="text-right">Hours</TableHead>
+                    <TableHead className="text-right">Cost</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  <TableRow>
+                    <TableCell>
+                      <Badge variant="outline" className="text-emerald-500">
+                        Low (best case)
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right font-mono">
+                      {totals.totalHoursLow.toFixed(1)}
+                    </TableCell>
+                    <TableCell className="text-right font-mono">
+                      {fmtMoney(totals.totalCostLow)}
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>
+                      <Badge>Average</Badge>
+                    </TableCell>
+                    <TableCell className="text-right font-mono font-bold">
+                      {totals.totalHoursAvg.toFixed(1)}
+                    </TableCell>
+                    <TableCell className="text-right font-mono font-bold">
+                      {fmtMoney(totals.totalCostAvg)}
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>
+                      <Badge variant="outline" className="text-amber-500">
+                        High (worst case)
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right font-mono">
+                      {totals.totalHoursHigh.toFixed(1)}
+                    </TableCell>
+                    <TableCell className="text-right font-mono">
+                      {fmtMoney(totals.totalCostHigh)}
+                    </TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Edit context dialog */}
+      <Dialog open={editingContext} onOpenChange={setEditingContext}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Edit Estimate Context</DialogTitle>
+          </DialogHeader>
+          <EstimateFormFields form={contextForm} setForm={setContextForm} />
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditingContext(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={() =>
+                updateEstimate.mutate({
+                  id: estimate.id,
+                  data: {
+                    ...contextForm,
+                    notes: contextForm.notes || undefined,
+                  },
+                })
+              }
+              data-testid="button-save-context"
+            >
+              Save
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Run dialog */}
+      <Dialog open={runDialogOpen} onOpenChange={setRunDialogOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>
+              {editingRunId !== null ? "Edit Run" : "Add Cable Run"}
+            </DialogTitle>
+            <DialogDescription>
+              Pulling multiple cables together reduces per-cable pull time.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4">
+            <div>
+              <Label htmlFor="run-label">Run Label</Label>
+              <Input
+                id="run-label"
+                value={runForm.label}
+                onChange={(e) =>
+                  setRunForm({ ...runForm, label: e.target.value })
+                }
+                placeholder="e.g. Floor 3 Workstations"
+                data-testid="input-run-label"
+              />
             </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label>Cable Type</Label>
+                <Select
+                  value={runForm.cableType}
+                  onValueChange={(v) =>
+                    setRunForm({ ...runForm, cableType: v as RunForm["cableType"] })
+                  }
+                >
+                  <SelectTrigger data-testid="select-cable-type">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {CABLE_TYPES.map((o) => (
+                      <SelectItem key={o.value} value={o.value}>
+                        {o.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="run-num"># of Cables</Label>
+                <Input
+                  id="run-num"
+                  type="number"
+                  min={1}
+                  value={runForm.numCables}
+                  onChange={(e) =>
+                    setRunForm({
+                      ...runForm,
+                      numCables: Math.max(1, Number(e.target.value) || 1),
+                    })
+                  }
+                  data-testid="input-num-cables"
+                />
+              </div>
+              <div>
+                <Label htmlFor="run-len">Avg Length (ft)</Label>
+                <Input
+                  id="run-len"
+                  type="number"
+                  min={1}
+                  value={runForm.lengthFt}
+                  onChange={(e) =>
+                    setRunForm({
+                      ...runForm,
+                      lengthFt: Math.max(1, Number(e.target.value) || 1),
+                    })
+                  }
+                  data-testid="input-length"
+                />
+              </div>
+              <div>
+                <Label>Ceiling Type</Label>
+                <Select
+                  value={runForm.ceilingType}
+                  onValueChange={(v) =>
+                    setRunForm({ ...runForm, ceilingType: v as RunForm["ceilingType"] })
+                  }
+                >
+                  <SelectTrigger data-testid="select-ceiling">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {CEILING_TYPES.map((o) => (
+                      <SelectItem key={o.value} value={o.value}>
+                        {o.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="col-span-2">
                 <Label>Pathway Complexity</Label>
-                <Select value={pathway} onValueChange={(v: PathwayComplexity) => setPathway(v)}>
+                <Select
+                  value={runForm.pathwayComplexity}
+                  onValueChange={(v) =>
+                    setRunForm({ ...runForm, pathwayComplexity: v as RunForm["pathwayComplexity"] })
+                  }
+                >
                   <SelectTrigger data-testid="select-pathway">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Low">Low</SelectItem>
-                    <SelectItem value="Medium">Medium</SelectItem>
-                    <SelectItem value="High">High</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label>Labor Skill Level</Label>
-                <Select value={skillLevel} onValueChange={(v: SkillLevel) => setSkillLevel(v)}>
-                  <SelectTrigger data-testid="select-skill">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Apprentice">Apprentice</SelectItem>
-                    <SelectItem value="Journeyman">Journeyman</SelectItem>
-                    <SelectItem value="Lead/Foreman">Lead/Foreman</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-4">
-            <CardTitle className="text-lg">4. Financial</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              <Label>Hourly Labor Rate ($)</Label>
-              <Input type="number" min={1} value={hourlyRate} onChange={e => setHourlyRate(Number(e.target.value) || 0)} data-testid="input-hourly-rate" />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="lg:col-span-7 space-y-6">
-        <div className="sticky top-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-2xl font-bold tracking-tight">Estimate Results</h2>
-            <Button variant="outline" size="sm" onClick={handlePrint} className="print:hidden">
-              <Printer className="w-4 h-4 mr-2" />
-              Print / Export
-            </Button>
-          </div>
-
-          {projectName && <h3 className="text-xl font-medium text-primary mb-4 hidden print:block">{projectName}</h3>}
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            <Card className="bg-primary/10 border-primary/20">
-              <CardContent className="p-6">
-                <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-1">Total Hours</p>
-                <p className="text-3xl font-bold font-mono text-primary" data-testid="val-total-hours">{calculations.totalHoursAvg.toFixed(1)}h</p>
-              </CardContent>
-            </Card>
-            <Card className="bg-primary/10 border-primary/20">
-              <CardContent className="p-6">
-                <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-1">Total Labor Cost</p>
-                <p className="text-3xl font-bold font-mono text-primary" data-testid="val-total-cost">${calculations.avgCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardContent className="p-6">
-                <p className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-1">Hours / Drop</p>
-                <p className="text-3xl font-bold font-mono" data-testid="val-hours-per-drop">{calculations.adjustedHoursPerDrop.toFixed(2)}h</p>
-              </CardContent>
-            </Card>
-          </div>
-
-          <Card className="mb-6">
-            <CardHeader className="pb-2 border-b border-border/50">
-              <CardTitle className="text-base">Variance Scenarios</CardTitle>
-            </CardHeader>
-            <CardContent className="p-0">
-              <div className="grid grid-cols-3 divide-x divide-border">
-                <div className="p-4 text-center">
-                  <p className="text-sm font-medium text-muted-foreground mb-2">Low (-15%)</p>
-                  <p className="text-xl font-bold font-mono text-chart-3">{calculations.lowHours.toFixed(1)}h</p>
-                  <p className="text-sm font-mono text-muted-foreground">${calculations.lowCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
-                </div>
-                <div className="p-4 text-center bg-muted/20">
-                  <p className="text-sm font-bold text-foreground mb-2">Average</p>
-                  <p className="text-xl font-bold font-mono text-primary">{calculations.totalHoursAvg.toFixed(1)}h</p>
-                  <p className="text-sm font-mono text-muted-foreground">${calculations.avgCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
-                </div>
-                <div className="p-4 text-center">
-                  <p className="text-sm font-medium text-muted-foreground mb-2">High (+20%)</p>
-                  <p className="text-xl font-bold font-mono text-chart-4">{calculations.highHours.toFixed(1)}h</p>
-                  <p className="text-sm font-mono text-muted-foreground">${calculations.highCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="mb-6 print:hidden">
-            <CardContent className="pt-6 h-64">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={chartData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
-                  <XAxis dataKey="name" stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} />
-                  <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} tickLine={false} axisLine={false} tickFormatter={(v) => `${v}h`} />
-                  <RechartsTooltip 
-                    cursor={{ fill: 'hsl(var(--muted)/0.5)' }}
-                    contentStyle={{ backgroundColor: 'hsl(var(--card))', borderColor: 'hsl(var(--border))', borderRadius: '4px', color: 'hsl(var(--foreground))' }}
-                    itemStyle={{ color: 'hsl(var(--primary))' }}
-                    formatter={(val: number) => [`${val.toFixed(1)}h`, 'Hours']}
-                  />
-                  <Bar dataKey="hours" radius={[4, 4, 0, 0]}>
-                    {chartData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.fill} />
+                    {PATHWAY_LEVELS.map((o) => (
+                      <SelectItem key={o.value} value={o.value}>
+                        {o.label}
+                      </SelectItem>
                     ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-
-          <Card className="mb-6">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base">Task Breakdown (Average Scenario)</CardTitle>
-            </CardHeader>
-            <CardContent className="p-0">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-border bg-muted/30">
-                    <th className="text-left font-medium p-3">Phase</th>
-                    <th className="text-right font-medium p-3">Hours</th>
-                    <th className="text-right font-medium p-3">Cost</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-border">
-                  {calculations.taskBreakdown.map((task) => (
-                    <tr key={task.name}>
-                      <td className="p-3">{task.name}</td>
-                      <td className="p-3 text-right font-mono">{task.hours.toFixed(1)}h</td>
-                      <td className="p-3 text-right font-mono">${task.cost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-muted/30 print:hidden">
-            <CardContent className="p-4">
-              <div className="flex items-start gap-3">
-                <AlertCircle className="w-5 h-5 text-primary shrink-0 mt-0.5" />
-                <div>
-                  <p className="text-sm font-medium mb-2">Active Multipliers Summary</p>
-                  <div className="flex flex-wrap gap-2">
-                    <Badge variant="secondary" className="font-mono text-xs">Base: {calculations.baseHrs}h</Badge>
-                    {calculations.multipliers.mInstall !== 1 && <Badge variant="outline" className="font-mono text-xs">Install: {calculations.multipliers.mInstall}x</Badge>}
-                    {calculations.multipliers.mCeiling !== 1 && <Badge variant="outline" className="font-mono text-xs">Ceiling: {calculations.multipliers.mCeiling}x</Badge>}
-                    {calculations.multipliers.mPathway !== 1 && <Badge variant="outline" className="font-mono text-xs">Pathway: {calculations.multipliers.mPathway}x</Badge>}
-                    {calculations.multipliers.mBuilding !== 1 && <Badge variant="outline" className="font-mono text-xs">Bldg: {calculations.multipliers.mBuilding}x</Badge>}
-                    {calculations.multipliers.mEnv !== 1 && <Badge variant="outline" className="font-mono text-xs">Env: {calculations.multipliers.mEnv}x</Badge>}
-                    {calculations.multipliers.mSkill !== 1 && <Badge variant="outline" className="font-mono text-xs">Skill: {calculations.multipliers.mSkill}x</Badge>}
-                    {calculations.multipliers.lengthAdd > 0 && <Badge variant="outline" className="font-mono text-xs">Length Add: +{calculations.multipliers.lengthAdd}h</Badge>}
-                  </div>
-                </div>
+                  </SelectContent>
+                </Select>
               </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRunDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={submitRun}
+              disabled={!runForm.label.trim()}
+              data-testid="button-save-run"
+            >
+              {editingRunId !== null ? "Save Changes" : "Add Run"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
+  );
+}
+
+function StatCard({
+  icon,
+  label,
+  value,
+  sub,
+  highlight,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+  sub?: string;
+  highlight?: boolean;
+}) {
+  return (
+    <Card className={highlight ? "border-primary" : ""}>
+      <CardContent className="pt-6">
+        <div className="flex items-center gap-2 text-xs text-muted-foreground uppercase tracking-wide">
+          {icon}
+          {label}
+        </div>
+        <div
+          className={`text-2xl font-bold mt-2 ${highlight ? "text-primary" : ""}`}
+        >
+          {value}
+        </div>
+        {sub && (
+          <div className="text-xs text-muted-foreground mt-1">{sub}</div>
+        )}
+      </CardContent>
+    </Card>
   );
 }
