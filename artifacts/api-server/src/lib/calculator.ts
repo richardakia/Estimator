@@ -14,8 +14,11 @@ export type BuildingType = "office" | "warehouse" | "retail" | "healthcare";
 export type WorkEnvironment = "occupied" | "unoccupied";
 export type SkillLevel = "apprentice" | "journeyman" | "lead";
 
+export const TERMINATIONS_PER_CABLE = 2;
+
 export interface RatesConfigShape {
-  baseHoursPerDrop: Record<CableType, number>;
+  pullMinutesPer10Ft: Record<CableType, number>;
+  terminationMinutesPerEnd: Record<CableType, number>;
   installTypeMult: Record<InstallType, number>;
   ceilingMult: Record<CeilingType, number>;
   pathwayMult: Record<PathwayComplexity, number>;
@@ -31,20 +34,26 @@ export interface RatesConfigShape {
     xxlarge: number;
     massive: number;
   };
-  pullPortionPct: number;
-  lengthAdd150ft: number;
-  lengthAdd250ft: number;
 }
 
 export const DEFAULT_RATES: RatesConfigShape = {
-  baseHoursPerDrop: {
-    cat5e: 0.75,
-    cat6: 0.85,
-    cat6a: 1.0,
-    sm_fiber: 1.5,
-    mm_fiber: 1.4,
-    coax_rg6: 0.65,
-    coax_rg11: 0.8,
+  pullMinutesPer10Ft: {
+    cat5e: 2.5,
+    cat6: 3.0,
+    cat6a: 3.5,
+    sm_fiber: 4.0,
+    mm_fiber: 4.0,
+    coax_rg6: 2.5,
+    coax_rg11: 3.5,
+  },
+  terminationMinutesPerEnd: {
+    cat5e: 4,
+    cat6: 5,
+    cat6a: 7,
+    sm_fiber: 15,
+    mm_fiber: 12,
+    coax_rg6: 4,
+    coax_rg11: 5,
   },
   installTypeMult: {
     new_install: 1.0,
@@ -85,9 +94,6 @@ export const DEFAULT_RATES: RatesConfigShape = {
     xxlarge: 0.45,
     massive: 0.4,
   },
-  pullPortionPct: 0.5,
-  lengthAdd150ft: 0.15,
-  lengthAdd250ft: 0.35,
 };
 
 export function bulkPullFactorFor(
@@ -129,7 +135,10 @@ export interface RunCalculation {
   lengthFt: number;
   ceilingType: CeilingType;
   pathwayComplexity: PathwayComplexity;
-  baseHoursPerDrop: number;
+  pullMinutesPer10Ft: number;
+  terminationMinutesPerEnd: number;
+  pullHoursPerCable: number;
+  terminationHoursPerCable: number;
   bulkPullFactor: number;
   adjustedHoursPerCable: number;
   runHoursLow: number;
@@ -191,23 +200,28 @@ export function calculateEstimate(
   let totalCablesActualHoursAvg = 0;
 
   for (const run of runs) {
-    const base = rates.baseHoursPerDrop[run.cableType];
+    const pullMin = rates.pullMinutesPer10Ft[run.cableType];
+    const termMin = rates.terminationMinutesPerEnd[run.cableType];
     const ceilingM = rates.ceilingMult[run.ceilingType];
     const pathM = rates.pathwayMult[run.pathwayComplexity];
-
-    let lengthAdd = 0;
-    if (run.lengthFt > 250) lengthAdd = rates.lengthAdd250ft;
-    else if (run.lengthFt > 150) lengthAdd = rates.lengthAdd150ft;
 
     const conditionMultiplier =
       installM * ceilingM * pathM * buildingM * envM * skillM;
 
-    const adjustedBase = base * conditionMultiplier + lengthAdd;
+    // Pull time: minutes-per-10ft scales linearly with length, gets bulk discount
+    const rawPullHoursPerCable = (pullMin / 60) * (run.lengthFt / 10);
     const bulkFactor = bulkPullFactorFor(run.numCables, rates.bulkPullFactors);
+    const pullHoursPerCable =
+      rawPullHoursPerCable * conditionMultiplier * bulkFactor;
 
-    const pullPortion = adjustedBase * rates.pullPortionPct * bulkFactor;
-    const fixedPortion = adjustedBase * (1 - rates.pullPortionPct);
-    const adjustedHoursPerCable = pullPortion + fixedPortion;
+    // Termination time: both ends, no bulk discount (each cable terminated individually)
+    const rawTerminationHoursPerCable =
+      (termMin * TERMINATIONS_PER_CABLE) / 60;
+    const terminationHoursPerCable =
+      rawTerminationHoursPerCable * conditionMultiplier;
+
+    const adjustedHoursPerCable =
+      pullHoursPerCable + terminationHoursPerCable;
 
     const runHoursAvg = adjustedHoursPerCable * run.numCables;
     const runHoursLow = runHoursAvg * 0.85;
@@ -217,7 +231,11 @@ export function calculateEstimate(
     const runCostLow = runHoursLow * ctx.hourlyRate;
     const runCostHigh = runHoursHigh * ctx.hourlyRate;
 
-    totalCablesPulledIndividuallyHours += adjustedBase * run.numCables;
+    // For bulk-savings comparison: what would total be if bulk factor was 1.0 (solo pulls)?
+    const soloHoursPerCable =
+      rawPullHoursPerCable * conditionMultiplier +
+      terminationHoursPerCable;
+    totalCablesPulledIndividuallyHours += soloHoursPerCable * run.numCables;
     totalCablesActualHoursAvg += runHoursAvg;
 
     calcs.push({
@@ -228,7 +246,10 @@ export function calculateEstimate(
       lengthFt: run.lengthFt,
       ceilingType: run.ceilingType,
       pathwayComplexity: run.pathwayComplexity,
-      baseHoursPerDrop: round(base, 3),
+      pullMinutesPer10Ft: round(pullMin, 3),
+      terminationMinutesPerEnd: round(termMin, 3),
+      pullHoursPerCable: round(pullHoursPerCable, 3),
+      terminationHoursPerCable: round(terminationHoursPerCable, 3),
       bulkPullFactor: round(bulkFactor, 3),
       adjustedHoursPerCable: round(adjustedHoursPerCable, 3),
       runHoursLow: round(runHoursLow, 2),

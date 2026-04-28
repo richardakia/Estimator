@@ -126,8 +126,15 @@ export interface RunCalculation {
   lengthFt: number;
   ceilingType: CeilingType;
   pathwayComplexity: PathwayComplexity;
-  baseHoursPerDrop: number;
-  /** Multiplier applied to pull/pathway portion (lower = more efficient bulk pull) */
+  /** Base pull rate in minutes per 10 ft for this cable type */
+  pullMinutesPer10Ft: number;
+  /** Base termination time in minutes per end for this cable type */
+  terminationMinutesPerEnd: number;
+  /** Pull labor per cable (after multipliers and bulk discount) */
+  pullHoursPerCable: number;
+  /** Termination labor per cable (both ends, after multipliers) */
+  terminationHoursPerCable: number;
+  /** Multiplier applied to pull portion only (lower = more efficient bulk pull) */
   bulkPullFactor: number;
   adjustedHoursPerCable: number;
   runHoursLow: number;
@@ -203,7 +210,23 @@ export interface UpdateRunBody {
   pathwayComplexity: PathwayComplexity;
 }
 
-export type RatesConfigBaseHoursPerDrop = {
+/**
+ * Pull labor in minutes for every 10 ft of cable, by cable type
+ */
+export type RatesConfigPullMinutesPer10Ft = {
+  cat5e: number;
+  cat6: number;
+  cat6a: number;
+  sm_fiber: number;
+  mm_fiber: number;
+  coax_rg6: number;
+  coax_rg11: number;
+};
+
+/**
+ * Termination labor in minutes per cable end, by cable type (each cable has 2 ends)
+ */
+export type RatesConfigTerminationMinutesPerEnd = {
   cat5e: number;
   cat6: number;
   cat6a: number;
@@ -250,7 +273,7 @@ export type RatesConfigSkillMult = {
 };
 
 /**
- * Multiplier applied to the pull/pathway portion based on number of cables in a run
+ * Multiplier applied to the pull portion based on number of cables in a run
  */
 export type RatesConfigBulkPullFactors = {
   /** 1 cable */
@@ -270,21 +293,18 @@ export type RatesConfigBulkPullFactors = {
 };
 
 export interface RatesConfig {
-  baseHoursPerDrop: RatesConfigBaseHoursPerDrop;
+  /** Pull labor in minutes for every 10 ft of cable, by cable type */
+  pullMinutesPer10Ft: RatesConfigPullMinutesPer10Ft;
+  /** Termination labor in minutes per cable end, by cable type (each cable has 2 ends) */
+  terminationMinutesPerEnd: RatesConfigTerminationMinutesPerEnd;
   installTypeMult: RatesConfigInstallTypeMult;
   ceilingMult: RatesConfigCeilingMult;
   pathwayMult: RatesConfigPathwayMult;
   buildingMult: RatesConfigBuildingMult;
   environmentMult: RatesConfigEnvironmentMult;
   skillMult: RatesConfigSkillMult;
-  /** Multiplier applied to the pull/pathway portion based on number of cables in a run */
+  /** Multiplier applied to the pull portion based on number of cables in a run */
   bulkPullFactors: RatesConfigBulkPullFactors;
-  /** Percent of base time that is pull/pathway work (subject to bulk savings) */
-  pullPortionPct: number;
-  /** Hours added per cable when length > 150ft */
-  lengthAdd150ft: number;
-  /** Hours added per cable when length > 250ft */
-  lengthAdd250ft: number;
 }
 
 export interface CalculationInput {

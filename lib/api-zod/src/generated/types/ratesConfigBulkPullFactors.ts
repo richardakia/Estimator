@@ -7,7 +7,7 @@
  */
 
 /**
- * Multiplier applied to the pull/pathway portion based on number of cables in a run
+ * Multiplier applied to the pull portion based on number of cables in a run
  */
 export type RatesConfigBulkPullFactors = {
   /** 1 cable */

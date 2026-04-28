@@ -21,7 +21,8 @@ import {
 } from "@/lib/options";
 
 interface RatesShape {
-  baseHoursPerDrop: Record<string, number>;
+  pullMinutesPer10Ft: Record<string, number>;
+  terminationMinutesPerEnd: Record<string, number>;
   installTypeMult: Record<string, number>;
   ceilingMult: Record<string, number>;
   pathwayMult: Record<string, number>;
@@ -29,9 +30,6 @@ interface RatesShape {
   environmentMult: Record<string, number>;
   skillMult: Record<string, number>;
   bulkPullFactors: Record<string, number>;
-  pullPortionPct: number;
-  lengthAdd150ft: number;
-  lengthAdd250ft: number;
 }
 
 const BULK_LABELS: Array<[keyof RatesShape["bulkPullFactors"] | string, string]> = [
@@ -125,12 +123,22 @@ export default function RatesEditor() {
 
       <div className="grid gap-6 md:grid-cols-2">
         <RateSection
-          title="Base Hours per Cable Drop"
-          subtitle="Baseline labor for one cable run before any multipliers."
+          title="Pull Time (minutes per 10 ft)"
+          subtitle="Base pull labor in minutes for every 10 ft of cable, before any multipliers or bulk-pull discount."
           options={CABLE_TYPES}
-          values={draft.baseHoursPerDrop}
-          onChange={(k, v) => setNested("baseHoursPerDrop", k, v)}
-          step={0.05}
+          values={draft.pullMinutesPer10Ft}
+          onChange={(k, v) => setNested("pullMinutesPer10Ft", k, v)}
+          step={0.5}
+          unit="min / 10 ft"
+        />
+        <RateSection
+          title="Termination Time (minutes per end)"
+          subtitle="Each cable is terminated on both ends, so this value is doubled per cable."
+          options={CABLE_TYPES}
+          values={draft.terminationMinutesPerEnd}
+          onChange={(k, v) => setNested("terminationMinutesPerEnd", k, v)}
+          step={0.5}
+          unit="min / end"
         />
         <RateSection
           title="Install Type Multiplier"
@@ -169,29 +177,26 @@ export default function RatesEditor() {
           onChange={(k, v) => setNested("skillMult", k, v)}
         />
 
-        <Card>
+        <Card className="md:col-span-2">
           <CardHeader>
             <CardTitle className="text-base">
               Bulk Pull Efficiency Factor
             </CardTitle>
             <p className="text-sm text-muted-foreground">
               Per-cable pull time is multiplied by this factor based on how many
-              cables share the same pathway.
+              cables share the same pathway. Termination time is not affected.
             </p>
           </CardHeader>
-          <CardContent className="space-y-3">
+          <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {BULK_LABELS.map(([key, label]) => (
-              <div
-                key={key}
-                className="flex items-center justify-between gap-3"
-              >
-                <Label className="text-sm">{label}</Label>
+              <div key={key} className="flex flex-col gap-1">
+                <Label className="text-xs text-muted-foreground">{label}</Label>
                 <Input
                   type="number"
                   step={0.05}
                   min={0.1}
                   max={1}
-                  className="w-24 font-mono text-right"
+                  className="font-mono text-right"
                   value={draft.bulkPullFactors[key] ?? 1}
                   onChange={(e) =>
                     setNested(
@@ -206,66 +211,6 @@ export default function RatesEditor() {
             ))}
           </CardContent>
         </Card>
-
-        <Card className="md:col-span-2">
-          <CardHeader>
-            <CardTitle className="text-base">Other Constants</CardTitle>
-          </CardHeader>
-          <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <Label>Pull-portion of cable time (0–1)</Label>
-              <Input
-                type="number"
-                step={0.05}
-                min={0}
-                max={1}
-                value={draft.pullPortionPct}
-                onChange={(e) =>
-                  setDraft({
-                    ...draft,
-                    pullPortionPct: Number(e.target.value) || 0,
-                  })
-                }
-                data-testid="input-pull-portion"
-              />
-              <p className="text-xs text-muted-foreground mt-1">
-                Fraction of base time that gets bulk-pull discount.
-              </p>
-            </div>
-            <div>
-              <Label>Length add &gt;150 ft (hrs)</Label>
-              <Input
-                type="number"
-                step={0.05}
-                min={0}
-                value={draft.lengthAdd150ft}
-                onChange={(e) =>
-                  setDraft({
-                    ...draft,
-                    lengthAdd150ft: Number(e.target.value) || 0,
-                  })
-                }
-                data-testid="input-len150"
-              />
-            </div>
-            <div>
-              <Label>Length add &gt;250 ft (hrs)</Label>
-              <Input
-                type="number"
-                step={0.05}
-                min={0}
-                value={draft.lengthAdd250ft}
-                onChange={(e) =>
-                  setDraft({
-                    ...draft,
-                    lengthAdd250ft: Number(e.target.value) || 0,
-                  })
-                }
-                data-testid="input-len250"
-              />
-            </div>
-          </CardContent>
-        </Card>
       </div>
     </div>
   );
@@ -278,6 +223,7 @@ function RateSection({
   values,
   onChange,
   step = 0.05,
+  unit,
 }: {
   title: string;
   subtitle?: string;
@@ -285,6 +231,7 @@ function RateSection({
   values: Record<string, number>;
   onChange: (key: string, value: number) => void;
   step?: number;
+  unit?: string;
 }) {
   return (
     <Card>
@@ -298,14 +245,21 @@ function RateSection({
         {options.map((o) => (
           <div key={o.value} className="flex items-center justify-between gap-3">
             <Label className="text-sm">{o.label}</Label>
-            <Input
-              type="number"
-              step={step}
-              className="w-24 font-mono text-right"
-              value={values[o.value] ?? 0}
-              onChange={(e) => onChange(o.value, Number(e.target.value) || 0)}
-              data-testid={`input-${o.value}`}
-            />
+            <div className="flex items-center gap-2">
+              <Input
+                type="number"
+                step={step}
+                className="w-24 font-mono text-right"
+                value={values[o.value] ?? 0}
+                onChange={(e) => onChange(o.value, Number(e.target.value) || 0)}
+                data-testid={`input-${o.value}`}
+              />
+              {unit && (
+                <span className="text-xs text-muted-foreground w-20 shrink-0">
+                  {unit}
+                </span>
+              )}
+            </div>
           </div>
         ))}
       </CardContent>

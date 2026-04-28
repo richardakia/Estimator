@@ -426,11 +426,21 @@ components:
           $ref: "#/components/schemas/CeilingType"
         pathwayComplexity:
           $ref: "#/components/schemas/PathwayComplexity"
-        baseHoursPerDrop:
+        pullMinutesPer10Ft:
           type: number
+          description: Base pull rate in minutes per 10 ft for this cable type
+        terminationMinutesPerEnd:
+          type: number
+          description: Base termination time in minutes per end for this cable type
+        pullHoursPerCable:
+          type: number
+          description: Pull labor per cable (after multipliers and bulk discount)
+        terminationHoursPerCable:
+          type: number
+          description: Termination labor per cable (both ends, after multipliers)
         bulkPullFactor:
           type: number
-          description: Multiplier applied to pull/pathway portion (lower = more efficient bulk pull)
+          description: Multiplier applied to pull portion only (lower = more efficient bulk pull)
         adjustedHoursPerCable:
           type: number
         runHoursLow:
@@ -453,7 +463,10 @@ components:
           lengthFt,
           ceilingType,
           pathwayComplexity,
-          baseHoursPerDrop,
+          pullMinutesPer10Ft,
+          terminationMinutesPerEnd,
+          pullHoursPerCable,
+          terminationHoursPerCable,
           bulkPullFactor,
           adjustedHoursPerCable,
           runHoursLow,
@@ -625,8 +638,22 @@ components:
     RatesConfig:
       type: object
       properties:
-        baseHoursPerDrop:
+        pullMinutesPer10Ft:
           type: object
+          description: Pull labor in minutes for every 10 ft of cable, by cable type
+          properties:
+            cat5e: { type: number }
+            cat6: { type: number }
+            cat6a: { type: number }
+            sm_fiber: { type: number }
+            mm_fiber: { type: number }
+            coax_rg6: { type: number }
+            coax_rg11: { type: number }
+          required:
+            [cat5e, cat6, cat6a, sm_fiber, mm_fiber, coax_rg6, coax_rg11]
+        terminationMinutesPerEnd:
+          type: object
+          description: Termination labor in minutes per cable end, by cable type (each cable has 2 ends)
           properties:
             cat5e: { type: number }
             cat6: { type: number }
@@ -681,7 +708,7 @@ components:
           required: [apprentice, journeyman, lead]
         bulkPullFactors:
           type: object
-          description: Multiplier applied to the pull/pathway portion based on number of cables in a run
+          description: Multiplier applied to the pull portion based on number of cables in a run
           properties:
             single: { type: number, description: "1 cable" }
             small: { type: number, description: "2 cables" }
@@ -691,18 +718,10 @@ components:
             xxlarge: { type: number, description: "13-24 cables" }
             massive: { type: number, description: "25+ cables" }
           required: [single, small, medium, large, xlarge, xxlarge, massive]
-        pullPortionPct:
-          type: number
-          description: Percent of base time that is pull/pathway work (subject to bulk savings)
-        lengthAdd150ft:
-          type: number
-          description: Hours added per cable when length > 150ft
-        lengthAdd250ft:
-          type: number
-          description: Hours added per cable when length > 250ft
       required:
         [
-          baseHoursPerDrop,
+          pullMinutesPer10Ft,
+          terminationMinutesPerEnd,
           installTypeMult,
           ceilingMult,
           pathwayMult,
@@ -710,9 +729,6 @@ components:
           environmentMult,
           skillMult,
           bulkPullFactors,
-          pullPortionPct,
-          lengthAdd150ft,
-          lengthAdd250ft,
         ]
 
     CalculationInput:

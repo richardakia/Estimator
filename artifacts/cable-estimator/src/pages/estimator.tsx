@@ -381,6 +381,10 @@ interface EstimateDetailData {
     lengthFt: number;
     ceilingType: string;
     pathwayComplexity: string;
+    pullMinutesPer10Ft: number;
+    terminationMinutesPerEnd: number;
+    pullHoursPerCable: number;
+    terminationHoursPerCable: number;
     bulkPullFactor: number;
     adjustedHoursPerCable: number;
     runHoursLow: number;
@@ -598,7 +602,11 @@ function EstimateDetail({
                     <TableHead className="text-right">Length</TableHead>
                     <TableHead>Ceiling</TableHead>
                     <TableHead>Pathway</TableHead>
+                    <TableHead className="text-right">Pull min/10ft</TableHead>
+                    <TableHead className="text-right">Term min/end</TableHead>
                     <TableHead className="text-right">Bulk Factor</TableHead>
+                    <TableHead className="text-right">Pull hrs/cable</TableHead>
+                    <TableHead className="text-right">Term hrs/cable</TableHead>
                     <TableHead className="text-right">Hrs / Cable</TableHead>
                     <TableHead className="text-right">Hrs (avg)</TableHead>
                     <TableHead className="text-right">Cost (avg)</TableHead>
@@ -623,6 +631,12 @@ function EstimateDetail({
                       <TableCell>
                         {labelFor(PATHWAY_LEVELS, r.pathwayComplexity)}
                       </TableCell>
+                      <TableCell className="text-right font-mono text-muted-foreground">
+                        {r.pullMinutesPer10Ft.toFixed(1)}
+                      </TableCell>
+                      <TableCell className="text-right font-mono text-muted-foreground">
+                        {r.terminationMinutesPerEnd.toFixed(1)}
+                      </TableCell>
                       <TableCell className="text-right">
                         <Badge
                           variant={r.bulkPullFactor < 1 ? "default" : "outline"}
@@ -630,6 +644,12 @@ function EstimateDetail({
                         >
                           {r.bulkPullFactor.toFixed(2)}×
                         </Badge>
+                      </TableCell>
+                      <TableCell className="text-right font-mono text-muted-foreground">
+                        {r.pullHoursPerCable.toFixed(2)}
+                      </TableCell>
+                      <TableCell className="text-right font-mono text-muted-foreground">
+                        {r.terminationHoursPerCable.toFixed(2)}
                       </TableCell>
                       <TableCell className="text-right font-mono">
                         {r.adjustedHoursPerCable.toFixed(2)}

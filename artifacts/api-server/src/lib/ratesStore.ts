@@ -32,7 +32,19 @@ export async function getRates(): Promise<RatesConfigShape> {
     return DEFAULT_RATES;
   }
 
-  return validateOrFallback(row.value);
+  const parsed = apiSchemas.UpdateRatesBody.safeParse(row.value);
+  if (!parsed.success) {
+    logger.warn(
+      { issues: parsed.error.issues },
+      "rates_config row failed validation; reseeding defaults",
+    );
+    await db
+      .update(ratesConfigTable)
+      .set({ value: DEFAULT_RATES })
+      .where(eq(ratesConfigTable.key, RATES_KEY));
+    return DEFAULT_RATES;
+  }
+  return parsed.data as RatesConfigShape;
 }
 
 export async function saveRates(

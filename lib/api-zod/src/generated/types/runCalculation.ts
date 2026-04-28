@@ -20,8 +20,15 @@ export interface RunCalculation {
   lengthFt: number;
   ceilingType: CeilingType;
   pathwayComplexity: PathwayComplexity;
-  baseHoursPerDrop: number;
-  /** Multiplier applied to pull/pathway portion (lower = more efficient bulk pull) */
+  /** Base pull rate in minutes per 10 ft for this cable type */
+  pullMinutesPer10Ft: number;
+  /** Base termination time in minutes per end for this cable type */
+  terminationMinutesPerEnd: number;
+  /** Pull labor per cable (after multipliers and bulk discount) */
+  pullHoursPerCable: number;
+  /** Termination labor per cable (both ends, after multipliers) */
+  terminationHoursPerCable: number;
+  /** Multiplier applied to pull portion only (lower = more efficient bulk pull) */
   bulkPullFactor: number;
   adjustedHoursPerCable: number;
   runHoursLow: number;

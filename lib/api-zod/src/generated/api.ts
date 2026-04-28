@@ -85,11 +85,28 @@ export const GetEstimateResponse = zod.object({
         lengthFt: zod.number(),
         ceilingType: zod.enum(["open", "drywall", "hard_lid"]),
         pathwayComplexity: zod.enum(["low", "medium", "high"]),
-        baseHoursPerDrop: zod.number(),
+        pullMinutesPer10Ft: zod
+          .number()
+          .describe("Base pull rate in minutes per 10 ft for this cable type"),
+        terminationMinutesPerEnd: zod
+          .number()
+          .describe(
+            "Base termination time in minutes per end for this cable type",
+          ),
+        pullHoursPerCable: zod
+          .number()
+          .describe(
+            "Pull labor per cable (after multipliers and bulk discount)",
+          ),
+        terminationHoursPerCable: zod
+          .number()
+          .describe(
+            "Termination labor per cable (both ends, after multipliers)",
+          ),
         bulkPullFactor: zod
           .number()
           .describe(
-            "Multiplier applied to pull\/pathway portion (lower = more efficient bulk pull)",
+            "Multiplier applied to pull portion only (lower = more efficient bulk pull)",
           ),
         adjustedHoursPerCable: zod.number(),
         runHoursLow: zod.number(),
@@ -245,15 +262,30 @@ export const DeleteRunParams = zod.object({
  * @summary Get all productivity rates and multipliers
  */
 export const GetRatesResponse = zod.object({
-  baseHoursPerDrop: zod.object({
-    cat5e: zod.number(),
-    cat6: zod.number(),
-    cat6a: zod.number(),
-    sm_fiber: zod.number(),
-    mm_fiber: zod.number(),
-    coax_rg6: zod.number(),
-    coax_rg11: zod.number(),
-  }),
+  pullMinutesPer10Ft: zod
+    .object({
+      cat5e: zod.number(),
+      cat6: zod.number(),
+      cat6a: zod.number(),
+      sm_fiber: zod.number(),
+      mm_fiber: zod.number(),
+      coax_rg6: zod.number(),
+      coax_rg11: zod.number(),
+    })
+    .describe("Pull labor in minutes for every 10 ft of cable, by cable type"),
+  terminationMinutesPerEnd: zod
+    .object({
+      cat5e: zod.number(),
+      cat6: zod.number(),
+      cat6a: zod.number(),
+      sm_fiber: zod.number(),
+      mm_fiber: zod.number(),
+      coax_rg6: zod.number(),
+      coax_rg11: zod.number(),
+    })
+    .describe(
+      "Termination labor in minutes per cable end, by cable type (each cable has 2 ends)",
+    ),
   installTypeMult: zod.object({
     new_install: zod.number(),
     retrofit: zod.number(),
@@ -295,34 +327,38 @@ export const GetRatesResponse = zod.object({
       massive: zod.number().describe("25+ cables"),
     })
     .describe(
-      "Multiplier applied to the pull\/pathway portion based on number of cables in a run",
+      "Multiplier applied to the pull portion based on number of cables in a run",
     ),
-  pullPortionPct: zod
-    .number()
-    .describe(
-      "Percent of base time that is pull\/pathway work (subject to bulk savings)",
-    ),
-  lengthAdd150ft: zod
-    .number()
-    .describe("Hours added per cable when length > 150ft"),
-  lengthAdd250ft: zod
-    .number()
-    .describe("Hours added per cable when length > 250ft"),
 });
 
 /**
  * @summary Update productivity rates
  */
 export const UpdateRatesBody = zod.object({
-  baseHoursPerDrop: zod.object({
-    cat5e: zod.number(),
-    cat6: zod.number(),
-    cat6a: zod.number(),
-    sm_fiber: zod.number(),
-    mm_fiber: zod.number(),
-    coax_rg6: zod.number(),
-    coax_rg11: zod.number(),
-  }),
+  pullMinutesPer10Ft: zod
+    .object({
+      cat5e: zod.number(),
+      cat6: zod.number(),
+      cat6a: zod.number(),
+      sm_fiber: zod.number(),
+      mm_fiber: zod.number(),
+      coax_rg6: zod.number(),
+      coax_rg11: zod.number(),
+    })
+    .describe("Pull labor in minutes for every 10 ft of cable, by cable type"),
+  terminationMinutesPerEnd: zod
+    .object({
+      cat5e: zod.number(),
+      cat6: zod.number(),
+      cat6a: zod.number(),
+      sm_fiber: zod.number(),
+      mm_fiber: zod.number(),
+      coax_rg6: zod.number(),
+      coax_rg11: zod.number(),
+    })
+    .describe(
+      "Termination labor in minutes per cable end, by cable type (each cable has 2 ends)",
+    ),
   installTypeMult: zod.object({
     new_install: zod.number(),
     retrofit: zod.number(),
@@ -364,31 +400,35 @@ export const UpdateRatesBody = zod.object({
       massive: zod.number().describe("25+ cables"),
     })
     .describe(
-      "Multiplier applied to the pull\/pathway portion based on number of cables in a run",
+      "Multiplier applied to the pull portion based on number of cables in a run",
     ),
-  pullPortionPct: zod
-    .number()
-    .describe(
-      "Percent of base time that is pull\/pathway work (subject to bulk savings)",
-    ),
-  lengthAdd150ft: zod
-    .number()
-    .describe("Hours added per cable when length > 150ft"),
-  lengthAdd250ft: zod
-    .number()
-    .describe("Hours added per cable when length > 250ft"),
 });
 
 export const UpdateRatesResponse = zod.object({
-  baseHoursPerDrop: zod.object({
-    cat5e: zod.number(),
-    cat6: zod.number(),
-    cat6a: zod.number(),
-    sm_fiber: zod.number(),
-    mm_fiber: zod.number(),
-    coax_rg6: zod.number(),
-    coax_rg11: zod.number(),
-  }),
+  pullMinutesPer10Ft: zod
+    .object({
+      cat5e: zod.number(),
+      cat6: zod.number(),
+      cat6a: zod.number(),
+      sm_fiber: zod.number(),
+      mm_fiber: zod.number(),
+      coax_rg6: zod.number(),
+      coax_rg11: zod.number(),
+    })
+    .describe("Pull labor in minutes for every 10 ft of cable, by cable type"),
+  terminationMinutesPerEnd: zod
+    .object({
+      cat5e: zod.number(),
+      cat6: zod.number(),
+      cat6a: zod.number(),
+      sm_fiber: zod.number(),
+      mm_fiber: zod.number(),
+      coax_rg6: zod.number(),
+      coax_rg11: zod.number(),
+    })
+    .describe(
+      "Termination labor in minutes per cable end, by cable type (each cable has 2 ends)",
+    ),
   installTypeMult: zod.object({
     new_install: zod.number(),
     retrofit: zod.number(),
@@ -430,34 +470,38 @@ export const UpdateRatesResponse = zod.object({
       massive: zod.number().describe("25+ cables"),
     })
     .describe(
-      "Multiplier applied to the pull\/pathway portion based on number of cables in a run",
+      "Multiplier applied to the pull portion based on number of cables in a run",
     ),
-  pullPortionPct: zod
-    .number()
-    .describe(
-      "Percent of base time that is pull\/pathway work (subject to bulk savings)",
-    ),
-  lengthAdd150ft: zod
-    .number()
-    .describe("Hours added per cable when length > 150ft"),
-  lengthAdd250ft: zod
-    .number()
-    .describe("Hours added per cable when length > 250ft"),
 });
 
 /**
  * @summary Reset rates to defaults
  */
 export const ResetRatesResponse = zod.object({
-  baseHoursPerDrop: zod.object({
-    cat5e: zod.number(),
-    cat6: zod.number(),
-    cat6a: zod.number(),
-    sm_fiber: zod.number(),
-    mm_fiber: zod.number(),
-    coax_rg6: zod.number(),
-    coax_rg11: zod.number(),
-  }),
+  pullMinutesPer10Ft: zod
+    .object({
+      cat5e: zod.number(),
+      cat6: zod.number(),
+      cat6a: zod.number(),
+      sm_fiber: zod.number(),
+      mm_fiber: zod.number(),
+      coax_rg6: zod.number(),
+      coax_rg11: zod.number(),
+    })
+    .describe("Pull labor in minutes for every 10 ft of cable, by cable type"),
+  terminationMinutesPerEnd: zod
+    .object({
+      cat5e: zod.number(),
+      cat6: zod.number(),
+      cat6a: zod.number(),
+      sm_fiber: zod.number(),
+      mm_fiber: zod.number(),
+      coax_rg6: zod.number(),
+      coax_rg11: zod.number(),
+    })
+    .describe(
+      "Termination labor in minutes per cable end, by cable type (each cable has 2 ends)",
+    ),
   installTypeMult: zod.object({
     new_install: zod.number(),
     retrofit: zod.number(),
@@ -499,19 +543,8 @@ export const ResetRatesResponse = zod.object({
       massive: zod.number().describe("25+ cables"),
     })
     .describe(
-      "Multiplier applied to the pull\/pathway portion based on number of cables in a run",
+      "Multiplier applied to the pull portion based on number of cables in a run",
     ),
-  pullPortionPct: zod
-    .number()
-    .describe(
-      "Percent of base time that is pull\/pathway work (subject to bulk savings)",
-    ),
-  lengthAdd150ft: zod
-    .number()
-    .describe("Hours added per cable when length > 150ft"),
-  lengthAdd250ft: zod
-    .number()
-    .describe("Hours added per cable when length > 250ft"),
 });
 
 /**
@@ -562,11 +595,28 @@ export const PreviewCalculationResponse = zod.object({
         lengthFt: zod.number(),
         ceilingType: zod.enum(["open", "drywall", "hard_lid"]),
         pathwayComplexity: zod.enum(["low", "medium", "high"]),
-        baseHoursPerDrop: zod.number(),
+        pullMinutesPer10Ft: zod
+          .number()
+          .describe("Base pull rate in minutes per 10 ft for this cable type"),
+        terminationMinutesPerEnd: zod
+          .number()
+          .describe(
+            "Base termination time in minutes per end for this cable type",
+          ),
+        pullHoursPerCable: zod
+          .number()
+          .describe(
+            "Pull labor per cable (after multipliers and bulk discount)",
+          ),
+        terminationHoursPerCable: zod
+          .number()
+          .describe(
+            "Termination labor per cable (both ends, after multipliers)",
+          ),
         bulkPullFactor: zod
           .number()
           .describe(
-            "Multiplier applied to pull\/pathway portion (lower = more efficient bulk pull)",
+            "Multiplier applied to pull portion only (lower = more efficient bulk pull)",
           ),
         adjustedHoursPerCable: zod.number(),
         runHoursLow: zod.number(),

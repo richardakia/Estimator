@@ -5,29 +5,27 @@
  * Structured Cabling Labor Estimator API
  * OpenAPI spec version: 0.1.0
  */
-import type { RatesConfigBaseHoursPerDrop } from "./ratesConfigBaseHoursPerDrop";
 import type { RatesConfigBuildingMult } from "./ratesConfigBuildingMult";
 import type { RatesConfigBulkPullFactors } from "./ratesConfigBulkPullFactors";
 import type { RatesConfigCeilingMult } from "./ratesConfigCeilingMult";
 import type { RatesConfigEnvironmentMult } from "./ratesConfigEnvironmentMult";
 import type { RatesConfigInstallTypeMult } from "./ratesConfigInstallTypeMult";
 import type { RatesConfigPathwayMult } from "./ratesConfigPathwayMult";
+import type { RatesConfigPullMinutesPer10Ft } from "./ratesConfigPullMinutesPer10Ft";
 import type { RatesConfigSkillMult } from "./ratesConfigSkillMult";
+import type { RatesConfigTerminationMinutesPerEnd } from "./ratesConfigTerminationMinutesPerEnd";
 
 export interface RatesConfig {
-  baseHoursPerDrop: RatesConfigBaseHoursPerDrop;
+  /** Pull labor in minutes for every 10 ft of cable, by cable type */
+  pullMinutesPer10Ft: RatesConfigPullMinutesPer10Ft;
+  /** Termination labor in minutes per cable end, by cable type (each cable has 2 ends) */
+  terminationMinutesPerEnd: RatesConfigTerminationMinutesPerEnd;
   installTypeMult: RatesConfigInstallTypeMult;
   ceilingMult: RatesConfigCeilingMult;
   pathwayMult: RatesConfigPathwayMult;
   buildingMult: RatesConfigBuildingMult;
   environmentMult: RatesConfigEnvironmentMult;
   skillMult: RatesConfigSkillMult;
-  /** Multiplier applied to the pull/pathway portion based on number of cables in a run */
+  /** Multiplier applied to the pull portion based on number of cables in a run */
   bulkPullFactors: RatesConfigBulkPullFactors;
-  /** Percent of base time that is pull/pathway work (subject to bulk savings) */
-  pullPortionPct: number;
-  /** Hours added per cable when length > 150ft */
-  lengthAdd150ft: number;
-  /** Hours added per cable when length > 250ft */
-  lengthAdd250ft: number;
 }

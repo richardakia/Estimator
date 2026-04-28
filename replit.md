@@ -12,10 +12,13 @@ pnpm workspace monorepo using TypeScript. Each package manages its own dependenc
 
 ## Cabling Estimator Details
 
-- **Bulk pulling math**: pull-portion (50% of base time) is multiplied by a bulk factor based on cables-in-run count: 1=1.0, 2=0.75, 3-4=0.65, 5-8=0.55, 9-12=0.5, 13-24=0.45, 25+=0.4. Per-cable portion (termination, test, label) stays at 1.0.
+- **Pull labor**: `pullMinutesPer10Ft` per cable type. Per-cable pull hours = (min/60) × (lengthFt/10) × condition multipliers × bulk factor.
+- **Termination labor**: `terminationMinutesPerEnd` per cable type, doubled (each cable has 2 ends). Per-cable term hours = (min × 2 / 60) × condition multipliers. Termination is NOT subject to bulk discount.
+- **Bulk pulling math**: applied to pull portion only, by cables-in-run count: 1=1.0, 2=0.75, 3-4=0.65, 5-8=0.55, 9-12=0.5, 13-24=0.45, 25+=0.4.
+- **Condition multipliers** (apply to both pull and termination): install type, ceiling, pathway, building, environment, skill.
 - **Range**: low=0.85x, avg=1.0x, high=1.20x of average hours.
-- **Task breakdown**: Cable Pull 35%, Termination & Testing 30%, Pathway 15%, Labeling 10%, Cleanup 10%.
-- **Persistence**: Postgres tables `estimates`, `runs`, `rates_config`. The rates row is JSONB and is validated against the API zod schema each load (falls back to defaults if invalid).
+- **Task breakdown** (purely presentational split of total hours): Cable Pull 35%, Termination & Testing 30%, Pathway 15%, Labeling 10%, Cleanup 10%.
+- **Persistence**: Postgres tables `estimates`, `runs`, `rates_config`. The rates row is JSONB and is validated against the API zod schema each load; if invalid (e.g. after a schema change), defaults are reseeded into the row.
 - **Calculator** lives in `artifacts/api-server/src/lib/calculator.ts`; default rates seeded on first load.
 
 ## Stack

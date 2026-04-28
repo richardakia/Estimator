@@ -6,7 +6,10 @@
  * OpenAPI spec version: 0.1.0
  */
 
-export type RatesConfigBaseHoursPerDrop = {
+/**
+ * Pull labor in minutes for every 10 ft of cable, by cable type
+ */
+export type RatesConfigPullMinutesPer10Ft = {
   cat5e: number;
   cat6: number;
   cat6a: number;
