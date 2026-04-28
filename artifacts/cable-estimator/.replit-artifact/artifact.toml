@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "Structured Cabling Labor Estimator"
+version = "1.0.0"
+id = "artifacts/cable-estimator"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 21951
+
+[services.development]
+run = "pnpm --filter @workspace/cable-estimator run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/cable-estimator", "run", "build" ]
+publicDir = "artifacts/cable-estimator/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "21951"
+BASE_PATH = "/"
