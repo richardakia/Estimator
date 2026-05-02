@@ -18,6 +18,10 @@ tags:
     description: Productivity rate configuration
   - name: calculator
     description: Stateless calculation preview
+  - name: pathwayEstimates
+    description: Saved pathway estimates
+  - name: pathwaySegments
+    description: Pathway segments within a pathway estimate
 paths:
   /healthz:
     get:
@@ -225,6 +229,158 @@ paths:
               schema:
                 $ref: "#/components/schemas/RatesConfig"
 
+  /pathway-estimates:
+    get:
+      operationId: listPathwayEstimates
+      tags: [pathwayEstimates]
+      summary: List all pathway estimates
+      responses:
+        "200":
+          description: List of pathway estimates
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PathwayEstimateSummary"
+    post:
+      operationId: createPathwayEstimate
+      tags: [pathwayEstimates]
+      summary: Create a new pathway estimate
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreatePathwayEstimateBody"
+      responses:
+        "201":
+          description: Created pathway estimate
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PathwayEstimate"
+
+  /pathway-estimates/{id}:
+    get:
+      operationId: getPathwayEstimate
+      tags: [pathwayEstimates]
+      summary: Get a pathway estimate with all segments and computed totals
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Pathway estimate with segments
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PathwayEstimateDetail"
+        "404":
+          description: Not found
+    put:
+      operationId: updatePathwayEstimate
+      tags: [pathwayEstimates]
+      summary: Update a pathway estimate
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdatePathwayEstimateBody"
+      responses:
+        "200":
+          description: Updated pathway estimate
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PathwayEstimate"
+    delete:
+      operationId: deletePathwayEstimate
+      tags: [pathwayEstimates]
+      summary: Delete a pathway estimate
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /pathway-estimates/{id}/segments:
+    post:
+      operationId: createPathwaySegment
+      tags: [pathwaySegments]
+      summary: Add a segment to a pathway estimate
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreatePathwaySegmentBody"
+      responses:
+        "201":
+          description: Created segment
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PathwaySegment"
+
+  /pathway-segments/{id}:
+    put:
+      operationId: updatePathwaySegment
+      tags: [pathwaySegments]
+      summary: Update a pathway segment
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdatePathwaySegmentBody"
+      responses:
+        "200":
+          description: Updated segment
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PathwaySegment"
+    delete:
+      operationId: deletePathwaySegment
+      tags: [pathwaySegments]
+      summary: Delete a pathway segment
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
   /calculator/preview:
     post:
       operationId: previewCalculation
@@ -272,6 +428,34 @@ components:
     BuildingType:
       type: string
       enum: [office, warehouse, retail, healthcare]
+
+    PathwayTypeKey:
+      type: string
+      enum:
+        [
+          cable_tray,
+          wire_basket,
+          solid_tray,
+          j_hooks,
+          d_rings,
+          arlington_loops,
+          emt_conduit,
+          pvc_conduit,
+          sleeves,
+          unistrut_rod,
+        ]
+
+    PathwayMountingHeight:
+      type: string
+      enum: [8ft, 12ft, 16ft, 20ft]
+
+    PathwayCeilingKey:
+      type: string
+      enum: [open_deck, t_bar, drywall, concrete]
+
+    PathwayCableFill:
+      type: string
+      enum: [light, medium, heavy]
 
     WorkEnvironment:
       type: string
@@ -827,3 +1011,244 @@ components:
         totals:
           $ref: "#/components/schemas/EstimateTotals"
       required: [runs, totals]
+
+    PathwayEstimate:
+      type: object
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        hourlyRate: { type: number, minimum: 0 }
+        notes:
+          type: string
+          nullable: true
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+      required: [id, name, hourlyRate, createdAt, updatedAt]
+
+    PathwayEstimateSummary:
+      type: object
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        hourlyRate: { type: number, minimum: 0 }
+        segmentCount: { type: integer }
+        totalLengthFt: { type: number }
+        totalLaborHrs: { type: number }
+        totalCost: { type: number }
+        createdAt: { type: string, format: date-time }
+        updatedAt: { type: string, format: date-time }
+      required:
+        [
+          id,
+          name,
+          hourlyRate,
+          segmentCount,
+          totalLengthFt,
+          totalLaborHrs,
+          totalCost,
+          createdAt,
+          updatedAt,
+        ]
+
+    PathwaySegment:
+      type: object
+      properties:
+        id: { type: integer }
+        estimateId: { type: integer }
+        label: { type: string }
+        pathwayType: { $ref: "#/components/schemas/PathwayTypeKey" }
+        lengthFt: { type: number, minimum: 0 }
+        mountingHeight: { $ref: "#/components/schemas/PathwayMountingHeight" }
+        ceilingType: { $ref: "#/components/schemas/PathwayCeilingKey" }
+        cableFill: { $ref: "#/components/schemas/PathwayCableFill" }
+        bends: { type: integer, minimum: 0 }
+        penetrations: { type: integer, minimum: 0 }
+        notes:
+          type: string
+          nullable: true
+        sortOrder: { type: integer }
+        createdAt: { type: string, format: date-time }
+      required:
+        [
+          id,
+          estimateId,
+          label,
+          pathwayType,
+          lengthFt,
+          mountingHeight,
+          ceilingType,
+          cableFill,
+          bends,
+          penetrations,
+          sortOrder,
+          createdAt,
+        ]
+
+    PathwaySegmentCalculation:
+      type: object
+      description: A pathway segment plus its computed labor + material breakdown.
+      properties:
+        segmentId: { type: integer }
+        label: { type: string }
+        pathwayType: { $ref: "#/components/schemas/PathwayTypeKey" }
+        lengthFt: { type: number, minimum: 0 }
+        mountingHeight: { $ref: "#/components/schemas/PathwayMountingHeight" }
+        ceilingType: { $ref: "#/components/schemas/PathwayCeilingKey" }
+        cableFill: { $ref: "#/components/schemas/PathwayCableFill" }
+        bends: { type: integer, minimum: 0 }
+        penetrations: { type: integer, minimum: 0 }
+        notes:
+          type: string
+          nullable: true
+        sortOrder: { type: integer }
+        fastenerCount: { type: integer }
+        baseLaborHrs: { type: number }
+        fastenerLaborHrs: { type: number }
+        bendLaborHrs: { type: number }
+        penetrationLaborHrs: { type: number }
+        totalLaborHrs: { type: number }
+        pathwayMaterialCost: { type: number }
+        fastenerMaterialCost: { type: number }
+        bendMaterialCost: { type: number }
+        penetrationMaterialCost: { type: number }
+        totalMaterialCost: { type: number }
+        laborCost: { type: number }
+        totalCost: { type: number }
+        perFtCost: { type: number }
+      required:
+        [
+          segmentId,
+          label,
+          pathwayType,
+          lengthFt,
+          mountingHeight,
+          ceilingType,
+          cableFill,
+          bends,
+          penetrations,
+          sortOrder,
+          fastenerCount,
+          baseLaborHrs,
+          fastenerLaborHrs,
+          bendLaborHrs,
+          penetrationLaborHrs,
+          totalLaborHrs,
+          pathwayMaterialCost,
+          fastenerMaterialCost,
+          bendMaterialCost,
+          penetrationMaterialCost,
+          totalMaterialCost,
+          laborCost,
+          totalCost,
+          perFtCost,
+        ]
+
+    PathwayEstimateTotals:
+      type: object
+      properties:
+        segmentCount: { type: integer }
+        totalLengthFt: { type: number }
+        totalLaborHrs: { type: number }
+        totalLaborCost: { type: number }
+        totalMaterialCost: { type: number }
+        totalFasteners: { type: integer }
+        totalCost: { type: number }
+      required:
+        [
+          segmentCount,
+          totalLengthFt,
+          totalLaborHrs,
+          totalLaborCost,
+          totalMaterialCost,
+          totalFasteners,
+          totalCost,
+        ]
+
+    PathwayEstimateDetail:
+      type: object
+      properties:
+        estimate:
+          $ref: "#/components/schemas/PathwayEstimate"
+        segments:
+          type: array
+          items:
+            $ref: "#/components/schemas/PathwaySegmentCalculation"
+        totals:
+          $ref: "#/components/schemas/PathwayEstimateTotals"
+      required: [estimate, segments, totals]
+
+    CreatePathwayEstimateBody:
+      type: object
+      properties:
+        name: { type: string, minLength: 1, maxLength: 200 }
+        hourlyRate: { type: number, minimum: 0, maximum: 100000 }
+        notes:
+          type: string
+          nullable: true
+          maxLength: 5000
+      required: [name, hourlyRate]
+
+    UpdatePathwayEstimateBody:
+      type: object
+      properties:
+        name: { type: string, minLength: 1, maxLength: 200 }
+        hourlyRate: { type: number, minimum: 0, maximum: 100000 }
+        notes:
+          type: string
+          nullable: true
+          maxLength: 5000
+      required: [name, hourlyRate]
+
+    CreatePathwaySegmentBody:
+      type: object
+      properties:
+        label: { type: string, minLength: 1, maxLength: 200 }
+        pathwayType: { $ref: "#/components/schemas/PathwayTypeKey" }
+        lengthFt: { type: number, minimum: 0, maximum: 100000 }
+        mountingHeight: { $ref: "#/components/schemas/PathwayMountingHeight" }
+        ceilingType: { $ref: "#/components/schemas/PathwayCeilingKey" }
+        cableFill: { $ref: "#/components/schemas/PathwayCableFill" }
+        bends: { type: integer, minimum: 0, maximum: 999 }
+        penetrations: { type: integer, minimum: 0, maximum: 999 }
+        notes:
+          type: string
+          nullable: true
+          maxLength: 5000
+      required:
+        [
+          label,
+          pathwayType,
+          lengthFt,
+          mountingHeight,
+          ceilingType,
+          cableFill,
+          bends,
+          penetrations,
+        ]
+
+    UpdatePathwaySegmentBody:
+      type: object
+      properties:
+        label: { type: string, minLength: 1, maxLength: 200 }
+        pathwayType: { $ref: "#/components/schemas/PathwayTypeKey" }
+        lengthFt: { type: number, minimum: 0, maximum: 100000 }
+        mountingHeight: { $ref: "#/components/schemas/PathwayMountingHeight" }
+        ceilingType: { $ref: "#/components/schemas/PathwayCeilingKey" }
+        cableFill: { $ref: "#/components/schemas/PathwayCableFill" }
+        bends: { type: integer, minimum: 0, maximum: 999 }
+        penetrations: { type: integer, minimum: 0, maximum: 999 }
+        notes:
+          type: string
+          nullable: true
+          maxLength: 5000
+      required:
+        [
+          label,
+          pathwayType,
+          lengthFt,
+          mountingHeight,
+          ceilingType,
+          cableFill,
+          bends,
+          penetrations,
+        ]

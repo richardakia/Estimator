@@ -768,6 +768,315 @@ export const ResetRatesResponse = zod.object({
 });
 
 /**
+ * @summary List all pathway estimates
+ */
+export const listPathwayEstimatesResponseHourlyRateMin = 0;
+
+export const ListPathwayEstimatesResponseItem = zod.object({
+  id: zod.number(),
+  name: zod.string(),
+  hourlyRate: zod.number().min(listPathwayEstimatesResponseHourlyRateMin),
+  segmentCount: zod.number(),
+  totalLengthFt: zod.number(),
+  totalLaborHrs: zod.number(),
+  totalCost: zod.number(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+});
+export const ListPathwayEstimatesResponse = zod.array(
+  ListPathwayEstimatesResponseItem,
+);
+
+/**
+ * @summary Create a new pathway estimate
+ */
+export const createPathwayEstimateBodyNameMax = 200;
+
+export const createPathwayEstimateBodyHourlyRateMin = 0;
+export const createPathwayEstimateBodyHourlyRateMax = 100000;
+
+export const createPathwayEstimateBodyNotesMax = 5000;
+
+export const CreatePathwayEstimateBody = zod.object({
+  name: zod.string().min(1).max(createPathwayEstimateBodyNameMax),
+  hourlyRate: zod
+    .number()
+    .min(createPathwayEstimateBodyHourlyRateMin)
+    .max(createPathwayEstimateBodyHourlyRateMax),
+  notes: zod.string().max(createPathwayEstimateBodyNotesMax).nullish(),
+});
+
+/**
+ * @summary Get a pathway estimate with all segments and computed totals
+ */
+export const GetPathwayEstimateParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const getPathwayEstimateResponseEstimateHourlyRateMin = 0;
+
+export const getPathwayEstimateResponseSegmentsItemLengthFtMin = 0;
+
+export const getPathwayEstimateResponseSegmentsItemBendsMin = 0;
+
+export const getPathwayEstimateResponseSegmentsItemPenetrationsMin = 0;
+
+export const GetPathwayEstimateResponse = zod.object({
+  estimate: zod.object({
+    id: zod.number(),
+    name: zod.string(),
+    hourlyRate: zod
+      .number()
+      .min(getPathwayEstimateResponseEstimateHourlyRateMin),
+    notes: zod.string().nullish(),
+    createdAt: zod.coerce.date(),
+    updatedAt: zod.coerce.date(),
+  }),
+  segments: zod.array(
+    zod
+      .object({
+        segmentId: zod.number(),
+        label: zod.string(),
+        pathwayType: zod.enum([
+          "cable_tray",
+          "wire_basket",
+          "solid_tray",
+          "j_hooks",
+          "d_rings",
+          "arlington_loops",
+          "emt_conduit",
+          "pvc_conduit",
+          "sleeves",
+          "unistrut_rod",
+        ]),
+        lengthFt: zod
+          .number()
+          .min(getPathwayEstimateResponseSegmentsItemLengthFtMin),
+        mountingHeight: zod.enum(["8ft", "12ft", "16ft", "20ft"]),
+        ceilingType: zod.enum(["open_deck", "t_bar", "drywall", "concrete"]),
+        cableFill: zod.enum(["light", "medium", "heavy"]),
+        bends: zod.number().min(getPathwayEstimateResponseSegmentsItemBendsMin),
+        penetrations: zod
+          .number()
+          .min(getPathwayEstimateResponseSegmentsItemPenetrationsMin),
+        notes: zod.string().nullish(),
+        sortOrder: zod.number(),
+        fastenerCount: zod.number(),
+        baseLaborHrs: zod.number(),
+        fastenerLaborHrs: zod.number(),
+        bendLaborHrs: zod.number(),
+        penetrationLaborHrs: zod.number(),
+        totalLaborHrs: zod.number(),
+        pathwayMaterialCost: zod.number(),
+        fastenerMaterialCost: zod.number(),
+        bendMaterialCost: zod.number(),
+        penetrationMaterialCost: zod.number(),
+        totalMaterialCost: zod.number(),
+        laborCost: zod.number(),
+        totalCost: zod.number(),
+        perFtCost: zod.number(),
+      })
+      .describe(
+        "A pathway segment plus its computed labor + material breakdown.",
+      ),
+  ),
+  totals: zod.object({
+    segmentCount: zod.number(),
+    totalLengthFt: zod.number(),
+    totalLaborHrs: zod.number(),
+    totalLaborCost: zod.number(),
+    totalMaterialCost: zod.number(),
+    totalFasteners: zod.number(),
+    totalCost: zod.number(),
+  }),
+});
+
+/**
+ * @summary Update a pathway estimate
+ */
+export const UpdatePathwayEstimateParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const updatePathwayEstimateBodyNameMax = 200;
+
+export const updatePathwayEstimateBodyHourlyRateMin = 0;
+export const updatePathwayEstimateBodyHourlyRateMax = 100000;
+
+export const updatePathwayEstimateBodyNotesMax = 5000;
+
+export const UpdatePathwayEstimateBody = zod.object({
+  name: zod.string().min(1).max(updatePathwayEstimateBodyNameMax),
+  hourlyRate: zod
+    .number()
+    .min(updatePathwayEstimateBodyHourlyRateMin)
+    .max(updatePathwayEstimateBodyHourlyRateMax),
+  notes: zod.string().max(updatePathwayEstimateBodyNotesMax).nullish(),
+});
+
+export const updatePathwayEstimateResponseHourlyRateMin = 0;
+
+export const UpdatePathwayEstimateResponse = zod.object({
+  id: zod.number(),
+  name: zod.string(),
+  hourlyRate: zod.number().min(updatePathwayEstimateResponseHourlyRateMin),
+  notes: zod.string().nullish(),
+  createdAt: zod.coerce.date(),
+  updatedAt: zod.coerce.date(),
+});
+
+/**
+ * @summary Delete a pathway estimate
+ */
+export const DeletePathwayEstimateParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+/**
+ * @summary Add a segment to a pathway estimate
+ */
+export const CreatePathwaySegmentParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const createPathwaySegmentBodyLabelMax = 200;
+
+export const createPathwaySegmentBodyLengthFtMin = 0;
+export const createPathwaySegmentBodyLengthFtMax = 100000;
+
+export const createPathwaySegmentBodyBendsMin = 0;
+export const createPathwaySegmentBodyBendsMax = 999;
+
+export const createPathwaySegmentBodyPenetrationsMin = 0;
+export const createPathwaySegmentBodyPenetrationsMax = 999;
+
+export const createPathwaySegmentBodyNotesMax = 5000;
+
+export const CreatePathwaySegmentBody = zod.object({
+  label: zod.string().min(1).max(createPathwaySegmentBodyLabelMax),
+  pathwayType: zod.enum([
+    "cable_tray",
+    "wire_basket",
+    "solid_tray",
+    "j_hooks",
+    "d_rings",
+    "arlington_loops",
+    "emt_conduit",
+    "pvc_conduit",
+    "sleeves",
+    "unistrut_rod",
+  ]),
+  lengthFt: zod
+    .number()
+    .min(createPathwaySegmentBodyLengthFtMin)
+    .max(createPathwaySegmentBodyLengthFtMax),
+  mountingHeight: zod.enum(["8ft", "12ft", "16ft", "20ft"]),
+  ceilingType: zod.enum(["open_deck", "t_bar", "drywall", "concrete"]),
+  cableFill: zod.enum(["light", "medium", "heavy"]),
+  bends: zod
+    .number()
+    .min(createPathwaySegmentBodyBendsMin)
+    .max(createPathwaySegmentBodyBendsMax),
+  penetrations: zod
+    .number()
+    .min(createPathwaySegmentBodyPenetrationsMin)
+    .max(createPathwaySegmentBodyPenetrationsMax),
+  notes: zod.string().max(createPathwaySegmentBodyNotesMax).nullish(),
+});
+
+/**
+ * @summary Update a pathway segment
+ */
+export const UpdatePathwaySegmentParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const updatePathwaySegmentBodyLabelMax = 200;
+
+export const updatePathwaySegmentBodyLengthFtMin = 0;
+export const updatePathwaySegmentBodyLengthFtMax = 100000;
+
+export const updatePathwaySegmentBodyBendsMin = 0;
+export const updatePathwaySegmentBodyBendsMax = 999;
+
+export const updatePathwaySegmentBodyPenetrationsMin = 0;
+export const updatePathwaySegmentBodyPenetrationsMax = 999;
+
+export const updatePathwaySegmentBodyNotesMax = 5000;
+
+export const UpdatePathwaySegmentBody = zod.object({
+  label: zod.string().min(1).max(updatePathwaySegmentBodyLabelMax),
+  pathwayType: zod.enum([
+    "cable_tray",
+    "wire_basket",
+    "solid_tray",
+    "j_hooks",
+    "d_rings",
+    "arlington_loops",
+    "emt_conduit",
+    "pvc_conduit",
+    "sleeves",
+    "unistrut_rod",
+  ]),
+  lengthFt: zod
+    .number()
+    .min(updatePathwaySegmentBodyLengthFtMin)
+    .max(updatePathwaySegmentBodyLengthFtMax),
+  mountingHeight: zod.enum(["8ft", "12ft", "16ft", "20ft"]),
+  ceilingType: zod.enum(["open_deck", "t_bar", "drywall", "concrete"]),
+  cableFill: zod.enum(["light", "medium", "heavy"]),
+  bends: zod
+    .number()
+    .min(updatePathwaySegmentBodyBendsMin)
+    .max(updatePathwaySegmentBodyBendsMax),
+  penetrations: zod
+    .number()
+    .min(updatePathwaySegmentBodyPenetrationsMin)
+    .max(updatePathwaySegmentBodyPenetrationsMax),
+  notes: zod.string().max(updatePathwaySegmentBodyNotesMax).nullish(),
+});
+
+export const updatePathwaySegmentResponseLengthFtMin = 0;
+
+export const updatePathwaySegmentResponseBendsMin = 0;
+
+export const updatePathwaySegmentResponsePenetrationsMin = 0;
+
+export const UpdatePathwaySegmentResponse = zod.object({
+  id: zod.number(),
+  estimateId: zod.number(),
+  label: zod.string(),
+  pathwayType: zod.enum([
+    "cable_tray",
+    "wire_basket",
+    "solid_tray",
+    "j_hooks",
+    "d_rings",
+    "arlington_loops",
+    "emt_conduit",
+    "pvc_conduit",
+    "sleeves",
+    "unistrut_rod",
+  ]),
+  lengthFt: zod.number().min(updatePathwaySegmentResponseLengthFtMin),
+  mountingHeight: zod.enum(["8ft", "12ft", "16ft", "20ft"]),
+  ceilingType: zod.enum(["open_deck", "t_bar", "drywall", "concrete"]),
+  cableFill: zod.enum(["light", "medium", "heavy"]),
+  bends: zod.number().min(updatePathwaySegmentResponseBendsMin),
+  penetrations: zod.number().min(updatePathwaySegmentResponsePenetrationsMin),
+  notes: zod.string().nullish(),
+  sortOrder: zod.number(),
+  createdAt: zod.coerce.date(),
+});
+
+/**
+ * @summary Delete a pathway segment
+ */
+export const DeletePathwaySegmentParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+/**
  * @summary Stateless calculation of an estimate (no persistence)
  */
 export const PreviewCalculationBody = zod.object({

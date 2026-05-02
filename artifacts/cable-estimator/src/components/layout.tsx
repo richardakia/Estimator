@@ -9,8 +9,12 @@ import {
   Route as RouteIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useListEstimates } from "@workspace/api-client-react";
+import {
+  useListEstimates,
+  useListPathwayEstimates,
+} from "@workspace/api-client-react";
 import { useEstimates } from "@/lib/estimates-context";
+import { usePathwayEstimates } from "@/lib/pathway-estimates-context";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -27,7 +31,13 @@ interface LayoutProps {
 export function Layout({ children }: LayoutProps) {
   const [location] = useLocation();
   const { selectedId, setSelectedId, setNewEstOpen } = useEstimates();
+  const {
+    selectedId: pathwaySelectedId,
+    setSelectedId: setPathwaySelectedId,
+    setNewEstOpen: setPathwayNewEstOpen,
+  } = usePathwayEstimates();
   const { data: estimates = [] } = useListEstimates();
+  const { data: pathwayEstimates = [] } = useListPathwayEstimates();
 
   const navItems = [
     { href: "/", label: "Cabling", icon: Calculator },
@@ -37,7 +47,11 @@ export function Layout({ children }: LayoutProps) {
   ];
 
   const selectedEstimate = estimates.find((e) => e.id === selectedId);
+  const selectedPathwayEstimate = pathwayEstimates.find(
+    (e) => e.id === pathwaySelectedId,
+  );
   const isEstimatorRoute = location === "/";
+  const isPathwaysRoute = location === "/pathways";
 
   const EstimatesDropdown = () => (
     <div className="mt-3 space-y-1">
@@ -99,6 +113,69 @@ export function Layout({ children }: LayoutProps) {
     </div>
   );
 
+  const PathwayEstimatesDropdown = () => (
+    <div className="mt-3 space-y-1">
+      <p className="text-[10px] uppercase tracking-widest text-muted-foreground px-1 mb-2">
+        Saved Pathway Estimates
+      </p>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button
+            variant="outline"
+            className="w-full justify-between text-left font-normal h-auto py-2 px-3"
+            data-testid="dropdown-pathway-estimates"
+          >
+            <span className="truncate text-sm">
+              {selectedPathwayEstimate
+                ? selectedPathwayEstimate.name
+                : "Select an estimate…"}
+            </span>
+            <ChevronDown className="w-4 h-4 shrink-0 text-muted-foreground ml-2" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent
+          className="w-56"
+          align="start"
+          side="bottom"
+          sideOffset={4}
+        >
+          {pathwayEstimates.length === 0 ? (
+            <DropdownMenuItem disabled>No estimates yet</DropdownMenuItem>
+          ) : (
+            pathwayEstimates.map((e) => (
+              <DropdownMenuItem
+                key={e.id}
+                onSelect={() => setPathwaySelectedId(e.id)}
+                className={cn(
+                  "flex flex-col items-start gap-0.5 cursor-pointer",
+                  e.id === pathwaySelectedId && "bg-primary/10 text-primary",
+                )}
+                data-testid={`dropdown-pathway-item-${e.id}`}
+              >
+                <span className="font-medium text-sm truncate max-w-[180px]">
+                  {e.name}
+                </span>
+                <span className="text-xs text-muted-foreground">
+                  {e.segmentCount} seg{e.segmentCount === 1 ? "" : "s"} ·{" "}
+                  {e.totalLengthFt.toLocaleString()} ft
+                </span>
+              </DropdownMenuItem>
+            ))
+          )}
+          <DropdownMenuSeparator />
+          <DropdownMenuItem
+            onSelect={() => setPathwayNewEstOpen(true)}
+            className="text-primary font-medium cursor-pointer"
+            data-testid="dropdown-new-pathway-estimate"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            New Pathway Estimate
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
+  );
+
   return (
     <div className="flex min-h-screen w-full bg-background text-foreground">
       {/* Sidebar */}
@@ -128,6 +205,7 @@ export function Layout({ children }: LayoutProps) {
           ))}
 
           {isEstimatorRoute && <EstimatesDropdown />}
+          {isPathwaysRoute && <PathwayEstimatesDropdown />}
         </nav>
         <div className="p-4 border-t border-border text-xs text-muted-foreground">
           v1.0.0 Field Tool
@@ -171,6 +249,41 @@ export function Layout({ children }: LayoutProps) {
                 >
                   <Plus className="w-4 h-4 mr-2" />
                   New Estimate
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+          {isPathwaysRoute && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="max-w-[160px]">
+                  <span className="truncate text-xs">
+                    {selectedPathwayEstimate
+                      ? selectedPathwayEstimate.name
+                      : "Select…"}
+                  </span>
+                  <ChevronDown className="w-3.5 h-3.5 ml-1.5 shrink-0" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {pathwayEstimates.map((e) => (
+                  <DropdownMenuItem
+                    key={e.id}
+                    onSelect={() => setPathwaySelectedId(e.id)}
+                    className={cn(
+                      e.id === pathwaySelectedId && "bg-primary/10 text-primary",
+                    )}
+                  >
+                    {e.name}
+                  </DropdownMenuItem>
+                ))}
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onSelect={() => setPathwayNewEstOpen(true)}
+                  className="text-primary font-medium"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  New Pathway Estimate
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

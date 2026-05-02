@@ -56,6 +56,51 @@ export const BuildingType = {
   healthcare: "healthcare",
 } as const;
 
+export type PathwayTypeKey =
+  (typeof PathwayTypeKey)[keyof typeof PathwayTypeKey];
+
+export const PathwayTypeKey = {
+  cable_tray: "cable_tray",
+  wire_basket: "wire_basket",
+  solid_tray: "solid_tray",
+  j_hooks: "j_hooks",
+  d_rings: "d_rings",
+  arlington_loops: "arlington_loops",
+  emt_conduit: "emt_conduit",
+  pvc_conduit: "pvc_conduit",
+  sleeves: "sleeves",
+  unistrut_rod: "unistrut_rod",
+} as const;
+
+export type PathwayMountingHeight =
+  (typeof PathwayMountingHeight)[keyof typeof PathwayMountingHeight];
+
+export const PathwayMountingHeight = {
+  "8ft": "8ft",
+  "12ft": "12ft",
+  "16ft": "16ft",
+  "20ft": "20ft",
+} as const;
+
+export type PathwayCeilingKey =
+  (typeof PathwayCeilingKey)[keyof typeof PathwayCeilingKey];
+
+export const PathwayCeilingKey = {
+  open_deck: "open_deck",
+  t_bar: "t_bar",
+  drywall: "drywall",
+  concrete: "concrete",
+} as const;
+
+export type PathwayCableFill =
+  (typeof PathwayCableFill)[keyof typeof PathwayCableFill];
+
+export const PathwayCableFill = {
+  light: "light",
+  medium: "medium",
+  heavy: "heavy",
+} as const;
+
 export type WorkEnvironment =
   (typeof WorkEnvironment)[keyof typeof WorkEnvironment];
 
@@ -372,4 +417,184 @@ export interface CalculationInput {
 export interface CalculationResult {
   runs: RunCalculation[];
   totals: EstimateTotals;
+}
+
+export interface PathwayEstimate {
+  id: number;
+  name: string;
+  /** @minimum 0 */
+  hourlyRate: number;
+  notes?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface PathwayEstimateSummary {
+  id: number;
+  name: string;
+  /** @minimum 0 */
+  hourlyRate: number;
+  segmentCount: number;
+  totalLengthFt: number;
+  totalLaborHrs: number;
+  totalCost: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface PathwaySegment {
+  id: number;
+  estimateId: number;
+  label: string;
+  pathwayType: PathwayTypeKey;
+  /** @minimum 0 */
+  lengthFt: number;
+  mountingHeight: PathwayMountingHeight;
+  ceilingType: PathwayCeilingKey;
+  cableFill: PathwayCableFill;
+  /** @minimum 0 */
+  bends: number;
+  /** @minimum 0 */
+  penetrations: number;
+  notes?: string | null;
+  sortOrder: number;
+  createdAt: string;
+}
+
+/**
+ * A pathway segment plus its computed labor + material breakdown.
+ */
+export interface PathwaySegmentCalculation {
+  segmentId: number;
+  label: string;
+  pathwayType: PathwayTypeKey;
+  /** @minimum 0 */
+  lengthFt: number;
+  mountingHeight: PathwayMountingHeight;
+  ceilingType: PathwayCeilingKey;
+  cableFill: PathwayCableFill;
+  /** @minimum 0 */
+  bends: number;
+  /** @minimum 0 */
+  penetrations: number;
+  notes?: string | null;
+  sortOrder: number;
+  fastenerCount: number;
+  baseLaborHrs: number;
+  fastenerLaborHrs: number;
+  bendLaborHrs: number;
+  penetrationLaborHrs: number;
+  totalLaborHrs: number;
+  pathwayMaterialCost: number;
+  fastenerMaterialCost: number;
+  bendMaterialCost: number;
+  penetrationMaterialCost: number;
+  totalMaterialCost: number;
+  laborCost: number;
+  totalCost: number;
+  perFtCost: number;
+}
+
+export interface PathwayEstimateTotals {
+  segmentCount: number;
+  totalLengthFt: number;
+  totalLaborHrs: number;
+  totalLaborCost: number;
+  totalMaterialCost: number;
+  totalFasteners: number;
+  totalCost: number;
+}
+
+export interface PathwayEstimateDetail {
+  estimate: PathwayEstimate;
+  segments: PathwaySegmentCalculation[];
+  totals: PathwayEstimateTotals;
+}
+
+export interface CreatePathwayEstimateBody {
+  /**
+   * @minLength 1
+   * @maxLength 200
+   */
+  name: string;
+  /**
+   * @minimum 0
+   * @maximum 100000
+   */
+  hourlyRate: number;
+  /** @maxLength 5000 */
+  notes?: string | null;
+}
+
+export interface UpdatePathwayEstimateBody {
+  /**
+   * @minLength 1
+   * @maxLength 200
+   */
+  name: string;
+  /**
+   * @minimum 0
+   * @maximum 100000
+   */
+  hourlyRate: number;
+  /** @maxLength 5000 */
+  notes?: string | null;
+}
+
+export interface CreatePathwaySegmentBody {
+  /**
+   * @minLength 1
+   * @maxLength 200
+   */
+  label: string;
+  pathwayType: PathwayTypeKey;
+  /**
+   * @minimum 0
+   * @maximum 100000
+   */
+  lengthFt: number;
+  mountingHeight: PathwayMountingHeight;
+  ceilingType: PathwayCeilingKey;
+  cableFill: PathwayCableFill;
+  /**
+   * @minimum 0
+   * @maximum 999
+   */
+  bends: number;
+  /**
+   * @minimum 0
+   * @maximum 999
+   */
+  penetrations: number;
+  /** @maxLength 5000 */
+  notes?: string | null;
+}
+
+export interface UpdatePathwaySegmentBody {
+  /**
+   * @minLength 1
+   * @maxLength 200
+   */
+  label: string;
+  pathwayType: PathwayTypeKey;
+  /**
+   * @minimum 0
+   * @maximum 100000
+   */
+  lengthFt: number;
+  mountingHeight: PathwayMountingHeight;
+  ceilingType: PathwayCeilingKey;
+  cableFill: PathwayCableFill;
+  /**
+   * @minimum 0
+   * @maximum 999
+   */
+  bends: number;
+  /**
+   * @minimum 0
+   * @maximum 999
+   */
+  penetrations: number;
+  /** @maxLength 5000 */
+  notes?: string | null;
 }

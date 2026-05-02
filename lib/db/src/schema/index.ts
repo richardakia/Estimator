@@ -1,2 +1,3 @@
 export * from "./estimates";
 export * from "./ratesConfig";
+export * from "./pathwayEstimates";

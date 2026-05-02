@@ -31,11 +31,14 @@ The Rate Editor is organized into three sections so each estimator's variables s
 
 ## Pathway Calculator (`/pathways`)
 
-Standalone client-side calculator (no DB persistence). Inputs per segment: pathway type, length (or qty for sleeves), mounting height, ceiling/structure, cable fill, bends, penetrations, notes.
+Pathway estimates are now persisted in Postgres and follow the same "Saved Estimates" pattern as the Cabling Estimator: a sidebar dropdown lets you pick a saved pathway estimate (or create a new one), and the detail view shows totals, the segments table, and the formula explainer. Segments are persisted per estimate.
 
 - **Linear-foot pathways**: `labor = (laborMinPerFt × length / 60) × heightMult × ceilingMult × fillLaborMult` + fasteners (`ceil(length / spacing)` × labor & cost) + bends (0.5h × heightMult + $35 ea) + penetrations (0.75h + $50 ea). Material = `matCostPerFt × length × fillMaterialMult` + fastener/bend/penetration material.
 - **Per-each pathways** (sleeves & slots): treated as a quantity. Skips ceiling/fill multipliers, fasteners, bends, and the separate penetration adder (the sleeve IS the penetration). Labor = `(laborMinPerFt × qty / 60) × heightMult`.
-- Config and `calculatePathwaySegment()` live in `artifacts/cable-estimator/src/lib/pathwayConfig.ts`. 10 pathway types across Continuous Support, Non-Continuous Support, Enclosed/Protected, and Penetration categories.
+- **Persistence**: Postgres tables `pathway_estimates` (id, name, hourlyRate, notes, timestamps) and `pathway_segments` (FK cascade on estimate delete; raw segment inputs + sortOrder). Per-segment computed fields and totals are computed server-side on read using the same shared rates from `/api/rates`.
+- **Frontend config + live preview**: `artifacts/cable-estimator/src/lib/pathwayConfig.ts` (10 pathway types across Continuous Support, Non-Continuous Support, Enclosed/Protected, and Penetration categories) — used for the segment dialog's live preview only; saved data displays server-computed values.
+- **Server calculator**: `artifacts/api-server/src/lib/pathwayCalculator.ts` mirrors the client logic.
+- **Routes**: `/api/pathway-estimates` (GET list w/ summary totals, POST create, PUT, DELETE), `/api/pathway-estimates/:id/segments` (POST add segment with auto sortOrder), `/api/pathway-segments/:id` (PUT, DELETE; bumps parent `updatedAt`).
 
 ## Stack
 

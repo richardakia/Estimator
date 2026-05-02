@@ -4,6 +4,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Layout } from "@/components/layout";
 import { EstimatesProvider } from "@/lib/estimates-context";
+import { PathwayEstimatesProvider } from "@/lib/pathway-estimates-context";
 import Estimator from "@/pages/estimator";
 import RatesEditor from "@/pages/rates";
 import Guide from "@/pages/guide";
@@ -32,7 +33,9 @@ function App() {
       <TooltipProvider>
         <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
           <EstimatesProvider>
-            <Router />
+            <PathwayEstimatesProvider>
+              <Router />
+            </PathwayEstimatesProvider>
           </EstimatesProvider>
         </WouterRouter>
         <Toaster />

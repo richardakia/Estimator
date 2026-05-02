@@ -20,14 +20,22 @@ import type {
   CalculationInput,
   CalculationResult,
   CreateEstimateBody,
+  CreatePathwayEstimateBody,
+  CreatePathwaySegmentBody,
   CreateRunBody,
   Estimate,
   EstimateDetail,
   EstimateSummary,
   HealthStatus,
+  PathwayEstimate,
+  PathwayEstimateDetail,
+  PathwayEstimateSummary,
+  PathwaySegment,
   RatesConfig,
   Run,
   UpdateEstimateBody,
+  UpdatePathwayEstimateBody,
+  UpdatePathwaySegmentBody,
   UpdateRunBody,
 } from "./api.schemas";
 
@@ -1022,6 +1030,687 @@ export const useResetRates = <
   TContext
 > => {
   return useMutation(getResetRatesMutationOptions(options));
+};
+
+/**
+ * @summary List all pathway estimates
+ */
+export const getListPathwayEstimatesUrl = () => {
+  return `/api/pathway-estimates`;
+};
+
+export const listPathwayEstimates = async (
+  options?: RequestInit,
+): Promise<PathwayEstimateSummary[]> => {
+  return customFetch<PathwayEstimateSummary[]>(getListPathwayEstimatesUrl(), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getListPathwayEstimatesQueryKey = () => {
+  return [`/api/pathway-estimates`] as const;
+};
+
+export const getListPathwayEstimatesQueryOptions = <
+  TData = Awaited<ReturnType<typeof listPathwayEstimates>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof listPathwayEstimates>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getListPathwayEstimatesQueryKey();
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof listPathwayEstimates>>
+  > = ({ signal }) => listPathwayEstimates({ signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof listPathwayEstimates>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ListPathwayEstimatesQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listPathwayEstimates>>
+>;
+export type ListPathwayEstimatesQueryError = ErrorType<unknown>;
+
+/**
+ * @summary List all pathway estimates
+ */
+
+export function useListPathwayEstimates<
+  TData = Awaited<ReturnType<typeof listPathwayEstimates>>,
+  TError = ErrorType<unknown>,
+>(options?: {
+  query?: UseQueryOptions<
+    Awaited<ReturnType<typeof listPathwayEstimates>>,
+    TError,
+    TData
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getListPathwayEstimatesQueryOptions(options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Create a new pathway estimate
+ */
+export const getCreatePathwayEstimateUrl = () => {
+  return `/api/pathway-estimates`;
+};
+
+export const createPathwayEstimate = async (
+  createPathwayEstimateBody: CreatePathwayEstimateBody,
+  options?: RequestInit,
+): Promise<PathwayEstimate> => {
+  return customFetch<PathwayEstimate>(getCreatePathwayEstimateUrl(), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(createPathwayEstimateBody),
+  });
+};
+
+export const getCreatePathwayEstimateMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createPathwayEstimate>>,
+    TError,
+    { data: BodyType<CreatePathwayEstimateBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof createPathwayEstimate>>,
+  TError,
+  { data: BodyType<CreatePathwayEstimateBody> },
+  TContext
+> => {
+  const mutationKey = ["createPathwayEstimate"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof createPathwayEstimate>>,
+    { data: BodyType<CreatePathwayEstimateBody> }
+  > = (props) => {
+    const { data } = props ?? {};
+
+    return createPathwayEstimate(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CreatePathwayEstimateMutationResult = NonNullable<
+  Awaited<ReturnType<typeof createPathwayEstimate>>
+>;
+export type CreatePathwayEstimateMutationBody =
+  BodyType<CreatePathwayEstimateBody>;
+export type CreatePathwayEstimateMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Create a new pathway estimate
+ */
+export const useCreatePathwayEstimate = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createPathwayEstimate>>,
+    TError,
+    { data: BodyType<CreatePathwayEstimateBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof createPathwayEstimate>>,
+  TError,
+  { data: BodyType<CreatePathwayEstimateBody> },
+  TContext
+> => {
+  return useMutation(getCreatePathwayEstimateMutationOptions(options));
+};
+
+/**
+ * @summary Get a pathway estimate with all segments and computed totals
+ */
+export const getGetPathwayEstimateUrl = (id: number) => {
+  return `/api/pathway-estimates/${id}`;
+};
+
+export const getPathwayEstimate = async (
+  id: number,
+  options?: RequestInit,
+): Promise<PathwayEstimateDetail> => {
+  return customFetch<PathwayEstimateDetail>(getGetPathwayEstimateUrl(id), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getGetPathwayEstimateQueryKey = (id: number) => {
+  return [`/api/pathway-estimates/${id}`] as const;
+};
+
+export const getGetPathwayEstimateQueryOptions = <
+  TData = Awaited<ReturnType<typeof getPathwayEstimate>>,
+  TError = ErrorType<void>,
+>(
+  id: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getPathwayEstimate>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getGetPathwayEstimateQueryKey(id);
+
+  const queryFn: QueryFunction<
+    Awaited<ReturnType<typeof getPathwayEstimate>>
+  > = ({ signal }) => getPathwayEstimate(id, { signal, ...requestOptions });
+
+  return {
+    queryKey,
+    queryFn,
+    enabled: !!id,
+    ...queryOptions,
+  } as UseQueryOptions<
+    Awaited<ReturnType<typeof getPathwayEstimate>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type GetPathwayEstimateQueryResult = NonNullable<
+  Awaited<ReturnType<typeof getPathwayEstimate>>
+>;
+export type GetPathwayEstimateQueryError = ErrorType<void>;
+
+/**
+ * @summary Get a pathway estimate with all segments and computed totals
+ */
+
+export function useGetPathwayEstimate<
+  TData = Awaited<ReturnType<typeof getPathwayEstimate>>,
+  TError = ErrorType<void>,
+>(
+  id: number,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof getPathwayEstimate>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+): UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+  const queryOptions = getGetPathwayEstimateQueryOptions(id, options);
+
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & {
+    queryKey: QueryKey;
+  };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+/**
+ * @summary Update a pathway estimate
+ */
+export const getUpdatePathwayEstimateUrl = (id: number) => {
+  return `/api/pathway-estimates/${id}`;
+};
+
+export const updatePathwayEstimate = async (
+  id: number,
+  updatePathwayEstimateBody: UpdatePathwayEstimateBody,
+  options?: RequestInit,
+): Promise<PathwayEstimate> => {
+  return customFetch<PathwayEstimate>(getUpdatePathwayEstimateUrl(id), {
+    ...options,
+    method: "PUT",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(updatePathwayEstimateBody),
+  });
+};
+
+export const getUpdatePathwayEstimateMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updatePathwayEstimate>>,
+    TError,
+    { id: number; data: BodyType<UpdatePathwayEstimateBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updatePathwayEstimate>>,
+  TError,
+  { id: number; data: BodyType<UpdatePathwayEstimateBody> },
+  TContext
+> => {
+  const mutationKey = ["updatePathwayEstimate"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updatePathwayEstimate>>,
+    { id: number; data: BodyType<UpdatePathwayEstimateBody> }
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return updatePathwayEstimate(id, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdatePathwayEstimateMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updatePathwayEstimate>>
+>;
+export type UpdatePathwayEstimateMutationBody =
+  BodyType<UpdatePathwayEstimateBody>;
+export type UpdatePathwayEstimateMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Update a pathway estimate
+ */
+export const useUpdatePathwayEstimate = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updatePathwayEstimate>>,
+    TError,
+    { id: number; data: BodyType<UpdatePathwayEstimateBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof updatePathwayEstimate>>,
+  TError,
+  { id: number; data: BodyType<UpdatePathwayEstimateBody> },
+  TContext
+> => {
+  return useMutation(getUpdatePathwayEstimateMutationOptions(options));
+};
+
+/**
+ * @summary Delete a pathway estimate
+ */
+export const getDeletePathwayEstimateUrl = (id: number) => {
+  return `/api/pathway-estimates/${id}`;
+};
+
+export const deletePathwayEstimate = async (
+  id: number,
+  options?: RequestInit,
+): Promise<void> => {
+  return customFetch<void>(getDeletePathwayEstimateUrl(id), {
+    ...options,
+    method: "DELETE",
+  });
+};
+
+export const getDeletePathwayEstimateMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deletePathwayEstimate>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof deletePathwayEstimate>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  const mutationKey = ["deletePathwayEstimate"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof deletePathwayEstimate>>,
+    { id: number }
+  > = (props) => {
+    const { id } = props ?? {};
+
+    return deletePathwayEstimate(id, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DeletePathwayEstimateMutationResult = NonNullable<
+  Awaited<ReturnType<typeof deletePathwayEstimate>>
+>;
+
+export type DeletePathwayEstimateMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Delete a pathway estimate
+ */
+export const useDeletePathwayEstimate = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deletePathwayEstimate>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof deletePathwayEstimate>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  return useMutation(getDeletePathwayEstimateMutationOptions(options));
+};
+
+/**
+ * @summary Add a segment to a pathway estimate
+ */
+export const getCreatePathwaySegmentUrl = (id: number) => {
+  return `/api/pathway-estimates/${id}/segments`;
+};
+
+export const createPathwaySegment = async (
+  id: number,
+  createPathwaySegmentBody: CreatePathwaySegmentBody,
+  options?: RequestInit,
+): Promise<PathwaySegment> => {
+  return customFetch<PathwaySegment>(getCreatePathwaySegmentUrl(id), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(createPathwaySegmentBody),
+  });
+};
+
+export const getCreatePathwaySegmentMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createPathwaySegment>>,
+    TError,
+    { id: number; data: BodyType<CreatePathwaySegmentBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof createPathwaySegment>>,
+  TError,
+  { id: number; data: BodyType<CreatePathwaySegmentBody> },
+  TContext
+> => {
+  const mutationKey = ["createPathwaySegment"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof createPathwaySegment>>,
+    { id: number; data: BodyType<CreatePathwaySegmentBody> }
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return createPathwaySegment(id, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CreatePathwaySegmentMutationResult = NonNullable<
+  Awaited<ReturnType<typeof createPathwaySegment>>
+>;
+export type CreatePathwaySegmentMutationBody =
+  BodyType<CreatePathwaySegmentBody>;
+export type CreatePathwaySegmentMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Add a segment to a pathway estimate
+ */
+export const useCreatePathwaySegment = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createPathwaySegment>>,
+    TError,
+    { id: number; data: BodyType<CreatePathwaySegmentBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof createPathwaySegment>>,
+  TError,
+  { id: number; data: BodyType<CreatePathwaySegmentBody> },
+  TContext
+> => {
+  return useMutation(getCreatePathwaySegmentMutationOptions(options));
+};
+
+/**
+ * @summary Update a pathway segment
+ */
+export const getUpdatePathwaySegmentUrl = (id: number) => {
+  return `/api/pathway-segments/${id}`;
+};
+
+export const updatePathwaySegment = async (
+  id: number,
+  updatePathwaySegmentBody: UpdatePathwaySegmentBody,
+  options?: RequestInit,
+): Promise<PathwaySegment> => {
+  return customFetch<PathwaySegment>(getUpdatePathwaySegmentUrl(id), {
+    ...options,
+    method: "PUT",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(updatePathwaySegmentBody),
+  });
+};
+
+export const getUpdatePathwaySegmentMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updatePathwaySegment>>,
+    TError,
+    { id: number; data: BodyType<UpdatePathwaySegmentBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updatePathwaySegment>>,
+  TError,
+  { id: number; data: BodyType<UpdatePathwaySegmentBody> },
+  TContext
+> => {
+  const mutationKey = ["updatePathwaySegment"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updatePathwaySegment>>,
+    { id: number; data: BodyType<UpdatePathwaySegmentBody> }
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return updatePathwaySegment(id, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdatePathwaySegmentMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updatePathwaySegment>>
+>;
+export type UpdatePathwaySegmentMutationBody =
+  BodyType<UpdatePathwaySegmentBody>;
+export type UpdatePathwaySegmentMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Update a pathway segment
+ */
+export const useUpdatePathwaySegment = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updatePathwaySegment>>,
+    TError,
+    { id: number; data: BodyType<UpdatePathwaySegmentBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof updatePathwaySegment>>,
+  TError,
+  { id: number; data: BodyType<UpdatePathwaySegmentBody> },
+  TContext
+> => {
+  return useMutation(getUpdatePathwaySegmentMutationOptions(options));
+};
+
+/**
+ * @summary Delete a pathway segment
+ */
+export const getDeletePathwaySegmentUrl = (id: number) => {
+  return `/api/pathway-segments/${id}`;
+};
+
+export const deletePathwaySegment = async (
+  id: number,
+  options?: RequestInit,
+): Promise<void> => {
+  return customFetch<void>(getDeletePathwaySegmentUrl(id), {
+    ...options,
+    method: "DELETE",
+  });
+};
+
+export const getDeletePathwaySegmentMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deletePathwaySegment>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof deletePathwaySegment>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  const mutationKey = ["deletePathwaySegment"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof deletePathwaySegment>>,
+    { id: number }
+  > = (props) => {
+    const { id } = props ?? {};
+
+    return deletePathwaySegment(id, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DeletePathwaySegmentMutationResult = NonNullable<
+  Awaited<ReturnType<typeof deletePathwaySegment>>
+>;
+
+export type DeletePathwaySegmentMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Delete a pathway segment
+ */
+export const useDeletePathwaySegment = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deletePathwaySegment>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof deletePathwaySegment>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  return useMutation(getDeletePathwaySegmentMutationOptions(options));
 };
 
 /**
