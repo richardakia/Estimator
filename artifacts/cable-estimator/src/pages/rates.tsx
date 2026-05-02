@@ -215,17 +215,27 @@ export default function RatesEditor() {
           </div>
 
           <div className="space-y-1">
-            <p className="font-semibold text-foreground">Step 2 — Pull Hours per Cable</p>
+            <p className="font-semibold text-foreground">Step 2 — Bulk Factor</p>
             <div className="rounded-md bg-muted/60 px-4 py-2 font-mono text-xs leading-relaxed">
-              pullHrs = (pullMin10ft ÷ 60) × (lengthFt ÷ 10) × conditionMult × bulkFactor
+              bulkFactor = 0.4 + (0.6 / numCables)
             </div>
             <p className="text-muted-foreground text-xs">
-              Pull time scales linearly with cable length. The bulk-pull factor lowers this value when more cables share the same pathway — termination is unaffected by the bulk discount.
+              numCables is the # of cables in a single pull. Solo pull (1) → 1.000× (no discount). 12 cables → 0.450×. 24 cables → 0.425×. Termination is never bulk-discounted.
             </p>
           </div>
 
           <div className="space-y-1">
-            <p className="font-semibold text-foreground">Step 3 — Termination Hours per Cable</p>
+            <p className="font-semibold text-foreground">Step 3 — Pull Hours per Cable</p>
+            <div className="rounded-md bg-muted/60 px-4 py-2 font-mono text-xs leading-relaxed">
+              pullHrs = (pullMin10ft ÷ 60) × (lengthFt ÷ 10) × conditionMult × bulkFactor
+            </div>
+            <p className="text-muted-foreground text-xs">
+              Pull time scales linearly with cable length. bulkFactor from Step 2 lowers this value when more cables share the same pathway.
+            </p>
+          </div>
+
+          <div className="space-y-1">
+            <p className="font-semibold text-foreground">Step 4 — Termination Hours per Cable</p>
             <div className="rounded-md bg-muted/60 px-4 py-2 font-mono text-xs leading-relaxed">
               termHrs = (termMinPerEnd × 2 ends) ÷ 60 × conditionMult
             </div>
@@ -235,14 +245,14 @@ export default function RatesEditor() {
           </div>
 
           <div className="space-y-1">
-            <p className="font-semibold text-foreground">Step 4 — Adjusted Hours per Cable</p>
+            <p className="font-semibold text-foreground">Step 5 — Adjusted Hours per Cable</p>
             <div className="rounded-md bg-muted/60 px-4 py-2 font-mono text-xs leading-relaxed">
               hrsPerCable = pullHrs + termHrs
             </div>
           </div>
 
           <div className="space-y-1">
-            <p className="font-semibold text-foreground">Step 5 — Run Total &amp; Range</p>
+            <p className="font-semibold text-foreground">Step 6 — Run Total &amp; Range</p>
             <div className="rounded-md bg-muted/60 px-4 py-2 font-mono text-xs leading-relaxed space-y-0.5">
               <div>runHrsAvg  = hrsPerCable × numCables</div>
               <div>runHrsLow  = runHrsAvg × 0.85&nbsp;&nbsp;(best case)</div>
