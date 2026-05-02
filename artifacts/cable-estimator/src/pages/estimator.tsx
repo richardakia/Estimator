@@ -52,6 +52,7 @@ import {
   DollarSign,
   TrendingDown,
   Cable,
+  FlaskConical,
 } from "lucide-react";
 import {
   CABLE_TYPES,
@@ -764,6 +765,8 @@ function EstimateDetail({
         </div>
       )}
 
+      <CablingFormulaExplainer />
+
       {/* Edit context dialog */}
       <Dialog open={editingContext} onOpenChange={setEditingContext}>
         <DialogContent className="max-w-lg">
@@ -930,6 +933,98 @@ function EstimateDetail({
         </DialogContent>
       </Dialog>
     </div>
+  );
+}
+
+function CablingFormulaExplainer() {
+  return (
+    <Card className="border-primary/30 bg-primary/5">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-base flex items-center gap-2">
+          <FlaskConical className="w-4 h-4 text-primary" />
+          How Each Cable Run Is Estimated
+        </CardTitle>
+        <p className="text-sm text-muted-foreground">
+          Every value in the Rate Editor feeds directly into these formulas.
+          All times convert to hours for the final output.
+        </p>
+      </CardHeader>
+      <CardContent className="space-y-5 text-sm">
+        <div className="space-y-1">
+          <p className="font-semibold text-foreground">
+            Step 1 — Condition Multiplier
+          </p>
+          <div className="rounded-md bg-muted/60 px-4 py-2 font-mono text-xs leading-relaxed">
+            conditionMult = installType × ceiling × pathway × building ×
+            environment × skill
+          </div>
+          <p className="text-muted-foreground text-xs">
+            Multiplied together from the six condition sections in the Rate
+            Editor. A value of 1.0 means no adjustment.
+          </p>
+        </div>
+
+        <div className="space-y-1">
+          <p className="font-semibold text-foreground">
+            Step 2 — Bulk Factor
+          </p>
+          <div className="rounded-md bg-muted/60 px-4 py-2 font-mono text-xs leading-relaxed">
+            bulkFactor = 0.4 + (0.6 / numCables)
+          </div>
+          <p className="text-muted-foreground text-xs">
+            numCables is the # of cables in a single pull. Solo pull (1) →
+            1.000× (no discount). 12 cables → 0.450×. 24 cables → 0.425×.
+            Termination is never bulk-discounted.
+          </p>
+        </div>
+
+        <div className="space-y-1">
+          <p className="font-semibold text-foreground">
+            Step 3 — Pull Hours per Cable Run
+          </p>
+          <div className="rounded-md bg-muted/60 px-4 py-2 font-mono text-xs leading-relaxed">
+            pullHrs = (pullMin10ft ÷ 60) × (lengthFt ÷ 10) × conditionMult ×
+            bulkFactor × numCables
+          </div>
+          <p className="text-muted-foreground text-xs">
+            Pull time scales linearly with cable length and cable count.
+            bulkFactor from Step 2 discounts the per-cable pull time when
+            multiple cables share the same pathway.
+          </p>
+        </div>
+
+        <div className="space-y-1">
+          <p className="font-semibold text-foreground">
+            Step 4 — Termination Hours per Cable Run
+          </p>
+          <div className="rounded-md bg-muted/60 px-4 py-2 font-mono text-xs leading-relaxed">
+            termHrs = (termMinPerEnd × 2 ends) ÷ 60 × conditionMult × numCables
+          </div>
+          <p className="text-muted-foreground text-xs">
+            Every cable is terminated at both ends. Termination is never
+            bulk-discounted — it scales only with cable count and the
+            condition multiplier.
+          </p>
+        </div>
+
+        <div className="space-y-1">
+          <p className="font-semibold text-foreground">
+            Step 5 — Total Run Hours &amp; Range
+          </p>
+          <div className="rounded-md bg-muted/60 px-4 py-2 font-mono text-xs leading-relaxed space-y-0.5">
+            <div>runHrsAvg = pullHrs + termHrs</div>
+            <div>runHrsLow = runHrsAvg × 0.85&nbsp;&nbsp;(best case)</div>
+            <div>runHrsHigh = runHrsAvg × 1.20&nbsp;&nbsp;(worst case)</div>
+            <div className="pt-1">runCost = runHrsAvg × hourlyRate</div>
+          </div>
+          <p className="text-muted-foreground text-xs">
+            The low/high range accounts for real-world variability. Totals
+            across all runs are summed to produce the estimate's overall
+            hours and cost.
+          </p>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 
