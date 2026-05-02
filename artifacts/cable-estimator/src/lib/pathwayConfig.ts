@@ -2,7 +2,7 @@ export type PathwayCategory =
   | "continuous"
   | "non_continuous"
   | "enclosed"
-  | "penetration";
+  | "fastening";
 
 export interface PathwayType {
   value: string;
@@ -109,7 +109,7 @@ export const PATHWAY_TYPES: PathwayType[] = [
   {
     value: "sleeves",
     label: "Sleeves & Slots (per penetration)",
-    category: "penetration",
+    category: "enclosed",
     laborMinPerFt: 25,
     materialCostPerFt: 45,
     fastenerSpacingFt: 0,
@@ -121,7 +121,7 @@ export const PATHWAY_TYPES: PathwayType[] = [
   {
     value: "unistrut_rod",
     label: "Unistrut + All-Thread Rod (support grid)",
-    category: "continuous",
+    category: "fastening",
     laborMinPerFt: 6,
     materialCostPerFt: 12,
     fastenerSpacingFt: 5,
@@ -134,8 +134,8 @@ export const PATHWAY_TYPES: PathwayType[] = [
 export const PATHWAY_CATEGORIES: { value: PathwayCategory; label: string }[] = [
   { value: "continuous", label: "Continuous Support" },
   { value: "non_continuous", label: "Non-Continuous Support" },
-  { value: "enclosed", label: "Enclosed / Protected" },
-  { value: "penetration", label: "Penetrations" },
+  { value: "enclosed", label: "Enclosed / Protected Pathways" },
+  { value: "fastening", label: "Fastening Systems" },
 ];
 
 export const MOUNTING_HEIGHTS = [

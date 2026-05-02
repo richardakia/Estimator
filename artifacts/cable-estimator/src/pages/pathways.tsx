@@ -21,9 +21,7 @@ import {
 import {
   Select,
   SelectContent,
-  SelectGroup,
   SelectItem,
-  SelectLabel,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
@@ -409,7 +407,31 @@ export default function Pathways() {
               />
             </div>
 
-            <div className="col-span-2">
+            <div>
+              <Label>Category</Label>
+              <Select
+                value={previewType?.category ?? "continuous"}
+                onValueChange={(v) => {
+                  const firstInCat = PATHWAY_TYPES.find((t) => t.category === v);
+                  if (firstInCat) {
+                    setDraft({ ...draft, pathwayType: firstInCat.value });
+                  }
+                }}
+              >
+                <SelectTrigger data-testid="select-pathway-category">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {PATHWAY_CATEGORIES.map((cat) => (
+                    <SelectItem key={cat.value} value={cat.value}>
+                      {cat.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
               <Label>Pathway Type</Label>
               <Select
                 value={draft.pathwayType}
@@ -419,20 +441,13 @@ export default function Pathways() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {PATHWAY_CATEGORIES.map((cat) => {
-                    const types = PATHWAY_TYPES.filter((t) => t.category === cat.value);
-                    if (types.length === 0) return null;
-                    return (
-                      <SelectGroup key={cat.value}>
-                        <SelectLabel>{cat.label}</SelectLabel>
-                        {types.map((t) => (
-                          <SelectItem key={t.value} value={t.value}>
-                            {t.label}
-                          </SelectItem>
-                        ))}
-                      </SelectGroup>
-                    );
-                  })}
+                  {PATHWAY_TYPES.filter(
+                    (t) => t.category === (previewType?.category ?? "continuous"),
+                  ).map((t) => (
+                    <SelectItem key={t.value} value={t.value}>
+                      {t.label}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
               {previewType && (
