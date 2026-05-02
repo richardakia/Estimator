@@ -561,10 +561,8 @@ function EstimateDetail({
                     <TableHead className="text-right">Bulk Factor</TableHead>
                     <TableHead className="text-right">Pull min/10ft</TableHead>
                     <TableHead className="text-right">Term min/end</TableHead>
-                    <TableHead className="text-right">Pull hrs/cable</TableHead>
+                    <TableHead className="text-right">Pull hrs/run</TableHead>
                     <TableHead className="text-right">Term hrs/cable</TableHead>
-                    <TableHead className="text-right">Hrs / Cable</TableHead>
-                    <TableHead className="text-right">Hrs (avg)</TableHead>
                     <TableHead className="text-right">Cost (avg)</TableHead>
                     <TableHead></TableHead>
                   </TableRow>
@@ -602,16 +600,10 @@ function EstimateDetail({
                         {r.terminationMinutesPerEnd.toFixed(1)}
                       </TableCell>
                       <TableCell className="text-right font-mono text-muted-foreground">
-                        {r.pullHoursPerCable.toFixed(2)}
+                        {(r.pullHoursPerCable * r.numCables).toFixed(2)}
                       </TableCell>
                       <TableCell className="text-right font-mono text-muted-foreground">
                         {r.terminationHoursPerCable.toFixed(2)}
-                      </TableCell>
-                      <TableCell className="text-right font-mono">
-                        {r.adjustedHoursPerCable.toFixed(2)}
-                      </TableCell>
-                      <TableCell className="text-right font-mono">
-                        {r.runHoursAvg.toFixed(1)}
                       </TableCell>
                       <TableCell className="text-right font-mono font-medium">
                         {fmtMoney(r.runCostAvg)}
