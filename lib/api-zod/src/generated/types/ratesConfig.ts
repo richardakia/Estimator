@@ -10,12 +10,18 @@ import type { RatesConfigBuildingMult } from "./ratesConfigBuildingMult";
 import type { RatesConfigCeilingMult } from "./ratesConfigCeilingMult";
 import type { RatesConfigEnvironmentMult } from "./ratesConfigEnvironmentMult";
 import type { RatesConfigInstallTypeMult } from "./ratesConfigInstallTypeMult";
+import type { RatesConfigPathwayCableFillMult } from "./ratesConfigPathwayCableFillMult";
+import type { RatesConfigPathwayCeilingMult } from "./ratesConfigPathwayCeilingMult";
+import type { RatesConfigPathwayMountingHeightMult } from "./ratesConfigPathwayMountingHeightMult";
 import type { RatesConfigPathwayMult } from "./ratesConfigPathwayMult";
+import type { RatesConfigPathwayTypeRates } from "./ratesConfigPathwayTypeRates";
 import type { RatesConfigPullMinutesPer10Ft } from "./ratesConfigPullMinutesPer10Ft";
 import type { RatesConfigSkillMult } from "./ratesConfigSkillMult";
 import type { RatesConfigTerminationMinutesPerEnd } from "./ratesConfigTerminationMinutesPerEnd";
 
 export interface RatesConfig {
+  /** Default hourly labor rate ($/hr) shared by both estimators. */
+  hourlyRate?: number;
   /** User-defined cable types added beyond the built-in list */
   customCableTypes?: CustomCableType[];
   /** Pull labor in minutes for every 10 ft of cable, by cable type */
@@ -28,4 +34,20 @@ export interface RatesConfig {
   buildingMult: RatesConfigBuildingMult;
   environmentMult: RatesConfigEnvironmentMult;
   skillMult: RatesConfigSkillMult;
+  /** Per-pathway-type editable rates (keyed by pathway type value). */
+  pathwayTypeRates?: RatesConfigPathwayTypeRates;
+  /** Mounting height labor multipliers (keyed by height bracket). */
+  pathwayMountingHeightMult?: RatesConfigPathwayMountingHeightMult;
+  /** Pathway ceiling type labor multipliers. */
+  pathwayCeilingMult?: RatesConfigPathwayCeilingMult;
+  /** Cable fill labor and material multipliers. */
+  pathwayCableFillMult?: RatesConfigPathwayCableFillMult;
+  /** Hours added per 90° bend in a pathway run. */
+  pathwayBendLaborHrs?: number;
+  /** Material cost per 90° bend ($). */
+  pathwayBendMaterialCost?: number;
+  /** Hours added per fire-rated wall/floor penetration. */
+  pathwayPenetrationLaborHrs?: number;
+  /** Material cost per fire-rated penetration ($). */
+  pathwayPenetrationMaterialCost?: number;
 }

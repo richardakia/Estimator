@@ -22,7 +22,21 @@ export interface CustomCableType {
   label: string;
 }
 
+export interface PathwayTypeRate {
+  laborMinPerFt: number;
+  materialCostPerFt: number;
+  fastenerSpacingFt: number;
+  fastenerCostEach: number;
+  fastenerLaborMinEach: number;
+}
+
+export interface PathwayCableFillMult {
+  laborMult: number;
+  materialMult: number;
+}
+
 export interface RatesConfigShape {
+  hourlyRate?: number;
   customCableTypes?: CustomCableType[];
   pullMinutesPer10Ft: Record<string, number>;
   terminationMinutesPerEnd: Record<string, number>;
@@ -32,6 +46,14 @@ export interface RatesConfigShape {
   buildingMult: Record<BuildingType, number>;
   environmentMult: Record<WorkEnvironment, number>;
   skillMult: Record<SkillLevel, number>;
+  pathwayTypeRates?: Record<string, PathwayTypeRate>;
+  pathwayMountingHeightMult?: Record<string, number>;
+  pathwayCeilingMult?: Record<string, number>;
+  pathwayCableFillMult?: Record<string, PathwayCableFillMult>;
+  pathwayBendLaborHrs?: number;
+  pathwayBendMaterialCost?: number;
+  pathwayPenetrationLaborHrs?: number;
+  pathwayPenetrationMaterialCost?: number;
 }
 
 export const DEFAULT_RATES: RatesConfigShape = {
@@ -86,6 +108,41 @@ export const DEFAULT_RATES: RatesConfigShape = {
     journeyman: 1.0,
     lead: 0.85,
   },
+  hourlyRate: 85,
+  pathwayTypeRates: {
+    cable_tray: { laborMinPerFt: 12, materialCostPerFt: 14, fastenerSpacingFt: 5, fastenerCostEach: 22, fastenerLaborMinEach: 12 },
+    wire_basket: { laborMinPerFt: 8, materialCostPerFt: 8, fastenerSpacingFt: 4, fastenerCostEach: 14, fastenerLaborMinEach: 8 },
+    solid_tray: { laborMinPerFt: 14, materialCostPerFt: 18, fastenerSpacingFt: 5, fastenerCostEach: 22, fastenerLaborMinEach: 12 },
+    j_hooks: { laborMinPerFt: 3, materialCostPerFt: 2.5, fastenerSpacingFt: 4, fastenerCostEach: 4.5, fastenerLaborMinEach: 2 },
+    d_rings: { laborMinPerFt: 2.5, materialCostPerFt: 1.5, fastenerSpacingFt: 4, fastenerCostEach: 2.75, fastenerLaborMinEach: 1.5 },
+    arlington_loops: { laborMinPerFt: 2.8, materialCostPerFt: 2, fastenerSpacingFt: 4, fastenerCostEach: 3.5, fastenerLaborMinEach: 2 },
+    emt_conduit: { laborMinPerFt: 10, materialCostPerFt: 4, fastenerSpacingFt: 8, fastenerCostEach: 3, fastenerLaborMinEach: 4 },
+    pvc_conduit: { laborMinPerFt: 8, materialCostPerFt: 3, fastenerSpacingFt: 8, fastenerCostEach: 2.5, fastenerLaborMinEach: 3 },
+    sleeves: { laborMinPerFt: 25, materialCostPerFt: 45, fastenerSpacingFt: 0, fastenerCostEach: 0, fastenerLaborMinEach: 0 },
+    unistrut_rod: { laborMinPerFt: 6, materialCostPerFt: 12, fastenerSpacingFt: 5, fastenerCostEach: 6, fastenerLaborMinEach: 5 },
+  },
+  pathwayMountingHeightMult: {
+    "8ft": 1.0,
+    "12ft": 1.15,
+    "16ft": 1.3,
+    "20ft": 1.5,
+  },
+  pathwayCeilingMult: {
+    open_deck: 1.0,
+    t_bar: 1.1,
+    drywall: 1.25,
+    concrete: 1.35,
+  },
+  pathwayCableFillMult: {
+    light: { laborMult: 0.95, materialMult: 1.0 },
+    medium: { laborMult: 1.0, materialMult: 1.1 },
+    heavy: { laborMult: 1.1, materialMult: 1.3 },
+    critical: { laborMult: 1.2, materialMult: 1.6 },
+  },
+  pathwayBendLaborHrs: 0.5,
+  pathwayBendMaterialCost: 35,
+  pathwayPenetrationLaborHrs: 0.75,
+  pathwayPenetrationMaterialCost: 50,
 };
 
 /**

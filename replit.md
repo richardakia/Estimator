@@ -18,8 +18,16 @@ pnpm workspace monorepo using TypeScript. Each package manages its own dependenc
 - **Condition multipliers** (apply to both pull and termination): install type, ceiling, pathway, building, environment, skill.
 - **Range**: low=0.85x, avg=1.0x, high=1.20x of average hours.
 - **Task breakdown**: derived from actual computed hours — only Cable Pull (= Σ pull hrs across runs) and Termination & Testing (= Σ term hrs across runs) rows. No fixed percentages.
-- **Persistence**: Postgres tables `estimates`, `runs`, `rates_config`. The rates row is JSONB and is validated against the API zod schema each load; if invalid (e.g. after a schema change), defaults are reseeded into the row.
+- **Persistence**: Postgres tables `estimates`, `runs`, `rates_config`. The rates row is JSONB and is validated against the API zod schema each load; if invalid (e.g. after a schema change), defaults are reseeded into the row. On read, the stored row is shallow-merged under `DEFAULT_RATES` (`ratesStore.ts → mergeWithDefaults`) so newly added top-level fields auto-fill with defaults without overwriting prior user edits.
 - **Calculator** lives in `artifacts/api-server/src/lib/calculator.ts`; default rates seeded on first load.
+
+## Rate Editor (`/rates`)
+
+The Rate Editor is organized into three sections so each estimator's variables stay grouped:
+
+1. **Common — used by both estimators.** `hourlyRate` (default $/hr). Used as the default for new cabling estimates (prefilled when the New Estimate dialog opens) and as the starting rate in the Pathway Calculator (auto-syncs into `/pathways` until the user manually edits it).
+2. **Cabling Estimator.** Pull/termination times per cable type, the 6 condition multipliers (install/ceiling/pathway/building/environment/skill), the bulk pull formula explainer, and the per-step formula card.
+3. **Pathway Estimator.** Per-pathway-type rates (labor min/ft, material $/ft, fastener spacing/cost/labor), mounting height multipliers, pathway ceiling multipliers, cable fill multipliers (labor + material), and 90° bend / wall-floor penetration constants. All values are persisted via `/api/rates` and consumed by `/pathways`.
 
 ## Pathway Calculator (`/pathways`)
 

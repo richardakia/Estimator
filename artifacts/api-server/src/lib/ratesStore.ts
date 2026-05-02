@@ -6,16 +6,14 @@ import { logger } from "./logger";
 
 const RATES_KEY = "global";
 
-function validateOrFallback(value: unknown): RatesConfigShape {
-  const parsed = apiSchemas.UpdateRatesBody.safeParse(value);
-  if (!parsed.success) {
-    logger.warn(
-      { issues: parsed.error.issues },
-      "rates_config row failed validation; falling back to defaults",
-    );
-    return DEFAULT_RATES;
-  }
-  return parsed.data as RatesConfigShape;
+/**
+ * Merge a stored rates row with DEFAULT_RATES so that any newly added top-level
+ * fields (e.g. pathway-related settings introduced after a row was first
+ * persisted) are auto-filled with defaults without overwriting user edits to
+ * pre-existing fields.
+ */
+function mergeWithDefaults(stored: RatesConfigShape): RatesConfigShape {
+  return { ...DEFAULT_RATES, ...stored };
 }
 
 export async function getRates(): Promise<RatesConfigShape> {
@@ -44,7 +42,7 @@ export async function getRates(): Promise<RatesConfigShape> {
       .where(eq(ratesConfigTable.key, RATES_KEY));
     return DEFAULT_RATES;
   }
-  return parsed.data as RatesConfigShape;
+  return mergeWithDefaults(parsed.data as RatesConfigShape);
 }
 
 export async function saveRates(

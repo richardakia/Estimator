@@ -188,6 +188,82 @@ export const BEND_MATERIAL_COST = 35;
 export const PENETRATION_LABOR_HRS = 0.75;
 export const PENETRATION_MATERIAL_COST = 50;
 
+export interface PathwayTypeRateValues {
+  laborMinPerFt: number;
+  materialCostPerFt: number;
+  fastenerSpacingFt: number;
+  fastenerCostEach: number;
+  fastenerLaborMinEach: number;
+}
+
+export interface CableFillMultValues {
+  laborMult: number;
+  materialMult: number;
+}
+
+export interface PathwayRates {
+  typeRates: Record<string, PathwayTypeRateValues>;
+  heightMult: Record<string, number>;
+  ceilingMult: Record<string, number>;
+  fillMult: Record<string, CableFillMultValues>;
+  bendLaborHrs: number;
+  bendMaterialCost: number;
+  penetrationLaborHrs: number;
+  penetrationMaterialCost: number;
+}
+
+export const DEFAULT_PATHWAY_RATES: PathwayRates = {
+  typeRates: Object.fromEntries(
+    PATHWAY_TYPES.map((t) => [
+      t.value,
+      {
+        laborMinPerFt: t.laborMinPerFt,
+        materialCostPerFt: t.materialCostPerFt,
+        fastenerSpacingFt: t.fastenerSpacingFt,
+        fastenerCostEach: t.fastenerCostEach,
+        fastenerLaborMinEach: t.fastenerLaborMinEach,
+      },
+    ]),
+  ),
+  heightMult: Object.fromEntries(
+    MOUNTING_HEIGHTS.map((h) => [h.value, h.multiplier]),
+  ),
+  ceilingMult: Object.fromEntries(
+    PATHWAY_CEILING_TYPES.map((c) => [c.value, c.multiplier]),
+  ),
+  fillMult: Object.fromEntries(
+    CABLE_FILL_LEVELS.map((f) => [
+      f.value,
+      { laborMult: f.laborMult, materialMult: f.materialMult },
+    ]),
+  ),
+  bendLaborHrs: BEND_LABOR_HRS,
+  bendMaterialCost: BEND_MATERIAL_COST,
+  penetrationLaborHrs: PENETRATION_LABOR_HRS,
+  penetrationMaterialCost: PENETRATION_MATERIAL_COST,
+};
+
+/**
+ * Merge user-editable rate overrides (typically loaded from /api/rates) on top
+ * of the static defaults so the calculator always sees a complete rate table.
+ */
+export function resolvePathwayRates(
+  override?: Partial<PathwayRates> | null,
+): PathwayRates {
+  if (!override) return DEFAULT_PATHWAY_RATES;
+  return {
+    typeRates: { ...DEFAULT_PATHWAY_RATES.typeRates, ...(override.typeRates ?? {}) },
+    heightMult: { ...DEFAULT_PATHWAY_RATES.heightMult, ...(override.heightMult ?? {}) },
+    ceilingMult: { ...DEFAULT_PATHWAY_RATES.ceilingMult, ...(override.ceilingMult ?? {}) },
+    fillMult: { ...DEFAULT_PATHWAY_RATES.fillMult, ...(override.fillMult ?? {}) },
+    bendLaborHrs: override.bendLaborHrs ?? DEFAULT_PATHWAY_RATES.bendLaborHrs,
+    bendMaterialCost: override.bendMaterialCost ?? DEFAULT_PATHWAY_RATES.bendMaterialCost,
+    penetrationLaborHrs: override.penetrationLaborHrs ?? DEFAULT_PATHWAY_RATES.penetrationLaborHrs,
+    penetrationMaterialCost:
+      override.penetrationMaterialCost ?? DEFAULT_PATHWAY_RATES.penetrationMaterialCost,
+  };
+}
+
 export interface PathwaySegmentInput {
   id: string;
   label: string;
@@ -221,13 +297,13 @@ export interface PathwaySegmentResult {
 export function calculatePathwaySegment(
   segment: PathwaySegmentInput,
   hourlyRate: number,
+  rates: PathwayRates = DEFAULT_PATHWAY_RATES,
 ): PathwaySegmentResult {
-  const type = PATHWAY_TYPES.find((p) => p.value === segment.pathwayType);
-  const height = MOUNTING_HEIGHTS.find((h) => h.value === segment.mountingHeight);
-  const ceiling = PATHWAY_CEILING_TYPES.find((c) => c.value === segment.ceilingType);
-  const fill = CABLE_FILL_LEVELS.find((f) => f.value === segment.cableFill);
+  const meta = PATHWAY_TYPES.find((p) => p.value === segment.pathwayType);
+  const typeRate = rates.typeRates[segment.pathwayType];
+  const heightMult = rates.heightMult[segment.mountingHeight];
 
-  if (!type || !height) {
+  if (!meta || !typeRate || heightMult === undefined) {
     return {
       baseLaborHrs: 0,
       fastenerCount: 0,
@@ -246,15 +322,14 @@ export function calculatePathwaySegment(
     };
   }
 
-  const heightMult = height.multiplier;
   const length = Math.max(0, segment.lengthFt);
 
   // Per-each (sleeves & slots): qty-based work, no linear-foot semantics.
   // Skip ceiling/fill multipliers, no fasteners, no bends, no separate
   // penetration adder (the sleeve IS the penetration).
-  if (type.perEach) {
-    const baseLaborHrs = ((type.laborMinPerFt * length) / 60) * heightMult;
-    const pathwayMaterialCost = type.materialCostPerFt * length;
+  if (meta.perEach) {
+    const baseLaborHrs = ((typeRate.laborMinPerFt * length) / 60) * heightMult;
+    const pathwayMaterialCost = typeRate.materialCostPerFt * length;
     const totalLaborHrs = baseLaborHrs;
     const totalMaterialCost = pathwayMaterialCost;
     const laborCost = totalLaborHrs * hourlyRate;
@@ -279,34 +354,35 @@ export function calculatePathwaySegment(
   }
 
   // Linear-foot pathways: full multiplier stack
-  const ceilingMult = ceiling?.multiplier ?? 1;
+  const ceilingMult = rates.ceilingMult[segment.ceilingType] ?? 1;
+  const fill = rates.fillMult[segment.cableFill];
   const fillLaborMult = fill?.laborMult ?? 1;
   const fillMaterialMult = fill?.materialMult ?? 1;
 
   const baseLaborHrs =
-    ((type.laborMinPerFt * length) / 60) *
+    ((typeRate.laborMinPerFt * length) / 60) *
     heightMult *
     ceilingMult *
     fillLaborMult;
 
   const fastenerCount =
-    type.fastenerSpacingFt > 0 && length > 0
-      ? Math.ceil(length / type.fastenerSpacingFt)
+    typeRate.fastenerSpacingFt > 0 && length > 0
+      ? Math.ceil(length / typeRate.fastenerSpacingFt)
       : 0;
   const fastenerLaborHrs =
-    ((fastenerCount * type.fastenerLaborMinEach) / 60) * heightMult;
+    ((fastenerCount * typeRate.fastenerLaborMinEach) / 60) * heightMult;
 
-  const bendLaborHrs = segment.bends * BEND_LABOR_HRS * heightMult;
-  const penetrationLaborHrs = segment.penetrations * PENETRATION_LABOR_HRS;
+  const bendLaborHrs = segment.bends * rates.bendLaborHrs * heightMult;
+  const penetrationLaborHrs = segment.penetrations * rates.penetrationLaborHrs;
 
   const totalLaborHrs =
     baseLaborHrs + fastenerLaborHrs + bendLaborHrs + penetrationLaborHrs;
 
-  const pathwayMaterialCost = type.materialCostPerFt * length * fillMaterialMult;
-  const fastenerMaterialCost = fastenerCount * type.fastenerCostEach;
-  const bendMaterialCost = segment.bends * BEND_MATERIAL_COST;
+  const pathwayMaterialCost = typeRate.materialCostPerFt * length * fillMaterialMult;
+  const fastenerMaterialCost = fastenerCount * typeRate.fastenerCostEach;
+  const bendMaterialCost = segment.bends * rates.bendMaterialCost;
   const penetrationMaterialCost =
-    segment.penetrations * PENETRATION_MATERIAL_COST;
+    segment.penetrations * rates.penetrationMaterialCost;
 
   const totalMaterialCost =
     pathwayMaterialCost +

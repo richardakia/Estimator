@@ -238,6 +238,10 @@ export const DeleteRunParams = zod.object({
  * @summary Get all productivity rates and multipliers
  */
 export const GetRatesResponse = zod.object({
+  hourlyRate: zod
+    .number()
+    .optional()
+    .describe("Default hourly labor rate ($\/hr) shared by both estimators."),
   customCableTypes: zod
     .array(
       zod.object({
@@ -309,12 +313,69 @@ export const GetRatesResponse = zod.object({
     journeyman: zod.number(),
     lead: zod.number(),
   }),
+  pathwayTypeRates: zod
+    .record(
+      zod.string(),
+      zod
+        .object({
+          laborMinPerFt: zod.number(),
+          materialCostPerFt: zod.number(),
+          fastenerSpacingFt: zod.number(),
+          fastenerCostEach: zod.number(),
+          fastenerLaborMinEach: zod.number(),
+        })
+        .describe("Editable cost\/labor rates for a single pathway type."),
+    )
+    .optional()
+    .describe("Per-pathway-type editable rates (keyed by pathway type value)."),
+  pathwayMountingHeightMult: zod
+    .record(zod.string(), zod.number())
+    .optional()
+    .describe("Mounting height labor multipliers (keyed by height bracket)."),
+  pathwayCeilingMult: zod
+    .record(zod.string(), zod.number())
+    .optional()
+    .describe("Pathway ceiling type labor multipliers."),
+  pathwayCableFillMult: zod
+    .record(
+      zod.string(),
+      zod
+        .object({
+          laborMult: zod.number(),
+          materialMult: zod.number(),
+        })
+        .describe(
+          "Labor and material multipliers for a single cable-fill bracket.",
+        ),
+    )
+    .optional()
+    .describe("Cable fill labor and material multipliers."),
+  pathwayBendLaborHrs: zod
+    .number()
+    .optional()
+    .describe("Hours added per 90° bend in a pathway run."),
+  pathwayBendMaterialCost: zod
+    .number()
+    .optional()
+    .describe("Material cost per 90° bend ($)."),
+  pathwayPenetrationLaborHrs: zod
+    .number()
+    .optional()
+    .describe("Hours added per fire-rated wall\/floor penetration."),
+  pathwayPenetrationMaterialCost: zod
+    .number()
+    .optional()
+    .describe("Material cost per fire-rated penetration ($)."),
 });
 
 /**
  * @summary Update productivity rates
  */
 export const UpdateRatesBody = zod.object({
+  hourlyRate: zod
+    .number()
+    .optional()
+    .describe("Default hourly labor rate ($\/hr) shared by both estimators."),
   customCableTypes: zod
     .array(
       zod.object({
@@ -386,9 +447,66 @@ export const UpdateRatesBody = zod.object({
     journeyman: zod.number(),
     lead: zod.number(),
   }),
+  pathwayTypeRates: zod
+    .record(
+      zod.string(),
+      zod
+        .object({
+          laborMinPerFt: zod.number(),
+          materialCostPerFt: zod.number(),
+          fastenerSpacingFt: zod.number(),
+          fastenerCostEach: zod.number(),
+          fastenerLaborMinEach: zod.number(),
+        })
+        .describe("Editable cost\/labor rates for a single pathway type."),
+    )
+    .optional()
+    .describe("Per-pathway-type editable rates (keyed by pathway type value)."),
+  pathwayMountingHeightMult: zod
+    .record(zod.string(), zod.number())
+    .optional()
+    .describe("Mounting height labor multipliers (keyed by height bracket)."),
+  pathwayCeilingMult: zod
+    .record(zod.string(), zod.number())
+    .optional()
+    .describe("Pathway ceiling type labor multipliers."),
+  pathwayCableFillMult: zod
+    .record(
+      zod.string(),
+      zod
+        .object({
+          laborMult: zod.number(),
+          materialMult: zod.number(),
+        })
+        .describe(
+          "Labor and material multipliers for a single cable-fill bracket.",
+        ),
+    )
+    .optional()
+    .describe("Cable fill labor and material multipliers."),
+  pathwayBendLaborHrs: zod
+    .number()
+    .optional()
+    .describe("Hours added per 90° bend in a pathway run."),
+  pathwayBendMaterialCost: zod
+    .number()
+    .optional()
+    .describe("Material cost per 90° bend ($)."),
+  pathwayPenetrationLaborHrs: zod
+    .number()
+    .optional()
+    .describe("Hours added per fire-rated wall\/floor penetration."),
+  pathwayPenetrationMaterialCost: zod
+    .number()
+    .optional()
+    .describe("Material cost per fire-rated penetration ($)."),
 });
 
 export const UpdateRatesResponse = zod.object({
+  hourlyRate: zod
+    .number()
+    .optional()
+    .describe("Default hourly labor rate ($\/hr) shared by both estimators."),
   customCableTypes: zod
     .array(
       zod.object({
@@ -460,12 +578,69 @@ export const UpdateRatesResponse = zod.object({
     journeyman: zod.number(),
     lead: zod.number(),
   }),
+  pathwayTypeRates: zod
+    .record(
+      zod.string(),
+      zod
+        .object({
+          laborMinPerFt: zod.number(),
+          materialCostPerFt: zod.number(),
+          fastenerSpacingFt: zod.number(),
+          fastenerCostEach: zod.number(),
+          fastenerLaborMinEach: zod.number(),
+        })
+        .describe("Editable cost\/labor rates for a single pathway type."),
+    )
+    .optional()
+    .describe("Per-pathway-type editable rates (keyed by pathway type value)."),
+  pathwayMountingHeightMult: zod
+    .record(zod.string(), zod.number())
+    .optional()
+    .describe("Mounting height labor multipliers (keyed by height bracket)."),
+  pathwayCeilingMult: zod
+    .record(zod.string(), zod.number())
+    .optional()
+    .describe("Pathway ceiling type labor multipliers."),
+  pathwayCableFillMult: zod
+    .record(
+      zod.string(),
+      zod
+        .object({
+          laborMult: zod.number(),
+          materialMult: zod.number(),
+        })
+        .describe(
+          "Labor and material multipliers for a single cable-fill bracket.",
+        ),
+    )
+    .optional()
+    .describe("Cable fill labor and material multipliers."),
+  pathwayBendLaborHrs: zod
+    .number()
+    .optional()
+    .describe("Hours added per 90° bend in a pathway run."),
+  pathwayBendMaterialCost: zod
+    .number()
+    .optional()
+    .describe("Material cost per 90° bend ($)."),
+  pathwayPenetrationLaborHrs: zod
+    .number()
+    .optional()
+    .describe("Hours added per fire-rated wall\/floor penetration."),
+  pathwayPenetrationMaterialCost: zod
+    .number()
+    .optional()
+    .describe("Material cost per fire-rated penetration ($)."),
 });
 
 /**
  * @summary Reset rates to defaults
  */
 export const ResetRatesResponse = zod.object({
+  hourlyRate: zod
+    .number()
+    .optional()
+    .describe("Default hourly labor rate ($\/hr) shared by both estimators."),
   customCableTypes: zod
     .array(
       zod.object({
@@ -537,6 +712,59 @@ export const ResetRatesResponse = zod.object({
     journeyman: zod.number(),
     lead: zod.number(),
   }),
+  pathwayTypeRates: zod
+    .record(
+      zod.string(),
+      zod
+        .object({
+          laborMinPerFt: zod.number(),
+          materialCostPerFt: zod.number(),
+          fastenerSpacingFt: zod.number(),
+          fastenerCostEach: zod.number(),
+          fastenerLaborMinEach: zod.number(),
+        })
+        .describe("Editable cost\/labor rates for a single pathway type."),
+    )
+    .optional()
+    .describe("Per-pathway-type editable rates (keyed by pathway type value)."),
+  pathwayMountingHeightMult: zod
+    .record(zod.string(), zod.number())
+    .optional()
+    .describe("Mounting height labor multipliers (keyed by height bracket)."),
+  pathwayCeilingMult: zod
+    .record(zod.string(), zod.number())
+    .optional()
+    .describe("Pathway ceiling type labor multipliers."),
+  pathwayCableFillMult: zod
+    .record(
+      zod.string(),
+      zod
+        .object({
+          laborMult: zod.number(),
+          materialMult: zod.number(),
+        })
+        .describe(
+          "Labor and material multipliers for a single cable-fill bracket.",
+        ),
+    )
+    .optional()
+    .describe("Cable fill labor and material multipliers."),
+  pathwayBendLaborHrs: zod
+    .number()
+    .optional()
+    .describe("Hours added per 90° bend in a pathway run."),
+  pathwayBendMaterialCost: zod
+    .number()
+    .optional()
+    .describe("Material cost per 90° bend ($)."),
+  pathwayPenetrationLaborHrs: zod
+    .number()
+    .optional()
+    .describe("Hours added per fire-rated wall\/floor penetration."),
+  pathwayPenetrationMaterialCost: zod
+    .number()
+    .optional()
+    .describe("Material cost per fire-rated penetration ($)."),
 });
 
 /**

@@ -17,12 +17,24 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
   RotateCcw,
   Save,
   Settings as SettingsIcon,
   FlaskConical,
   Plus,
   Trash2,
+  Calculator,
+  Route as RouteIcon,
+  Layers,
+  DollarSign,
 } from "lucide-react";
 import {
   CABLE_TYPES,
@@ -33,6 +45,15 @@ import {
   ENVIRONMENTS,
   SKILL_LEVELS,
 } from "@/lib/options";
+import {
+  PATHWAY_TYPES,
+  MOUNTING_HEIGHTS,
+  PATHWAY_CEILING_TYPES,
+  CABLE_FILL_LEVELS,
+  DEFAULT_PATHWAY_RATES,
+  type PathwayTypeRateValues,
+  type CableFillMultValues,
+} from "@/lib/pathwayConfig";
 
 interface CustomCableType {
   value: string;
@@ -40,6 +61,7 @@ interface CustomCableType {
 }
 
 interface RatesShape {
+  hourlyRate?: number;
   customCableTypes?: CustomCableType[];
   pullMinutesPer10Ft: Record<string, number>;
   terminationMinutesPerEnd: Record<string, number>;
@@ -49,6 +71,14 @@ interface RatesShape {
   buildingMult: Record<string, number>;
   environmentMult: Record<string, number>;
   skillMult: Record<string, number>;
+  pathwayTypeRates?: Record<string, PathwayTypeRateValues>;
+  pathwayMountingHeightMult?: Record<string, number>;
+  pathwayCeilingMult?: Record<string, number>;
+  pathwayCableFillMult?: Record<string, CableFillMultValues>;
+  pathwayBendLaborHrs?: number;
+  pathwayBendMaterialCost?: number;
+  pathwayPenetrationLaborHrs?: number;
+  pathwayPenetrationMaterialCost?: number;
 }
 
 function slugify(label: string): string {
@@ -94,17 +124,56 @@ export default function RatesEditor() {
 
   if (!draft) return <div>Loading rates…</div>;
 
-  const setNested = (section: keyof RatesShape, key: string, value: number) => {
+  const setNested = (
+    section: keyof RatesShape,
+    key: string,
+    value: number,
+  ) => {
     setDraft({
       ...draft,
       [section]: {
-        ...(draft[section] as Record<string, number>),
+        ...((draft[section] as Record<string, number>) ?? {}),
         [key]: value,
       },
     });
   };
 
+  const updatePathwayTypeRate = (
+    typeValue: string,
+    field: keyof PathwayTypeRateValues,
+    value: number,
+  ) => {
+    const current = draft.pathwayTypeRates ?? {};
+    const existing =
+      current[typeValue] ?? DEFAULT_PATHWAY_RATES.typeRates[typeValue];
+    setDraft({
+      ...draft,
+      pathwayTypeRates: {
+        ...current,
+        [typeValue]: { ...existing, [field]: value },
+      },
+    });
+  };
+
+  const updateCableFill = (
+    fillValue: string,
+    field: keyof CableFillMultValues,
+    value: number,
+  ) => {
+    const current = draft.pathwayCableFillMult ?? {};
+    const existing =
+      current[fillValue] ?? DEFAULT_PATHWAY_RATES.fillMult[fillValue];
+    setDraft({
+      ...draft,
+      pathwayCableFillMult: {
+        ...current,
+        [fillValue]: { ...existing, [field]: value },
+      },
+    });
+  };
+
   const builtInKeys = new Set(CABLE_TYPES.map((c) => c.value));
+  void builtInKeys;
   const customCables: CustomCableType[] = draft.customCableTypes ?? [];
   const allCableOptions = [
     ...CABLE_TYPES,
@@ -156,16 +225,24 @@ export default function RatesEditor() {
     });
   };
 
+  // Effective values (draft value, falling back to defaults) for pathway sections
+  const effectiveTypeRate = (typeValue: string): PathwayTypeRateValues =>
+    (draft.pathwayTypeRates ?? {})[typeValue] ??
+    DEFAULT_PATHWAY_RATES.typeRates[typeValue];
+  const effectiveCableFill = (fillValue: string): CableFillMultValues =>
+    (draft.pathwayCableFillMult ?? {})[fillValue] ??
+    DEFAULT_PATHWAY_RATES.fillMult[fillValue];
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-10">
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
           <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
             <SettingsIcon className="w-7 h-7" /> Rate Editor
           </h1>
           <p className="text-muted-foreground mt-1">
-            Tune base labor rates and condition multipliers used by the
-            estimator.
+            Tune base labor rates, condition multipliers, and pathway
+            constants used across both estimators.
           </p>
         </div>
         <div className="flex gap-2">
@@ -179,7 +256,9 @@ export default function RatesEditor() {
           <Button
             onClick={() =>
               updateRates.mutate({
-                data: draft as Parameters<typeof updateRates.mutate>[0]["data"],
+                data: draft as Parameters<
+                  typeof updateRates.mutate
+                >[0]["data"],
               })
             }
             disabled={updateRates.isPending}
@@ -191,166 +270,631 @@ export default function RatesEditor() {
         </div>
       </div>
 
-      {/* Estimation Formula */}
-      <Card className="border-primary/30 bg-primary/5">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base flex items-center gap-2">
-            <FlaskConical className="w-4 h-4 text-primary" />
-            How Each Cable Run Is Estimated
-          </CardTitle>
-          <p className="text-sm text-muted-foreground">
-            Every value you edit below feeds directly into these formulas. All times convert to hours for the final output.
+      {/* ---------------- COMMON ---------------- */}
+      <section className="space-y-4">
+        <div className="border-l-4 border-primary pl-3">
+          <h2 className="text-xl font-bold flex items-center gap-2">
+            <DollarSign className="w-5 h-5 text-primary" />
+            Common — used by both estimators
+          </h2>
+          <p className="text-sm text-muted-foreground mt-1">
+            Settings that apply to the Cabling Estimator and the Pathway
+            Calculator.
           </p>
-        </CardHeader>
-        <CardContent className="space-y-5 text-sm">
+        </div>
 
-          <div className="space-y-1">
-            <p className="font-semibold text-foreground">Step 1 — Condition Multiplier</p>
-            <div className="rounded-md bg-muted/60 px-4 py-2 font-mono text-xs leading-relaxed">
-              conditionMult = installType × ceiling × pathway × building × environment × skill
-            </div>
-            <p className="text-muted-foreground text-xs">
-              Multiplied together from the six condition sections below. A value of 1.0 means no adjustment.
-            </p>
-          </div>
-
-          <div className="space-y-1">
-            <p className="font-semibold text-foreground">Step 2 — Bulk Factor</p>
-            <div className="rounded-md bg-muted/60 px-4 py-2 font-mono text-xs leading-relaxed">
-              bulkFactor = 0.4 + (0.6 / numCables)
-            </div>
-            <p className="text-muted-foreground text-xs">
-              numCables is the # of cables in a single pull. Solo pull (1) → 1.000× (no discount). 12 cables → 0.450×. 24 cables → 0.425×. Termination is never bulk-discounted.
-            </p>
-          </div>
-
-          <div className="space-y-1">
-            <p className="font-semibold text-foreground">Step 3 — Pull Hours per Cable Run</p>
-            <div className="rounded-md bg-muted/60 px-4 py-2 font-mono text-xs leading-relaxed">
-              pullHrs = (pullMin10ft ÷ 60) × (lengthFt ÷ 10) × conditionMult × bulkFactor × numCables
-            </div>
-            <p className="text-muted-foreground text-xs">
-              Pull time scales linearly with cable length and cable count. bulkFactor from Step 2 discounts the per-cable pull time when multiple cables share the same pathway.
-            </p>
-          </div>
-
-          <div className="space-y-1">
-            <p className="font-semibold text-foreground">Step 4 — Termination Hours per Cable Run</p>
-            <div className="rounded-md bg-muted/60 px-4 py-2 font-mono text-xs leading-relaxed">
-              termHrs = (termMinPerEnd × 2 ends) ÷ 60 × conditionMult × numCables
-            </div>
-            <p className="text-muted-foreground text-xs">
-              Every cable is terminated at both ends. Termination is never bulk-discounted — it scales only with cable count and the condition multiplier.
-            </p>
-          </div>
-
-          <div className="space-y-1">
-            <p className="font-semibold text-foreground">Step 5 — Total Run Hours &amp; Range</p>
-            <div className="rounded-md bg-muted/60 px-4 py-2 font-mono text-xs leading-relaxed space-y-0.5">
-              <div>runHrsAvg  = pullHrs + termHrs</div>
-              <div>runHrsLow  = runHrsAvg × 0.85&nbsp;&nbsp;(best case)</div>
-              <div>runHrsHigh = runHrsAvg × 1.20&nbsp;&nbsp;(worst case)</div>
-              <div className="pt-1">runCost = runHrsAvg × hourlyRate</div>
-            </div>
-            <p className="text-muted-foreground text-xs">
-              The low/high range accounts for real-world variability. Totals across all runs are summed to produce the estimate's overall hours and cost.
-            </p>
-          </div>
-
-        </CardContent>
-      </Card>
-
-      <div className="grid gap-6 md:grid-cols-2">
-        <RateSection
-          title="Pull Time (minutes per 10 ft)"
-          subtitle="Base pull labor in minutes for every 10 ft of cable, before any multipliers or bulk-pull discount."
-          options={allCableOptions}
-          values={draft.pullMinutesPer10Ft}
-          onChange={(k, v) => setNested("pullMinutesPer10Ft", k, v)}
-          step={0.5}
-          unit="min / 10 ft"
-          customKeys={customCables.map((c) => c.value)}
-          onDeleteCustom={handleDeleteCable}
-          onAddCustom={() => setAddDialogOpen(true)}
-        />
-        <RateSection
-          title="Termination Time (minutes per end)"
-          subtitle="Each cable is terminated on both ends, so this value is doubled per cable."
-          options={allCableOptions}
-          values={draft.terminationMinutesPerEnd}
-          onChange={(k, v) => setNested("terminationMinutesPerEnd", k, v)}
-          step={0.5}
-          unit="min / end"
-          customKeys={customCables.map((c) => c.value)}
-          onDeleteCustom={handleDeleteCable}
-        />
-        <RateSection
-          title="Install Type Multiplier"
-          options={INSTALL_TYPES}
-          values={draft.installTypeMult}
-          onChange={(k, v) => setNested("installTypeMult", k, v)}
-        />
-        <RateSection
-          title="Ceiling Type Multiplier"
-          options={CEILING_TYPES}
-          values={draft.ceilingMult}
-          onChange={(k, v) => setNested("ceilingMult", k, v)}
-        />
-        <RateSection
-          title="Pathway Complexity Multiplier"
-          options={PATHWAY_LEVELS}
-          values={draft.pathwayMult}
-          onChange={(k, v) => setNested("pathwayMult", k, v)}
-        />
-        <RateSection
-          title="Building Type Multiplier"
-          options={BUILDING_TYPES}
-          values={draft.buildingMult}
-          onChange={(k, v) => setNested("buildingMult", k, v)}
-        />
-        <RateSection
-          title="Environment Multiplier"
-          options={ENVIRONMENTS}
-          values={draft.environmentMult}
-          onChange={(k, v) => setNested("environmentMult", k, v)}
-        />
-        <RateSection
-          title="Skill Level Multiplier"
-          options={SKILL_LEVELS}
-          values={draft.skillMult}
-          onChange={(k, v) => setNested("skillMult", k, v)}
-        />
-
-        <Card className="md:col-span-2">
+        <Card className="md:max-w-md">
           <CardHeader>
-            <CardTitle className="text-base">Bulk Pull Efficiency Formula</CardTitle>
+            <CardTitle className="text-base">Default Hourly Labor Rate</CardTitle>
             <p className="text-sm text-muted-foreground">
-              Each run's <strong># of Cables</strong> is used as B directly in the formula.
-              More cables pulled together = lower factor = faster per-cable pull time.
-              Termination is never bulk-discounted.
+              Used as the default $/hr for new cabling estimates and as the
+              starting rate in the Pathway Calculator. Can still be overridden
+              per estimate or per pathway session.
             </p>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 font-mono text-sm">
-              {[1, 2, 4, 6, 8, 12, 18, 24].map((b) => (
-                <div key={b} className="flex flex-col gap-0.5 bg-muted/40 rounded p-2">
-                  <span className="text-xs text-muted-foreground">numCables = {b}</span>
-                  <span className="font-semibold">
-                    {(0.4 + 0.6 / b).toFixed(3)}×
-                  </span>
-                  <span className="text-xs text-muted-foreground">
-                    {(100 - (0.4 + 0.6 / b) * 100).toFixed(0)}% pull savings
-                  </span>
-                </div>
-              ))}
+            <div className="flex items-center gap-2">
+              <span className="text-muted-foreground">$</span>
+              <Input
+                type="number"
+                min={0}
+                step={1}
+                className="w-32 font-mono text-right"
+                value={draft.hourlyRate ?? 85}
+                onChange={(e) =>
+                  setDraft({
+                    ...draft,
+                    hourlyRate: Math.max(0, Number(e.target.value) || 0),
+                  })
+                }
+                data-testid="input-hourly-rate-default"
+              />
+              <span className="text-muted-foreground text-sm">/hr</span>
             </div>
+          </CardContent>
+        </Card>
+      </section>
+
+      {/* ---------------- CABLING ---------------- */}
+      <section className="space-y-4">
+        <div className="border-l-4 border-primary pl-3">
+          <h2 className="text-xl font-bold flex items-center gap-2">
+            <Calculator className="w-5 h-5 text-primary" />
+            Cabling Estimator
+          </h2>
+          <p className="text-sm text-muted-foreground mt-1">
+            Variables that drive cable pull and termination labor in the
+            Cabling Estimator.
+          </p>
+        </div>
+
+        {/* Estimation formula */}
+        <Card className="border-primary/30 bg-primary/5">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              <FlaskConical className="w-4 h-4 text-primary" />
+              How Each Cable Run Is Estimated
+            </CardTitle>
+            <p className="text-sm text-muted-foreground">
+              Every value you edit in this section feeds directly into these
+              formulas. All times convert to hours for the final output.
+            </p>
+          </CardHeader>
+          <CardContent className="space-y-5 text-sm">
+            <div className="space-y-1">
+              <p className="font-semibold text-foreground">
+                Step 1 — Condition Multiplier
+              </p>
+              <div className="rounded-md bg-muted/60 px-4 py-2 font-mono text-xs leading-relaxed">
+                conditionMult = installType × ceiling × pathway × building ×
+                environment × skill
+              </div>
+              <p className="text-muted-foreground text-xs">
+                Multiplied together from the six condition sections below. A
+                value of 1.0 means no adjustment.
+              </p>
+            </div>
+
+            <div className="space-y-1">
+              <p className="font-semibold text-foreground">
+                Step 2 — Bulk Factor
+              </p>
+              <div className="rounded-md bg-muted/60 px-4 py-2 font-mono text-xs leading-relaxed">
+                bulkFactor = 0.4 + (0.6 / numCables)
+              </div>
+              <p className="text-muted-foreground text-xs">
+                numCables is the # of cables in a single pull. Solo pull (1) →
+                1.000× (no discount). 12 cables → 0.450×. 24 cables → 0.425×.
+                Termination is never bulk-discounted.
+              </p>
+            </div>
+
+            <div className="space-y-1">
+              <p className="font-semibold text-foreground">
+                Step 3 — Pull Hours per Cable Run
+              </p>
+              <div className="rounded-md bg-muted/60 px-4 py-2 font-mono text-xs leading-relaxed">
+                pullHrs = (pullMin10ft ÷ 60) × (lengthFt ÷ 10) × conditionMult
+                × bulkFactor × numCables
+              </div>
+              <p className="text-muted-foreground text-xs">
+                Pull time scales linearly with cable length and cable count.
+                bulkFactor from Step 2 discounts the per-cable pull time when
+                multiple cables share the same pathway.
+              </p>
+            </div>
+
+            <div className="space-y-1">
+              <p className="font-semibold text-foreground">
+                Step 4 — Termination Hours per Cable Run
+              </p>
+              <div className="rounded-md bg-muted/60 px-4 py-2 font-mono text-xs leading-relaxed">
+                termHrs = (termMinPerEnd × 2 ends) ÷ 60 × conditionMult ×
+                numCables
+              </div>
+              <p className="text-muted-foreground text-xs">
+                Every cable is terminated at both ends. Termination is never
+                bulk-discounted — it scales only with cable count and the
+                condition multiplier.
+              </p>
+            </div>
+
+            <div className="space-y-1">
+              <p className="font-semibold text-foreground">
+                Step 5 — Total Run Hours &amp; Range
+              </p>
+              <div className="rounded-md bg-muted/60 px-4 py-2 font-mono text-xs leading-relaxed space-y-0.5">
+                <div>runHrsAvg = pullHrs + termHrs</div>
+                <div>
+                  runHrsLow = runHrsAvg × 0.85&nbsp;&nbsp;(best case)
+                </div>
+                <div>
+                  runHrsHigh = runHrsAvg × 1.20&nbsp;&nbsp;(worst case)
+                </div>
+                <div className="pt-1">runCost = runHrsAvg × hourlyRate</div>
+              </div>
+              <p className="text-muted-foreground text-xs">
+                The low/high range accounts for real-world variability. Totals
+                across all runs are summed to produce the estimate's overall
+                hours and cost.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+
+        <div className="grid gap-6 md:grid-cols-2">
+          <RateSection
+            title="Pull Time (minutes per 10 ft)"
+            subtitle="Base pull labor in minutes for every 10 ft of cable, before any multipliers or bulk-pull discount."
+            options={allCableOptions}
+            values={draft.pullMinutesPer10Ft}
+            onChange={(k, v) => setNested("pullMinutesPer10Ft", k, v)}
+            step={0.5}
+            unit="min / 10 ft"
+            customKeys={customCables.map((c) => c.value)}
+            onDeleteCustom={handleDeleteCable}
+            onAddCustom={() => setAddDialogOpen(true)}
+          />
+          <RateSection
+            title="Termination Time (minutes per end)"
+            subtitle="Each cable is terminated on both ends, so this value is doubled per cable."
+            options={allCableOptions}
+            values={draft.terminationMinutesPerEnd}
+            onChange={(k, v) => setNested("terminationMinutesPerEnd", k, v)}
+            step={0.5}
+            unit="min / end"
+            customKeys={customCables.map((c) => c.value)}
+            onDeleteCustom={handleDeleteCable}
+          />
+          <RateSection
+            title="Install Type Multiplier"
+            options={INSTALL_TYPES}
+            values={draft.installTypeMult}
+            onChange={(k, v) => setNested("installTypeMult", k, v)}
+          />
+          <RateSection
+            title="Ceiling Type Multiplier"
+            options={CEILING_TYPES}
+            values={draft.ceilingMult}
+            onChange={(k, v) => setNested("ceilingMult", k, v)}
+          />
+          <RateSection
+            title="Pathway Complexity Multiplier"
+            options={PATHWAY_LEVELS}
+            values={draft.pathwayMult}
+            onChange={(k, v) => setNested("pathwayMult", k, v)}
+          />
+          <RateSection
+            title="Building Type Multiplier"
+            options={BUILDING_TYPES}
+            values={draft.buildingMult}
+            onChange={(k, v) => setNested("buildingMult", k, v)}
+          />
+          <RateSection
+            title="Environment Multiplier"
+            options={ENVIRONMENTS}
+            values={draft.environmentMult}
+            onChange={(k, v) => setNested("environmentMult", k, v)}
+          />
+          <RateSection
+            title="Skill Level Multiplier"
+            options={SKILL_LEVELS}
+            values={draft.skillMult}
+            onChange={(k, v) => setNested("skillMult", k, v)}
+          />
+
+          <Card className="md:col-span-2">
+            <CardHeader>
+              <CardTitle className="text-base">
+                Bulk Pull Efficiency Formula
+              </CardTitle>
+              <p className="text-sm text-muted-foreground">
+                Each run's <strong># of Cables</strong> is used as B directly
+                in the formula. More cables pulled together = lower factor =
+                faster per-cable pull time. Termination is never
+                bulk-discounted.
+              </p>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 font-mono text-sm">
+                {[1, 2, 4, 6, 8, 12, 18, 24].map((b) => (
+                  <div
+                    key={b}
+                    className="flex flex-col gap-0.5 bg-muted/40 rounded p-2"
+                  >
+                    <span className="text-xs text-muted-foreground">
+                      numCables = {b}
+                    </span>
+                    <span className="font-semibold">
+                      {(0.4 + 0.6 / b).toFixed(3)}×
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      {(100 - (0.4 + 0.6 / b) * 100).toFixed(0)}% pull savings
+                    </span>
+                  </div>
+                ))}
+              </div>
+              <p className="text-xs text-muted-foreground mt-3">
+                Formula:{" "}
+                <code className="bg-muted px-1 rounded">
+                  bulkFactor = 0.4 + (0.6 / numCables)
+                </code>
+                &nbsp;·&nbsp; 1 cable → 1.000× (no savings) &nbsp;·&nbsp; 24
+                cables → 0.425×
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      </section>
+
+      {/* ---------------- PATHWAY ---------------- */}
+      <section className="space-y-4">
+        <div className="border-l-4 border-primary pl-3">
+          <h2 className="text-xl font-bold flex items-center gap-2">
+            <RouteIcon className="w-5 h-5 text-primary" />
+            Pathway Estimator
+          </h2>
+          <p className="text-sm text-muted-foreground mt-1">
+            Per-foot costs, multipliers, and bend/penetration constants used
+            by the Pathway Calculator.
+          </p>
+        </div>
+
+        {/* Pathway type rates */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <Layers className="w-4 h-4 text-primary" />
+              Pathway Type Rates
+            </CardTitle>
+            <p className="text-sm text-muted-foreground">
+              Per-foot labor and material plus fastener spacing/cost for each
+              pathway type.
+            </p>
+          </CardHeader>
+          <CardContent className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="min-w-[180px]">Pathway Type</TableHead>
+                  <TableHead className="text-right">Labor min / ft</TableHead>
+                  <TableHead className="text-right">Material $ / ft</TableHead>
+                  <TableHead className="text-right">
+                    Fastener Spacing ft
+                  </TableHead>
+                  <TableHead className="text-right">Fastener $ / ea</TableHead>
+                  <TableHead className="text-right">
+                    Fastener min / ea
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {PATHWAY_TYPES.map((p) => {
+                  const r = effectiveTypeRate(p.value);
+                  return (
+                    <TableRow key={p.value}>
+                      <TableCell>
+                        <div className="font-medium">{p.label}</div>
+                        <div className="text-xs text-muted-foreground capitalize">
+                          {p.category}
+                          {p.perEach ? " · per-each" : ""}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <NumCell
+                          value={r.laborMinPerFt}
+                          step={0.5}
+                          onChange={(v) =>
+                            updatePathwayTypeRate(
+                              p.value,
+                              "laborMinPerFt",
+                              v,
+                            )
+                          }
+                          testId={`input-pathway-${p.value}-laborMinPerFt`}
+                        />
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <NumCell
+                          value={r.materialCostPerFt}
+                          step={0.25}
+                          onChange={(v) =>
+                            updatePathwayTypeRate(
+                              p.value,
+                              "materialCostPerFt",
+                              v,
+                            )
+                          }
+                          testId={`input-pathway-${p.value}-materialCostPerFt`}
+                        />
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <NumCell
+                          value={r.fastenerSpacingFt}
+                          step={0.5}
+                          onChange={(v) =>
+                            updatePathwayTypeRate(
+                              p.value,
+                              "fastenerSpacingFt",
+                              v,
+                            )
+                          }
+                          disabled={p.perEach}
+                          testId={`input-pathway-${p.value}-fastenerSpacingFt`}
+                        />
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <NumCell
+                          value={r.fastenerCostEach}
+                          step={0.25}
+                          onChange={(v) =>
+                            updatePathwayTypeRate(
+                              p.value,
+                              "fastenerCostEach",
+                              v,
+                            )
+                          }
+                          disabled={p.perEach}
+                          testId={`input-pathway-${p.value}-fastenerCostEach`}
+                        />
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <NumCell
+                          value={r.fastenerLaborMinEach}
+                          step={0.5}
+                          onChange={(v) =>
+                            updatePathwayTypeRate(
+                              p.value,
+                              "fastenerLaborMinEach",
+                              v,
+                            )
+                          }
+                          disabled={p.perEach}
+                          testId={`input-pathway-${p.value}-fastenerLaborMinEach`}
+                        />
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
             <p className="text-xs text-muted-foreground mt-3">
-              Formula: <code className="bg-muted px-1 rounded">bulkFactor = 0.4 + (0.6 / numCables)</code>
-              &nbsp;·&nbsp; 1 cable → 1.000× (no savings) &nbsp;·&nbsp; 24 cables → 0.425×
+              <strong>Per-each types</strong> (e.g. surface raceway boxes) use
+              fixed material/labor per pathway; fastener fields are not used.
             </p>
           </CardContent>
         </Card>
-      </div>
+
+        <div className="grid gap-6 md:grid-cols-2">
+          <RateSection
+            title="Mounting Height Multiplier"
+            subtitle="Adjusts pathway labor based on how high the pathway is being installed."
+            options={MOUNTING_HEIGHTS.map((h) => ({
+              value: h.value,
+              label: h.label,
+            }))}
+            values={
+              draft.pathwayMountingHeightMult ??
+              DEFAULT_PATHWAY_RATES.heightMult
+            }
+            onChange={(k, v) => setNested("pathwayMountingHeightMult", k, v)}
+          />
+          <RateSection
+            title="Pathway Ceiling Multiplier"
+            subtitle="Adjusts pathway labor based on the structure the pathway is mounted to."
+            options={PATHWAY_CEILING_TYPES.map((c) => ({
+              value: c.value,
+              label: c.label,
+            }))}
+            values={
+              draft.pathwayCeilingMult ?? DEFAULT_PATHWAY_RATES.ceilingMult
+            }
+            onChange={(k, v) => setNested("pathwayCeilingMult", k, v)}
+          />
+
+          <Card className="md:col-span-2">
+            <CardHeader>
+              <CardTitle className="text-base">
+                Cable Fill Multipliers
+              </CardTitle>
+              <p className="text-sm text-muted-foreground">
+                Labor and material multipliers based on how full the pathway
+                is.
+              </p>
+            </CardHeader>
+            <CardContent className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="min-w-[200px]">Fill Level</TableHead>
+                    <TableHead className="text-right">
+                      Labor multiplier
+                    </TableHead>
+                    <TableHead className="text-right">
+                      Material multiplier
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {CABLE_FILL_LEVELS.map((f) => {
+                    const r = effectiveCableFill(f.value);
+                    return (
+                      <TableRow key={f.value}>
+                        <TableCell>
+                          <div className="font-medium">{f.label}</div>
+                          <div className="text-xs text-muted-foreground">
+                            {f.description}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <NumCell
+                            value={r.laborMult}
+                            step={0.05}
+                            onChange={(v) =>
+                              updateCableFill(f.value, "laborMult", v)
+                            }
+                            testId={`input-fill-${f.value}-laborMult`}
+                          />
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <NumCell
+                            value={r.materialMult}
+                            step={0.05}
+                            onChange={(v) =>
+                              updateCableFill(f.value, "materialMult", v)
+                            }
+                            testId={`input-fill-${f.value}-materialMult`}
+                          />
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">90° Bend Constants</CardTitle>
+              <p className="text-sm text-muted-foreground">
+                Labor and material added per 90° bend in a pathway run. The
+                mounting height multiplier is also applied to bend labor.
+              </p>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="flex items-center justify-between gap-3">
+                <Label className="text-sm">Labor per bend</Label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    type="number"
+                    step={0.05}
+                    min={0}
+                    className="w-24 font-mono text-right"
+                    value={
+                      draft.pathwayBendLaborHrs ??
+                      DEFAULT_PATHWAY_RATES.bendLaborHrs
+                    }
+                    onChange={(e) =>
+                      setDraft({
+                        ...draft,
+                        pathwayBendLaborHrs: Math.max(
+                          0,
+                          Number(e.target.value) || 0,
+                        ),
+                      })
+                    }
+                    data-testid="input-pathway-bend-labor"
+                  />
+                  <span className="text-xs text-muted-foreground w-20">
+                    hrs / bend
+                  </span>
+                </div>
+              </div>
+              <div className="flex items-center justify-between gap-3">
+                <Label className="text-sm">Material per bend</Label>
+                <div className="flex items-center gap-2">
+                  <span className="text-muted-foreground text-sm">$</span>
+                  <Input
+                    type="number"
+                    step={1}
+                    min={0}
+                    className="w-24 font-mono text-right"
+                    value={
+                      draft.pathwayBendMaterialCost ??
+                      DEFAULT_PATHWAY_RATES.bendMaterialCost
+                    }
+                    onChange={(e) =>
+                      setDraft({
+                        ...draft,
+                        pathwayBendMaterialCost: Math.max(
+                          0,
+                          Number(e.target.value) || 0,
+                        ),
+                      })
+                    }
+                    data-testid="input-pathway-bend-material"
+                  />
+                  <span className="text-xs text-muted-foreground w-20">
+                    / bend
+                  </span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">
+                Wall / Floor Penetration Constants
+              </CardTitle>
+              <p className="text-sm text-muted-foreground">
+                Labor and material added per wall or floor penetration along a
+                pathway run.
+              </p>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="flex items-center justify-between gap-3">
+                <Label className="text-sm">Labor per penetration</Label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    type="number"
+                    step={0.05}
+                    min={0}
+                    className="w-24 font-mono text-right"
+                    value={
+                      draft.pathwayPenetrationLaborHrs ??
+                      DEFAULT_PATHWAY_RATES.penetrationLaborHrs
+                    }
+                    onChange={(e) =>
+                      setDraft({
+                        ...draft,
+                        pathwayPenetrationLaborHrs: Math.max(
+                          0,
+                          Number(e.target.value) || 0,
+                        ),
+                      })
+                    }
+                    data-testid="input-pathway-pen-labor"
+                  />
+                  <span className="text-xs text-muted-foreground w-20">
+                    hrs / pen.
+                  </span>
+                </div>
+              </div>
+              <div className="flex items-center justify-between gap-3">
+                <Label className="text-sm">Material per penetration</Label>
+                <div className="flex items-center gap-2">
+                  <span className="text-muted-foreground text-sm">$</span>
+                  <Input
+                    type="number"
+                    step={1}
+                    min={0}
+                    className="w-24 font-mono text-right"
+                    value={
+                      draft.pathwayPenetrationMaterialCost ??
+                      DEFAULT_PATHWAY_RATES.penetrationMaterialCost
+                    }
+                    onChange={(e) =>
+                      setDraft({
+                        ...draft,
+                        pathwayPenetrationMaterialCost: Math.max(
+                          0,
+                          Number(e.target.value) || 0,
+                        ),
+                      })
+                    }
+                    data-testid="input-pathway-pen-material"
+                  />
+                  <span className="text-xs text-muted-foreground w-20">
+                    / pen.
+                  </span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </section>
 
       {/* Add Cable Type Dialog */}
       <Dialog
@@ -393,7 +937,9 @@ export default function RatesEditor() {
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
-                <Label htmlFor="new-cable-pull">Pull Time (min / 10 ft)</Label>
+                <Label htmlFor="new-cable-pull">
+                  Pull Time (min / 10 ft)
+                </Label>
                 <Input
                   id="new-cable-pull"
                   type="number"
@@ -406,7 +952,9 @@ export default function RatesEditor() {
                 />
               </div>
               <div className="space-y-1">
-                <Label htmlFor="new-cable-term">Termination (min / end)</Label>
+                <Label htmlFor="new-cable-term">
+                  Termination (min / end)
+                </Label>
                 <Input
                   id="new-cable-term"
                   type="number"
@@ -424,13 +972,43 @@ export default function RatesEditor() {
             <Button variant="outline" onClick={() => setAddDialogOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={handleAddCable} data-testid="button-confirm-add-cable">
+            <Button
+              onClick={handleAddCable}
+              data-testid="button-confirm-add-cable"
+            >
               <Plus className="w-4 h-4 mr-2" /> Add Cable Type
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
+  );
+}
+
+function NumCell({
+  value,
+  onChange,
+  step = 0.05,
+  disabled,
+  testId,
+}: {
+  value: number;
+  onChange: (v: number) => void;
+  step?: number;
+  disabled?: boolean;
+  testId?: string;
+}) {
+  return (
+    <Input
+      type="number"
+      step={step}
+      min={0}
+      disabled={disabled}
+      className="w-24 font-mono text-right ml-auto"
+      value={value}
+      onChange={(e) => onChange(Math.max(0, Number(e.target.value) || 0))}
+      data-testid={testId}
+    />
   );
 }
 
@@ -465,7 +1043,9 @@ function RateSection({
           <div>
             <CardTitle className="text-base">{title}</CardTitle>
             {subtitle && (
-              <p className="text-sm text-muted-foreground mt-0.5">{subtitle}</p>
+              <p className="text-sm text-muted-foreground mt-0.5">
+                {subtitle}
+              </p>
             )}
           </div>
           {onAddCustom && (
@@ -483,7 +1063,10 @@ function RateSection({
       </CardHeader>
       <CardContent className="space-y-3">
         {options.map((o) => (
-          <div key={o.value} className="flex items-center justify-between gap-3">
+          <div
+            key={o.value}
+            className="flex items-center justify-between gap-3"
+          >
             <div className="flex items-center gap-2 min-w-0 flex-1">
               <Label className="text-sm truncate">{o.label}</Label>
               {customSet.has(o.value) && onDeleteCustom && (
@@ -504,7 +1087,9 @@ function RateSection({
                 step={step}
                 className="w-24 font-mono text-right"
                 value={values[o.value] ?? 0}
-                onChange={(e) => onChange(o.value, Number(e.target.value) || 0)}
+                onChange={(e) =>
+                  onChange(o.value, Number(e.target.value) || 0)
+                }
                 data-testid={`input-${o.value}`}
               />
               {unit && (

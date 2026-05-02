@@ -648,9 +648,32 @@ components:
           description: Human-readable display name (e.g. "My Cable")
       required: [value, label]
 
+    PathwayTypeRate:
+      type: object
+      description: Editable cost/labor rates for a single pathway type.
+      properties:
+        laborMinPerFt: { type: number }
+        materialCostPerFt: { type: number }
+        fastenerSpacingFt: { type: number }
+        fastenerCostEach: { type: number }
+        fastenerLaborMinEach: { type: number }
+      required:
+        [laborMinPerFt, materialCostPerFt, fastenerSpacingFt, fastenerCostEach, fastenerLaborMinEach]
+
+    PathwayCableFillMult:
+      type: object
+      description: Labor and material multipliers for a single cable-fill bracket.
+      properties:
+        laborMult: { type: number }
+        materialMult: { type: number }
+      required: [laborMult, materialMult]
+
     RatesConfig:
       type: object
       properties:
+        hourlyRate:
+          type: number
+          description: Default hourly labor rate ($/hr) shared by both estimators.
         customCableTypes:
           type: array
           description: User-defined cable types added beyond the built-in list
@@ -730,6 +753,38 @@ components:
             journeyman: { type: number }
             lead: { type: number }
           required: [apprentice, journeyman, lead]
+        pathwayTypeRates:
+          type: object
+          description: Per-pathway-type editable rates (keyed by pathway type value).
+          additionalProperties:
+            $ref: "#/components/schemas/PathwayTypeRate"
+        pathwayMountingHeightMult:
+          type: object
+          description: Mounting height labor multipliers (keyed by height bracket).
+          additionalProperties:
+            type: number
+        pathwayCeilingMult:
+          type: object
+          description: Pathway ceiling type labor multipliers.
+          additionalProperties:
+            type: number
+        pathwayCableFillMult:
+          type: object
+          description: Cable fill labor and material multipliers.
+          additionalProperties:
+            $ref: "#/components/schemas/PathwayCableFillMult"
+        pathwayBendLaborHrs:
+          type: number
+          description: Hours added per 90° bend in a pathway run.
+        pathwayBendMaterialCost:
+          type: number
+          description: Material cost per 90° bend ($).
+        pathwayPenetrationLaborHrs:
+          type: number
+          description: Hours added per fire-rated wall/floor penetration.
+        pathwayPenetrationMaterialCost:
+          type: number
+          description: Material cost per fire-rated penetration ($).
       required:
         [
           pullMinutesPer10Ft,

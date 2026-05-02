@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   useGetEstimate,
   useGetRates,
@@ -97,6 +97,34 @@ export default function Estimator() {
   const [newEstForm, setNewEstForm] = useState<EstimateForm>(DEFAULT_ESTIMATE);
 
   const { data: ratesData } = useGetRates();
+  const ratesHourlyRate =
+    (ratesData as { hourlyRate?: number } | undefined)?.hourlyRate ?? 85;
+
+  // Prefill hourlyRate from the shared "Common" default in the Rate Editor.
+  // Handles the race where the dialog opens before /api/rates resolves: we
+  // seed once on open with whatever value is available, and then sync once
+  // more if rates become available later in the same dialog session. After
+  // that we never overwrite the user's edits.
+  const dialogOpenedRef = useRef(false);
+  const ratesAppliedRef = useRef(false);
+  useEffect(() => {
+    if (!newEstOpen) {
+      dialogOpenedRef.current = false;
+      ratesAppliedRef.current = false;
+      return;
+    }
+    if (!dialogOpenedRef.current) {
+      dialogOpenedRef.current = true;
+      setNewEstForm((prev) => ({ ...prev, hourlyRate: ratesHourlyRate }));
+      if (ratesData) ratesAppliedRef.current = true;
+      return;
+    }
+    if (!ratesAppliedRef.current && ratesData) {
+      ratesAppliedRef.current = true;
+      setNewEstForm((prev) => ({ ...prev, hourlyRate: ratesHourlyRate }));
+    }
+  }, [newEstOpen, ratesData, ratesHourlyRate]);
+
   const allCableTypes = useMemo(() => {
     const custom = (ratesData as { customCableTypes?: { value: string; label: string }[] } | undefined)
       ?.customCableTypes ?? [];

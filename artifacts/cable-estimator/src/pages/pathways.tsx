@@ -1,4 +1,5 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useGetRates } from "@workspace/api-client-react";
 import {
   Card,
   CardContent,
@@ -46,11 +47,9 @@ import {
   MOUNTING_HEIGHTS,
   PATHWAY_CEILING_TYPES,
   CABLE_FILL_LEVELS,
-  BEND_LABOR_HRS,
-  BEND_MATERIAL_COST,
-  PENETRATION_LABOR_HRS,
-  PENETRATION_MATERIAL_COST,
   calculatePathwaySegment,
+  resolvePathwayRates,
+  type PathwayRates,
   type PathwaySegmentInput,
 } from "@/lib/pathwayConfig";
 
@@ -85,7 +84,43 @@ interface PathwayDraft extends Omit<PathwaySegmentInput, "id"> {
 const DEFAULT_DRAFT: PathwayDraft = { ...DEFAULT_SEGMENT, id: null };
 
 export default function Pathways() {
-  const [hourlyRate, setHourlyRate] = useState(85);
+  const { data: ratesData } = useGetRates();
+  const ratesObj = ratesData as
+    | {
+        hourlyRate?: number;
+        pathwayTypeRates?: PathwayRates["typeRates"];
+        pathwayMountingHeightMult?: PathwayRates["heightMult"];
+        pathwayCeilingMult?: PathwayRates["ceilingMult"];
+        pathwayCableFillMult?: PathwayRates["fillMult"];
+        pathwayBendLaborHrs?: number;
+        pathwayBendMaterialCost?: number;
+        pathwayPenetrationLaborHrs?: number;
+        pathwayPenetrationMaterialCost?: number;
+      }
+    | undefined;
+  const pathwayRates = useMemo(
+    () =>
+      resolvePathwayRates({
+        typeRates: ratesObj?.pathwayTypeRates,
+        heightMult: ratesObj?.pathwayMountingHeightMult,
+        ceilingMult: ratesObj?.pathwayCeilingMult,
+        fillMult: ratesObj?.pathwayCableFillMult,
+        bendLaborHrs: ratesObj?.pathwayBendLaborHrs,
+        bendMaterialCost: ratesObj?.pathwayBendMaterialCost,
+        penetrationLaborHrs: ratesObj?.pathwayPenetrationLaborHrs,
+        penetrationMaterialCost: ratesObj?.pathwayPenetrationMaterialCost,
+      }),
+    [ratesObj],
+  );
+  const defaultHourlyRate = ratesObj?.hourlyRate ?? 85;
+
+  const [hourlyRate, setHourlyRate] = useState(defaultHourlyRate);
+  const [hourlyRateTouched, setHourlyRateTouched] = useState(false);
+  // Sync hourlyRate from rates until the user manually edits it
+  useEffect(() => {
+    if (!hourlyRateTouched) setHourlyRate(defaultHourlyRate);
+  }, [defaultHourlyRate, hourlyRateTouched]);
+
   const [segments, setSegments] = useState<PathwaySegmentInput[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [draft, setDraft] = useState<PathwayDraft>(DEFAULT_DRAFT);
@@ -123,9 +158,9 @@ export default function Pathways() {
     () =>
       segments.map((s) => ({
         segment: s,
-        result: calculatePathwaySegment(s, hourlyRate),
+        result: calculatePathwaySegment(s, hourlyRate, pathwayRates),
       })),
-    [segments, hourlyRate],
+    [segments, hourlyRate, pathwayRates],
   );
 
   const totals = useMemo(() => {
@@ -144,10 +179,12 @@ export default function Pathways() {
   }, [computed, segments]);
 
   const previewType = PATHWAY_TYPES.find((p) => p.value === draft.pathwayType);
+  const previewTypeRate = pathwayRates.typeRates[draft.pathwayType];
   const previewLength = Math.max(0, draft.lengthFt);
+  const previewFastenerSpacing = previewTypeRate?.fastenerSpacingFt ?? 0;
   const previewFastenerCount =
-    previewType && previewType.fastenerSpacingFt > 0 && previewLength > 0
-      ? Math.ceil(previewLength / previewType.fastenerSpacingFt)
+    previewType && previewFastenerSpacing > 0 && previewLength > 0
+      ? Math.ceil(previewLength / previewFastenerSpacing)
       : 0;
 
   return (
@@ -171,9 +208,10 @@ export default function Pathways() {
                 type="number"
                 min={0}
                 value={hourlyRate}
-                onChange={(e) =>
-                  setHourlyRate(Math.max(0, Number(e.target.value) || 0))
-                }
+                onChange={(e) => {
+                  setHourlyRateTouched(true);
+                  setHourlyRate(Math.max(0, Number(e.target.value) || 0));
+                }}
                 className="w-24"
                 data-testid="input-hourly-rate"
               />
@@ -212,8 +250,8 @@ export default function Pathways() {
           <div className="space-y-1">
             <p className="font-semibold">Step 3 — Bends & Penetrations</p>
             <div className="rounded-md bg-muted/60 px-4 py-2 font-mono text-xs space-y-0.5">
-              <div>bendHrs = bends × {BEND_LABOR_HRS} × heightMult&nbsp;&nbsp;|&nbsp;&nbsp;bendMaterial = bends × ${BEND_MATERIAL_COST}</div>
-              <div>penHrs = penetrations × {PENETRATION_LABOR_HRS}&nbsp;&nbsp;|&nbsp;&nbsp;penMaterial = penetrations × ${PENETRATION_MATERIAL_COST}</div>
+              <div>bendHrs = bends × {pathwayRates.bendLaborHrs} × heightMult&nbsp;&nbsp;|&nbsp;&nbsp;bendMaterial = bends × ${pathwayRates.bendMaterialCost}</div>
+              <div>penHrs = penetrations × {pathwayRates.penetrationLaborHrs}&nbsp;&nbsp;|&nbsp;&nbsp;penMaterial = penetrations × ${pathwayRates.penetrationMaterialCost}</div>
             </div>
           </div>
           <div className="space-y-1">
@@ -474,9 +512,9 @@ export default function Pathways() {
                 }
                 data-testid="input-segment-length"
               />
-              {previewType && previewType.fastenerSpacingFt > 0 && previewLength > 0 && (
+              {previewType && previewFastenerSpacing > 0 && previewLength > 0 && (
                 <p className="text-xs text-muted-foreground mt-1">
-                  Auto: {previewFastenerCount} fasteners (one per {previewType.fastenerSpacingFt} ft)
+                  Auto: {previewFastenerCount} fasteners (one per {previewFastenerSpacing} ft)
                 </p>
               )}
             </div>
@@ -493,7 +531,7 @@ export default function Pathways() {
                 <SelectContent>
                   {MOUNTING_HEIGHTS.map((h) => (
                     <SelectItem key={h.value} value={h.value}>
-                      {h.label} ({h.multiplier.toFixed(2)}×)
+                      {h.label} ({(pathwayRates.heightMult[h.value] ?? h.multiplier).toFixed(2)}×)
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -514,7 +552,7 @@ export default function Pathways() {
                     <SelectContent>
                       {PATHWAY_CEILING_TYPES.map((c) => (
                         <SelectItem key={c.value} value={c.value}>
-                          {c.label} ({c.multiplier.toFixed(2)}×)
+                          {c.label} ({(pathwayRates.ceilingMult[c.value] ?? c.multiplier).toFixed(2)}×)
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -612,6 +650,7 @@ export default function Pathways() {
                     const preview = calculatePathwaySegment(
                       { ...draft, id: "preview" } as PathwaySegmentInput,
                       hourlyRate,
+                      pathwayRates,
                     );
                     return (
                       <>
