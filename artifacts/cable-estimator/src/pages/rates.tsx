@@ -9,7 +9,21 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { RotateCcw, Save, Settings as SettingsIcon, FlaskConical } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  RotateCcw,
+  Save,
+  Settings as SettingsIcon,
+  FlaskConical,
+  Plus,
+  Trash2,
+} from "lucide-react";
 import {
   CABLE_TYPES,
   INSTALL_TYPES,
@@ -20,7 +34,13 @@ import {
   SKILL_LEVELS,
 } from "@/lib/options";
 
+interface CustomCableType {
+  value: string;
+  label: string;
+}
+
 interface RatesShape {
+  customCableTypes?: CustomCableType[];
   pullMinutesPer10Ft: Record<string, number>;
   terminationMinutesPerEnd: Record<string, number>;
   installTypeMult: Record<string, number>;
@@ -32,7 +52,7 @@ interface RatesShape {
   bulkPullFactors: Record<string, number>;
 }
 
-const BULK_LABELS: Array<[keyof RatesShape["bulkPullFactors"] | string, string]> = [
+const BULK_LABELS: Array<[string, string]> = [
   ["single", "1 cable"],
   ["small", "2 cables"],
   ["medium", "3–4 cables"],
@@ -42,10 +62,23 @@ const BULK_LABELS: Array<[keyof RatesShape["bulkPullFactors"] | string, string]>
   ["massive", "25+ cables"],
 ];
 
+function slugify(label: string): string {
+  return label
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_|_$/g, "");
+}
+
 export default function RatesEditor() {
   const queryClient = useQueryClient();
   const { data: rates } = useGetRates();
   const [draft, setDraft] = useState<RatesShape | null>(null);
+  const [addDialogOpen, setAddDialogOpen] = useState(false);
+  const [newLabel, setNewLabel] = useState("");
+  const [newPull, setNewPull] = useState(3.0);
+  const [newTerm, setNewTerm] = useState(5);
+  const [addError, setAddError] = useState("");
 
   useEffect(() => {
     if (rates && !draft) setDraft(rates as RatesShape);
@@ -72,17 +105,65 @@ export default function RatesEditor() {
 
   if (!draft) return <div>Loading rates…</div>;
 
-  const setNested = (
-    section: keyof RatesShape,
-    key: string,
-    value: number,
-  ) => {
+  const setNested = (section: keyof RatesShape, key: string, value: number) => {
     setDraft({
       ...draft,
       [section]: {
         ...(draft[section] as Record<string, number>),
         [key]: value,
       },
+    });
+  };
+
+  const builtInKeys = new Set(CABLE_TYPES.map((c) => c.value));
+  const customCables: CustomCableType[] = draft.customCableTypes ?? [];
+  const allCableOptions = [
+    ...CABLE_TYPES,
+    ...customCables.map((c) => ({ value: c.value, label: c.label })),
+  ];
+
+  const handleAddCable = () => {
+    const label = newLabel.trim();
+    if (!label) {
+      setAddError("Please enter a name for the cable type.");
+      return;
+    }
+    const value = slugify(label);
+    if (!value) {
+      setAddError("Name must contain at least one letter or number.");
+      return;
+    }
+    if (allCableOptions.some((c) => c.value === value)) {
+      setAddError(`A cable type with key "${value}" already exists.`);
+      return;
+    }
+    setDraft({
+      ...draft,
+      customCableTypes: [...customCables, { value, label }],
+      pullMinutesPer10Ft: { ...draft.pullMinutesPer10Ft, [value]: newPull },
+      terminationMinutesPerEnd: {
+        ...draft.terminationMinutesPerEnd,
+        [value]: newTerm,
+      },
+    });
+    setNewLabel("");
+    setNewPull(3.0);
+    setNewTerm(5);
+    setAddError("");
+    setAddDialogOpen(false);
+  };
+
+  const handleDeleteCable = (cableValue: string) => {
+    const updatedCustom = customCables.filter((c) => c.value !== cableValue);
+    const updatedPull = { ...draft.pullMinutesPer10Ft };
+    const updatedTerm = { ...draft.terminationMinutesPerEnd };
+    delete updatedPull[cableValue];
+    delete updatedTerm[cableValue];
+    setDraft({
+      ...draft,
+      customCableTypes: updatedCustom,
+      pullMinutesPer10Ft: updatedPull,
+      terminationMinutesPerEnd: updatedTerm,
     });
   };
 
@@ -134,7 +215,6 @@ export default function RatesEditor() {
         </CardHeader>
         <CardContent className="space-y-5 text-sm">
 
-          {/* Step 1 – Condition multiplier */}
           <div className="space-y-1">
             <p className="font-semibold text-foreground">Step 1 — Condition Multiplier</p>
             <div className="rounded-md bg-muted/60 px-4 py-2 font-mono text-xs leading-relaxed">
@@ -145,7 +225,6 @@ export default function RatesEditor() {
             </p>
           </div>
 
-          {/* Step 2 – Pull hours */}
           <div className="space-y-1">
             <p className="font-semibold text-foreground">Step 2 — Pull Hours per Cable</p>
             <div className="rounded-md bg-muted/60 px-4 py-2 font-mono text-xs leading-relaxed">
@@ -156,7 +235,6 @@ export default function RatesEditor() {
             </p>
           </div>
 
-          {/* Step 3 – Termination hours */}
           <div className="space-y-1">
             <p className="font-semibold text-foreground">Step 3 — Termination Hours per Cable</p>
             <div className="rounded-md bg-muted/60 px-4 py-2 font-mono text-xs leading-relaxed">
@@ -167,7 +245,6 @@ export default function RatesEditor() {
             </p>
           </div>
 
-          {/* Step 4 – Per-cable total */}
           <div className="space-y-1">
             <p className="font-semibold text-foreground">Step 4 — Adjusted Hours per Cable</p>
             <div className="rounded-md bg-muted/60 px-4 py-2 font-mono text-xs leading-relaxed">
@@ -175,7 +252,6 @@ export default function RatesEditor() {
             </div>
           </div>
 
-          {/* Step 5 – Run total */}
           <div className="space-y-1">
             <p className="font-semibold text-foreground">Step 5 — Run Total &amp; Range</p>
             <div className="rounded-md bg-muted/60 px-4 py-2 font-mono text-xs leading-relaxed space-y-0.5">
@@ -196,20 +272,25 @@ export default function RatesEditor() {
         <RateSection
           title="Pull Time (minutes per 10 ft)"
           subtitle="Base pull labor in minutes for every 10 ft of cable, before any multipliers or bulk-pull discount."
-          options={CABLE_TYPES}
+          options={allCableOptions}
           values={draft.pullMinutesPer10Ft}
           onChange={(k, v) => setNested("pullMinutesPer10Ft", k, v)}
           step={0.5}
           unit="min / 10 ft"
+          customKeys={customCables.map((c) => c.value)}
+          onDeleteCustom={handleDeleteCable}
+          onAddCustom={() => setAddDialogOpen(true)}
         />
         <RateSection
           title="Termination Time (minutes per end)"
           subtitle="Each cable is terminated on both ends, so this value is doubled per cable."
-          options={CABLE_TYPES}
+          options={allCableOptions}
           values={draft.terminationMinutesPerEnd}
           onChange={(k, v) => setNested("terminationMinutesPerEnd", k, v)}
           step={0.5}
           unit="min / end"
+          customKeys={customCables.map((c) => c.value)}
+          onDeleteCustom={handleDeleteCable}
         />
         <RateSection
           title="Install Type Multiplier"
@@ -270,11 +351,7 @@ export default function RatesEditor() {
                   className="font-mono text-right"
                   value={draft.bulkPullFactors[key] ?? 1}
                   onChange={(e) =>
-                    setNested(
-                      "bulkPullFactors",
-                      key as string,
-                      Number(e.target.value) || 0,
-                    )
+                    setNested("bulkPullFactors", key, Number(e.target.value) || 0)
                   }
                   data-testid={`input-bulk-${key}`}
                 />
@@ -283,6 +360,85 @@ export default function RatesEditor() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Add Cable Type Dialog */}
+      <Dialog
+        open={addDialogOpen}
+        onOpenChange={(open) => {
+          setAddDialogOpen(open);
+          if (!open) {
+            setNewLabel("");
+            setNewPull(3.0);
+            setNewTerm(5);
+            setAddError("");
+          }
+        }}
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Add Cable Type</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-1">
+              <Label htmlFor="new-cable-label">Cable Name</Label>
+              <Input
+                id="new-cable-label"
+                placeholder="e.g. 18/2 Plenum, HDMI, Shielded Cat6A"
+                value={newLabel}
+                onChange={(e) => {
+                  setNewLabel(e.target.value);
+                  setAddError("");
+                }}
+                data-testid="input-new-cable-label"
+              />
+              {newLabel.trim() && (
+                <p className="text-xs text-muted-foreground">
+                  Key: <span className="font-mono">{slugify(newLabel)}</span>
+                </p>
+              )}
+              {addError && (
+                <p className="text-xs text-destructive">{addError}</p>
+              )}
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <Label htmlFor="new-cable-pull">Pull Time (min / 10 ft)</Label>
+                <Input
+                  id="new-cable-pull"
+                  type="number"
+                  step={0.5}
+                  min={0.1}
+                  className="font-mono"
+                  value={newPull}
+                  onChange={(e) => setNewPull(Number(e.target.value) || 0)}
+                  data-testid="input-new-cable-pull"
+                />
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="new-cable-term">Termination (min / end)</Label>
+                <Input
+                  id="new-cable-term"
+                  type="number"
+                  step={0.5}
+                  min={0.1}
+                  className="font-mono"
+                  value={newTerm}
+                  onChange={(e) => setNewTerm(Number(e.target.value) || 0)}
+                  data-testid="input-new-cable-term"
+                />
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setAddDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleAddCable} data-testid="button-confirm-add-cable">
+              <Plus className="w-4 h-4 mr-2" /> Add Cable Type
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
@@ -295,6 +451,9 @@ function RateSection({
   onChange,
   step = 0.05,
   unit,
+  customKeys = [],
+  onDeleteCustom,
+  onAddCustom,
 }: {
   title: string;
   subtitle?: string;
@@ -303,20 +462,52 @@ function RateSection({
   onChange: (key: string, value: number) => void;
   step?: number;
   unit?: string;
+  customKeys?: string[];
+  onDeleteCustom?: (key: string) => void;
+  onAddCustom?: () => void;
 }) {
+  const customSet = new Set(customKeys);
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">{title}</CardTitle>
-        {subtitle && (
-          <p className="text-sm text-muted-foreground">{subtitle}</p>
-        )}
+        <div className="flex items-start justify-between gap-2">
+          <div>
+            <CardTitle className="text-base">{title}</CardTitle>
+            {subtitle && (
+              <p className="text-sm text-muted-foreground mt-0.5">{subtitle}</p>
+            )}
+          </div>
+          {onAddCustom && (
+            <Button
+              size="sm"
+              variant="outline"
+              className="shrink-0"
+              onClick={onAddCustom}
+              data-testid="button-add-cable-type"
+            >
+              <Plus className="w-3.5 h-3.5 mr-1" /> Add Cable Type
+            </Button>
+          )}
+        </div>
       </CardHeader>
       <CardContent className="space-y-3">
         {options.map((o) => (
           <div key={o.value} className="flex items-center justify-between gap-3">
-            <Label className="text-sm">{o.label}</Label>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 min-w-0 flex-1">
+              <Label className="text-sm truncate">{o.label}</Label>
+              {customSet.has(o.value) && onDeleteCustom && (
+                <button
+                  type="button"
+                  onClick={() => onDeleteCustom(o.value)}
+                  className="text-muted-foreground hover:text-destructive transition-colors shrink-0"
+                  title={`Remove ${o.label}`}
+                  data-testid={`button-delete-cable-${o.value}`}
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
               <Input
                 type="number"
                 step={step}
@@ -333,6 +524,11 @@ function RateSection({
             </div>
           </div>
         ))}
+        {options.length === 0 && (
+          <p className="text-sm text-muted-foreground text-center py-2">
+            No cable types defined.
+          </p>
+        )}
       </CardContent>
     </Card>
   );

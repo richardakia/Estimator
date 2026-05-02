@@ -19,6 +19,7 @@ export const CableType = {
   mm_fiber: "mm_fiber",
   coax_rg6: "coax_rg6",
   coax_rg11: "coax_rg11",
+  speaker_cable: "speaker_cable",
 } as const;
 
 export type InstallType = (typeof InstallType)[keyof typeof InstallType];
@@ -104,7 +105,7 @@ export interface Run {
   id: number;
   estimateId: number;
   label: string;
-  cableType: CableType;
+  cableType: string;
   /** Number of cables pulled together as a group */
   numCables: number;
   /** Average cable length per cable in feet */
@@ -121,7 +122,7 @@ export interface Run {
 export interface RunCalculation {
   runId?: number;
   label: string;
-  cableType: CableType;
+  cableType: string;
   numCables: number;
   lengthFt: number;
   ceilingType: CeilingType;
@@ -194,7 +195,7 @@ export interface UpdateEstimateBody {
 
 export interface CreateRunBody {
   label: string;
-  cableType: CableType;
+  cableType: string;
   numCables: number;
   lengthFt: number;
   ceilingType: CeilingType;
@@ -203,11 +204,18 @@ export interface CreateRunBody {
 
 export interface UpdateRunBody {
   label: string;
-  cableType: CableType;
+  cableType: string;
   numCables: number;
   lengthFt: number;
   ceilingType: CeilingType;
   pathwayComplexity: PathwayComplexity;
+}
+
+export interface CustomCableType {
+  /** Unique identifier key for the cable type (e.g. "my_cable") */
+  value: string;
+  /** Human-readable display name (e.g. "My Cable") */
+  label: string;
 }
 
 /**
@@ -221,6 +229,8 @@ export type RatesConfigPullMinutesPer10Ft = {
   mm_fiber: number;
   coax_rg6: number;
   coax_rg11: number;
+  speaker_cable: number;
+  [key: string]: number;
 };
 
 /**
@@ -234,6 +244,8 @@ export type RatesConfigTerminationMinutesPerEnd = {
   mm_fiber: number;
   coax_rg6: number;
   coax_rg11: number;
+  speaker_cable: number;
+  [key: string]: number;
 };
 
 export type RatesConfigInstallTypeMult = {
@@ -293,6 +305,8 @@ export type RatesConfigBulkPullFactors = {
 };
 
 export interface RatesConfig {
+  /** User-defined cable types added beyond the built-in list */
+  customCableTypes?: CustomCableType[];
   /** Pull labor in minutes for every 10 ft of cable, by cable type */
   pullMinutesPer10Ft: RatesConfigPullMinutesPer10Ft;
   /** Termination labor in minutes per cable end, by cable type (each cable has 2 ends) */

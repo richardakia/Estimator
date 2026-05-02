@@ -13,6 +13,7 @@ export * from "./calculationResult";
 export * from "./ceilingType";
 export * from "./createEstimateBody";
 export * from "./createRunBody";
+export * from "./customCableType";
 export * from "./estimate";
 export * from "./estimateDetail";
 export * from "./estimateSummary";

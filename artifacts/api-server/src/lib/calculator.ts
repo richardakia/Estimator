@@ -5,7 +5,8 @@ export type CableType =
   | "sm_fiber"
   | "mm_fiber"
   | "coax_rg6"
-  | "coax_rg11";
+  | "coax_rg11"
+  | "speaker_cable";
 
 export type InstallType = "new_install" | "retrofit" | "deinstall";
 export type CeilingType = "open" | "drywall" | "hard_lid";
@@ -16,9 +17,15 @@ export type SkillLevel = "apprentice" | "journeyman" | "lead";
 
 export const TERMINATIONS_PER_CABLE = 2;
 
+export interface CustomCableType {
+  value: string;
+  label: string;
+}
+
 export interface RatesConfigShape {
-  pullMinutesPer10Ft: Record<CableType, number>;
-  terminationMinutesPerEnd: Record<CableType, number>;
+  customCableTypes?: CustomCableType[];
+  pullMinutesPer10Ft: Record<string, number>;
+  terminationMinutesPerEnd: Record<string, number>;
   installTypeMult: Record<InstallType, number>;
   ceilingMult: Record<CeilingType, number>;
   pathwayMult: Record<PathwayComplexity, number>;
@@ -37,6 +44,7 @@ export interface RatesConfigShape {
 }
 
 export const DEFAULT_RATES: RatesConfigShape = {
+  customCableTypes: [],
   pullMinutesPer10Ft: {
     cat5e: 2.5,
     cat6: 3.0,
@@ -45,6 +53,7 @@ export const DEFAULT_RATES: RatesConfigShape = {
     mm_fiber: 4.0,
     coax_rg6: 2.5,
     coax_rg11: 3.5,
+    speaker_cable: 2.0,
   },
   terminationMinutesPerEnd: {
     cat5e: 4,
@@ -54,6 +63,7 @@ export const DEFAULT_RATES: RatesConfigShape = {
     mm_fiber: 12,
     coax_rg6: 4,
     coax_rg11: 5,
+    speaker_cable: 3,
   },
   installTypeMult: {
     new_install: 1.0,
@@ -112,7 +122,7 @@ export function bulkPullFactorFor(
 export interface RunInput {
   id?: number;
   label: string;
-  cableType: CableType;
+  cableType: string;
   numCables: number;
   lengthFt: number;
   ceilingType: CeilingType;
@@ -130,7 +140,7 @@ export interface EstimateContext {
 export interface RunCalculation {
   runId?: number;
   label: string;
-  cableType: CableType;
+  cableType: string;
   numCables: number;
   lengthFt: number;
   ceilingType: CeilingType;
@@ -200,8 +210,8 @@ export function calculateEstimate(
   let totalCablesActualHoursAvg = 0;
 
   for (const run of runs) {
-    const pullMin = rates.pullMinutesPer10Ft[run.cableType];
-    const termMin = rates.terminationMinutesPerEnd[run.cableType];
+    const pullMin = rates.pullMinutesPer10Ft[run.cableType] ?? 3.0;
+    const termMin = rates.terminationMinutesPerEnd[run.cableType] ?? 5;
     const ceilingM = rates.ceilingMult[run.ceilingType];
     const pathM = rates.pathwayMult[run.pathwayComplexity];
 

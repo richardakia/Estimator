@@ -5,6 +5,7 @@
  * Structured Cabling Labor Estimator API
  * OpenAPI spec version: 0.1.0
  */
+import type { CustomCableType } from "./customCableType";
 import type { RatesConfigBuildingMult } from "./ratesConfigBuildingMult";
 import type { RatesConfigBulkPullFactors } from "./ratesConfigBulkPullFactors";
 import type { RatesConfigCeilingMult } from "./ratesConfigCeilingMult";
@@ -16,6 +17,8 @@ import type { RatesConfigSkillMult } from "./ratesConfigSkillMult";
 import type { RatesConfigTerminationMinutesPerEnd } from "./ratesConfigTerminationMinutesPerEnd";
 
 export interface RatesConfig {
+  /** User-defined cable types added beyond the built-in list */
+  customCableTypes?: CustomCableType[];
   /** Pull labor in minutes for every 10 ft of cable, by cable type */
   pullMinutesPer10Ft: RatesConfigPullMinutesPer10Ft;
   /** Termination labor in minutes per cable end, by cable type (each cable has 2 ends) */

@@ -6,6 +6,7 @@ export const CABLE_TYPES = [
   { value: "mm_fiber", label: "Multi-mode Fiber" },
   { value: "coax_rg6", label: "Coax RG6" },
   { value: "coax_rg11", label: "Coax RG11" },
+  { value: "speaker_cable", label: "Speaker Cable" },
 ] as const;
 
 export const INSTALL_TYPES = [

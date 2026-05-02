@@ -255,7 +255,7 @@ components:
 
     CableType:
       type: string
-      enum: [cat5e, cat6, cat6a, sm_fiber, mm_fiber, coax_rg6, coax_rg11]
+      enum: [cat5e, cat6, cat6a, sm_fiber, mm_fiber, coax_rg6, coax_rg11, speaker_cable]
 
     InstallType:
       type: string
@@ -378,7 +378,7 @@ components:
         label:
           type: string
         cableType:
-          $ref: "#/components/schemas/CableType"
+          type: string
         numCables:
           type: integer
           description: Number of cables pulled together as a group
@@ -417,7 +417,7 @@ components:
         label:
           type: string
         cableType:
-          $ref: "#/components/schemas/CableType"
+          type: string
         numCables:
           type: integer
         lengthFt:
@@ -591,7 +591,7 @@ components:
         label:
           type: string
         cableType:
-          $ref: "#/components/schemas/CableType"
+          type: string
         numCables:
           type: integer
         lengthFt:
@@ -616,7 +616,7 @@ components:
         label:
           type: string
         cableType:
-          $ref: "#/components/schemas/CableType"
+          type: string
         numCables:
           type: integer
         lengthFt:
@@ -635,12 +635,30 @@ components:
           pathwayComplexity,
         ]
 
+    CustomCableType:
+      type: object
+      properties:
+        value:
+          type: string
+          description: Unique identifier key for the cable type (e.g. "my_cable")
+        label:
+          type: string
+          description: Human-readable display name (e.g. "My Cable")
+      required: [value, label]
+
     RatesConfig:
       type: object
       properties:
+        customCableTypes:
+          type: array
+          description: User-defined cable types added beyond the built-in list
+          items:
+            $ref: "#/components/schemas/CustomCableType"
         pullMinutesPer10Ft:
           type: object
           description: Pull labor in minutes for every 10 ft of cable, by cable type
+          additionalProperties:
+            type: number
           properties:
             cat5e: { type: number }
             cat6: { type: number }
@@ -649,11 +667,14 @@ components:
             mm_fiber: { type: number }
             coax_rg6: { type: number }
             coax_rg11: { type: number }
+            speaker_cable: { type: number }
           required:
-            [cat5e, cat6, cat6a, sm_fiber, mm_fiber, coax_rg6, coax_rg11]
+            [cat5e, cat6, cat6a, sm_fiber, mm_fiber, coax_rg6, coax_rg11, speaker_cable]
         terminationMinutesPerEnd:
           type: object
           description: Termination labor in minutes per cable end, by cable type (each cable has 2 ends)
+          additionalProperties:
+            type: number
           properties:
             cat5e: { type: number }
             cat6: { type: number }
@@ -662,8 +683,9 @@ components:
             mm_fiber: { type: number }
             coax_rg6: { type: number }
             coax_rg11: { type: number }
+            speaker_cable: { type: number }
           required:
-            [cat5e, cat6, cat6a, sm_fiber, mm_fiber, coax_rg6, coax_rg11]
+            [cat5e, cat6, cat6a, sm_fiber, mm_fiber, coax_rg6, coax_rg11, speaker_cable]
         installTypeMult:
           type: object
           properties:

@@ -16,4 +16,5 @@ export const CableType = {
   mm_fiber: "mm_fiber",
   coax_rg6: "coax_rg6",
   coax_rg11: "coax_rg11",
+  speaker_cable: "speaker_cable",
 } as const;

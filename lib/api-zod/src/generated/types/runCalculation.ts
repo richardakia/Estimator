@@ -5,7 +5,6 @@
  * Structured Cabling Labor Estimator API
  * OpenAPI spec version: 0.1.0
  */
-import type { CableType } from "./cableType";
 import type { CeilingType } from "./ceilingType";
 import type { PathwayComplexity } from "./pathwayComplexity";
 
@@ -15,7 +14,7 @@ import type { PathwayComplexity } from "./pathwayComplexity";
 export interface RunCalculation {
   runId?: number;
   label: string;
-  cableType: CableType;
+  cableType: string;
   numCables: number;
   lengthFt: number;
   ceilingType: CeilingType;

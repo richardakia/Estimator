@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   useGetEstimate,
+  useGetRates,
   useCreateEstimate,
   useUpdateEstimate,
   useDeleteEstimate,
@@ -95,6 +96,16 @@ export default function Estimator() {
   const { selectedId, setSelectedId, newEstOpen, setNewEstOpen } = useEstimates();
   const [newEstForm, setNewEstForm] = useState<EstimateForm>(DEFAULT_ESTIMATE);
 
+  const { data: ratesData } = useGetRates();
+  const allCableTypes = useMemo(() => {
+    const custom = (ratesData as { customCableTypes?: { value: string; label: string }[] } | undefined)
+      ?.customCableTypes ?? [];
+    return [
+      ...CABLE_TYPES,
+      ...custom.map((c: { value: string; label: string }) => ({ value: c.value, label: c.label })),
+    ];
+  }, [ratesData]);
+
   const { data: detail } = useGetEstimate(selectedId ?? 0, {
     query: {
       enabled: selectedId !== null,
@@ -148,6 +159,7 @@ export default function Estimator() {
         <EstimateDetail
           detail={detail}
           onDelete={() => deleteEstimate.mutate({ id: detail.estimate.id })}
+          cableTypes={allCableTypes}
         />
       ) : (
         <Card>
@@ -358,9 +370,11 @@ interface EstimateDetailData {
 function EstimateDetail({
   detail,
   onDelete,
+  cableTypes,
 }: {
   detail: EstimateDetailData;
   onDelete: () => void;
+  cableTypes: readonly { value: string; label: string }[];
 }) {
   const queryClient = useQueryClient();
   const { estimate, runs, totals } = detail;
@@ -562,7 +576,7 @@ function EstimateDetail({
                       data-testid={`row-run-${r.runId}`}
                     >
                       <TableCell className="font-medium">{r.label}</TableCell>
-                      <TableCell>{labelFor(CABLE_TYPES, r.cableType)}</TableCell>
+                      <TableCell>{labelFor(cableTypes, r.cableType)}</TableCell>
                       <TableCell className="text-right">{r.numCables}</TableCell>
                       <TableCell className="text-right">
                         {r.lengthFt} ft
@@ -796,7 +810,7 @@ function EstimateDetail({
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {CABLE_TYPES.map((o) => (
+                    {cableTypes.map((o) => (
                       <SelectItem key={o.value} value={o.value}>
                         {o.label}
                       </SelectItem>

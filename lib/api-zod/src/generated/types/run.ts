@@ -5,7 +5,6 @@
  * Structured Cabling Labor Estimator API
  * OpenAPI spec version: 0.1.0
  */
-import type { CableType } from "./cableType";
 import type { CeilingType } from "./ceilingType";
 import type { PathwayComplexity } from "./pathwayComplexity";
 
@@ -13,7 +12,7 @@ export interface Run {
   id: number;
   estimateId: number;
   label: string;
-  cableType: CableType;
+  cableType: string;
   /** Number of cables pulled together as a group */
   numCables: number;
   /** Average cable length per cable in feet */
