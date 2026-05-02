@@ -313,6 +313,37 @@ export default function RatesEditor() {
             </div>
           </CardContent>
         </Card>
+
+        <p className="text-sm text-muted-foreground">
+          The four multipliers below scale labor on every cable run AND every
+          pathway segment. A value of 1.0 means no adjustment.
+        </p>
+        <div className="grid gap-6 md:grid-cols-2">
+          <RateSection
+            title="Install Type Multiplier"
+            options={INSTALL_TYPES}
+            values={draft.installTypeMult}
+            onChange={(k, v) => setNested("installTypeMult", k, v)}
+          />
+          <RateSection
+            title="Building Type Multiplier"
+            options={BUILDING_TYPES}
+            values={draft.buildingMult}
+            onChange={(k, v) => setNested("buildingMult", k, v)}
+          />
+          <RateSection
+            title="Environment Multiplier"
+            options={ENVIRONMENTS}
+            values={draft.environmentMult}
+            onChange={(k, v) => setNested("environmentMult", k, v)}
+          />
+          <RateSection
+            title="Skill Level Multiplier"
+            options={SKILL_LEVELS}
+            values={draft.skillMult}
+            onChange={(k, v) => setNested("skillMult", k, v)}
+          />
+        </div>
       </section>
 
       {/* ---------------- CABLING ---------------- */}
@@ -447,12 +478,6 @@ export default function RatesEditor() {
             onDeleteCustom={handleDeleteCable}
           />
           <RateSection
-            title="Install Type Multiplier"
-            options={INSTALL_TYPES}
-            values={draft.installTypeMult}
-            onChange={(k, v) => setNested("installTypeMult", k, v)}
-          />
-          <RateSection
             title="Ceiling Type Multiplier"
             options={CEILING_TYPES}
             values={draft.ceilingMult}
@@ -463,24 +488,6 @@ export default function RatesEditor() {
             options={PATHWAY_LEVELS}
             values={draft.pathwayMult}
             onChange={(k, v) => setNested("pathwayMult", k, v)}
-          />
-          <RateSection
-            title="Building Type Multiplier"
-            options={BUILDING_TYPES}
-            values={draft.buildingMult}
-            onChange={(k, v) => setNested("buildingMult", k, v)}
-          />
-          <RateSection
-            title="Environment Multiplier"
-            options={ENVIRONMENTS}
-            values={draft.environmentMult}
-            onChange={(k, v) => setNested("environmentMult", k, v)}
-          />
-          <RateSection
-            title="Skill Level Multiplier"
-            options={SKILL_LEVELS}
-            values={draft.skillMult}
-            onChange={(k, v) => setNested("skillMult", k, v)}
           />
 
           <Card className="md:col-span-2">
