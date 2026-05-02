@@ -36,6 +36,7 @@ export const runsTable = pgTable("runs", {
   lengthFt: doublePrecision("length_ft").notNull(),
   ceilingType: text("ceiling_type").notNull(),
   pathwayComplexity: text("pathway_complexity").notNull(),
+  bulkSize: integer("bulk_size").notNull().default(1),
   sortOrder: integer("sort_order").notNull().default(0),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()

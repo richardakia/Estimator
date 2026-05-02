@@ -89,6 +89,7 @@ const DEFAULT_RUN: RunForm = {
   lengthFt: 150,
   ceilingType: "drywall",
   pathwayComplexity: "medium",
+  bulkSize: 1,
 };
 
 export default function Estimator() {
@@ -335,11 +336,13 @@ interface EstimateDetailData {
     lengthFt: number;
     ceilingType: string;
     pathwayComplexity: string;
+    bulkSize: number;
+    bulkFactor: number;
+    pullsNeeded: number;
     pullMinutesPer10Ft: number;
     terminationMinutesPerEnd: number;
     pullHoursPerCable: number;
     terminationHoursPerCable: number;
-    bulkPullFactor: number;
     adjustedHoursPerCable: number;
     runHoursLow: number;
     runHoursAvg: number;
@@ -449,6 +452,7 @@ function EstimateDetail({
       lengthFt: r.lengthFt,
       ceilingType: r.ceilingType as RunForm["ceilingType"],
       pathwayComplexity: r.pathwayComplexity as RunForm["pathwayComplexity"],
+      bulkSize: r.bulkSize,
     });
     setRunDialogOpen(true);
   };
@@ -558,9 +562,11 @@ function EstimateDetail({
                     <TableHead className="text-right">Length</TableHead>
                     <TableHead>Ceiling</TableHead>
                     <TableHead>Pathway</TableHead>
+                    <TableHead className="text-right">Bulk Size</TableHead>
+                    <TableHead className="text-right">Pulls</TableHead>
+                    <TableHead className="text-right">Bulk Factor</TableHead>
                     <TableHead className="text-right">Pull min/10ft</TableHead>
                     <TableHead className="text-right">Term min/end</TableHead>
-                    <TableHead className="text-right">Bulk Factor</TableHead>
                     <TableHead className="text-right">Pull hrs/cable</TableHead>
                     <TableHead className="text-right">Term hrs/cable</TableHead>
                     <TableHead className="text-right">Hrs / Cable</TableHead>
@@ -588,18 +594,24 @@ function EstimateDetail({
                         {labelFor(PATHWAY_LEVELS, r.pathwayComplexity)}
                       </TableCell>
                       <TableCell className="text-right font-mono text-muted-foreground">
+                        {r.bulkSize}
+                      </TableCell>
+                      <TableCell className="text-right font-mono text-muted-foreground">
+                        {r.pullsNeeded}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Badge
+                          variant={r.bulkFactor < 1 ? "default" : "outline"}
+                          className="font-mono"
+                        >
+                          {r.bulkFactor.toFixed(3)}×
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right font-mono text-muted-foreground">
                         {r.pullMinutesPer10Ft.toFixed(1)}
                       </TableCell>
                       <TableCell className="text-right font-mono text-muted-foreground">
                         {r.terminationMinutesPerEnd.toFixed(1)}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Badge
-                          variant={r.bulkPullFactor < 1 ? "default" : "outline"}
-                          className="font-mono"
-                        >
-                          {r.bulkPullFactor.toFixed(2)}×
-                        </Badge>
                       </TableCell>
                       <TableCell className="text-right font-mono text-muted-foreground">
                         {r.pullHoursPerCable.toFixed(2)}
@@ -849,6 +861,26 @@ function EstimateDetail({
                   }
                   data-testid="input-length"
                 />
+              </div>
+              <div>
+                <Label htmlFor="run-bulk">Bulk Pull Size (B)</Label>
+                <Input
+                  id="run-bulk"
+                  type="number"
+                  min={1}
+                  max={99}
+                  value={runForm.bulkSize}
+                  onChange={(e) =>
+                    setRunForm({
+                      ...runForm,
+                      bulkSize: Math.max(1, Number(e.target.value) || 1),
+                    })
+                  }
+                  data-testid="input-bulk-size"
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Cables pulled simultaneously. Factor = 0.4 + 0.6/B
+                </p>
               </div>
               <div>
                 <Label>Ceiling Type</Label>

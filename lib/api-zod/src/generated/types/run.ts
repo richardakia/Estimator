@@ -13,12 +13,14 @@ export interface Run {
   estimateId: number;
   label: string;
   cableType: string;
-  /** Number of cables pulled together as a group */
+  /** Total number of cables in this run group */
   numCables: number;
   /** Average cable length per cable in feet */
   lengthFt: number;
   ceilingType: CeilingType;
   pathwayComplexity: PathwayComplexity;
+  /** Number of cables pulled simultaneously in one pass (B in bulk formula) */
+  bulkSize: number;
   sortOrder: number;
   createdAt: Date;
 }

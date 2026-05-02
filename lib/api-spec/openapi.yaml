@@ -381,7 +381,7 @@ components:
           type: string
         numCables:
           type: integer
-          description: Number of cables pulled together as a group
+          description: Total number of cables in this run group
         lengthFt:
           type: number
           description: Average cable length per cable in feet
@@ -389,6 +389,9 @@ components:
           $ref: "#/components/schemas/CeilingType"
         pathwayComplexity:
           $ref: "#/components/schemas/PathwayComplexity"
+        bulkSize:
+          type: integer
+          description: Number of cables pulled simultaneously in one pass (B in bulk formula)
         sortOrder:
           type: integer
         createdAt:
@@ -404,6 +407,7 @@ components:
           lengthFt,
           ceilingType,
           pathwayComplexity,
+          bulkSize,
           sortOrder,
           createdAt,
         ]
@@ -426,6 +430,15 @@ components:
           $ref: "#/components/schemas/CeilingType"
         pathwayComplexity:
           $ref: "#/components/schemas/PathwayComplexity"
+        bulkSize:
+          type: integer
+          description: Cables pulled simultaneously per pass (B)
+        bulkFactor:
+          type: number
+          description: "Computed efficiency factor: 0.4 + (0.6 / bulkSize)"
+        pullsNeeded:
+          type: integer
+          description: "ceil(numCables / bulkSize) — number of pull passes"
         pullMinutesPer10Ft:
           type: number
           description: Base pull rate in minutes per 10 ft for this cable type
@@ -434,15 +447,13 @@ components:
           description: Base termination time in minutes per end for this cable type
         pullHoursPerCable:
           type: number
-          description: Pull labor per cable (after multipliers and bulk discount)
+          description: Pull hours for one cable within a single bulk pass (after condition mult + bulk factor)
         terminationHoursPerCable:
           type: number
-          description: Termination labor per cable (both ends, after multipliers)
-        bulkPullFactor:
-          type: number
-          description: Multiplier applied to pull portion only (lower = more efficient bulk pull)
+          description: Termination hours per cable (both ends, after condition mult — NOT bulk-discounted)
         adjustedHoursPerCable:
           type: number
+          description: Average total hours per cable = (totalPullHours + totalTermHours) / numCables
         runHoursLow:
           type: number
         runHoursAvg:
@@ -463,11 +474,13 @@ components:
           lengthFt,
           ceilingType,
           pathwayComplexity,
+          bulkSize,
+          bulkFactor,
+          pullsNeeded,
           pullMinutesPer10Ft,
           terminationMinutesPerEnd,
           pullHoursPerCable,
           terminationHoursPerCable,
-          bulkPullFactor,
           adjustedHoursPerCable,
           runHoursLow,
           runHoursAvg,
@@ -600,6 +613,9 @@ components:
           $ref: "#/components/schemas/CeilingType"
         pathwayComplexity:
           $ref: "#/components/schemas/PathwayComplexity"
+        bulkSize:
+          type: integer
+          description: Cables pulled simultaneously per pass (default 1)
       required:
         [
           label,
@@ -608,6 +624,7 @@ components:
           lengthFt,
           ceilingType,
           pathwayComplexity,
+          bulkSize,
         ]
 
     UpdateRunBody:
@@ -625,6 +642,9 @@ components:
           $ref: "#/components/schemas/CeilingType"
         pathwayComplexity:
           $ref: "#/components/schemas/PathwayComplexity"
+        bulkSize:
+          type: integer
+          description: Cables pulled simultaneously per pass (default 1)
       required:
         [
           label,
@@ -633,6 +653,7 @@ components:
           lengthFt,
           ceilingType,
           pathwayComplexity,
+          bulkSize,
         ]
 
     CustomCableType:
@@ -728,18 +749,6 @@ components:
             journeyman: { type: number }
             lead: { type: number }
           required: [apprentice, journeyman, lead]
-        bulkPullFactors:
-          type: object
-          description: Multiplier applied to the pull portion based on number of cables in a run
-          properties:
-            single: { type: number, description: "1 cable" }
-            small: { type: number, description: "2 cables" }
-            medium: { type: number, description: "3-4 cables" }
-            large: { type: number, description: "5-8 cables" }
-            xlarge: { type: number, description: "9-12 cables" }
-            xxlarge: { type: number, description: "13-24 cables" }
-            massive: { type: number, description: "25+ cables" }
-          required: [single, small, medium, large, xlarge, xxlarge, massive]
       required:
         [
           pullMinutesPer10Ft,
@@ -750,7 +759,6 @@ components:
           buildingMult,
           environmentMult,
           skillMult,
-          bulkPullFactors,
         ]
 
     CalculationInput:

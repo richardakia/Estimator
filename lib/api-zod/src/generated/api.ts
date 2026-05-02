@@ -77,6 +77,15 @@ export const GetEstimateResponse = zod.object({
         lengthFt: zod.number(),
         ceilingType: zod.enum(["open", "drywall", "hard_lid"]),
         pathwayComplexity: zod.enum(["low", "medium", "high"]),
+        bulkSize: zod
+          .number()
+          .describe("Cables pulled simultaneously per pass (B)"),
+        bulkFactor: zod
+          .number()
+          .describe("Computed efficiency factor: 0.4 + (0.6 \/ bulkSize)"),
+        pullsNeeded: zod
+          .number()
+          .describe("ceil(numCables \/ bulkSize) — number of pull passes"),
         pullMinutesPer10Ft: zod
           .number()
           .describe("Base pull rate in minutes per 10 ft for this cable type"),
@@ -88,19 +97,18 @@ export const GetEstimateResponse = zod.object({
         pullHoursPerCable: zod
           .number()
           .describe(
-            "Pull labor per cable (after multipliers and bulk discount)",
+            "Pull hours for one cable within a single bulk pass (after condition mult + bulk factor)",
           ),
         terminationHoursPerCable: zod
           .number()
           .describe(
-            "Termination labor per cable (both ends, after multipliers)",
+            "Termination hours per cable (both ends, after condition mult — NOT bulk-discounted)",
           ),
-        bulkPullFactor: zod
+        adjustedHoursPerCable: zod
           .number()
           .describe(
-            "Multiplier applied to pull portion only (lower = more efficient bulk pull)",
+            "Average total hours per cable = (totalPullHours + totalTermHours) \/ numCables",
           ),
-        adjustedHoursPerCable: zod.number(),
         runHoursLow: zod.number(),
         runHoursAvg: zod.number(),
         runHoursHigh: zod.number(),
@@ -186,6 +194,9 @@ export const CreateRunBody = zod.object({
   lengthFt: zod.number(),
   ceilingType: zod.enum(["open", "drywall", "hard_lid"]),
   pathwayComplexity: zod.enum(["low", "medium", "high"]),
+  bulkSize: zod
+    .number()
+    .describe("Cables pulled simultaneously per pass (default 1)"),
 });
 
 /**
@@ -202,6 +213,9 @@ export const UpdateRunBody = zod.object({
   lengthFt: zod.number(),
   ceilingType: zod.enum(["open", "drywall", "hard_lid"]),
   pathwayComplexity: zod.enum(["low", "medium", "high"]),
+  bulkSize: zod
+    .number()
+    .describe("Cables pulled simultaneously per pass (default 1)"),
 });
 
 export const UpdateRunResponse = zod.object({
@@ -209,12 +223,15 @@ export const UpdateRunResponse = zod.object({
   estimateId: zod.number(),
   label: zod.string(),
   cableType: zod.string(),
-  numCables: zod
-    .number()
-    .describe("Number of cables pulled together as a group"),
+  numCables: zod.number().describe("Total number of cables in this run group"),
   lengthFt: zod.number().describe("Average cable length per cable in feet"),
   ceilingType: zod.enum(["open", "drywall", "hard_lid"]),
   pathwayComplexity: zod.enum(["low", "medium", "high"]),
+  bulkSize: zod
+    .number()
+    .describe(
+      "Number of cables pulled simultaneously in one pass (B in bulk formula)",
+    ),
   sortOrder: zod.number(),
   createdAt: zod.coerce.date(),
 });
@@ -301,19 +318,6 @@ export const GetRatesResponse = zod.object({
     journeyman: zod.number(),
     lead: zod.number(),
   }),
-  bulkPullFactors: zod
-    .object({
-      single: zod.number().describe("1 cable"),
-      small: zod.number().describe("2 cables"),
-      medium: zod.number().describe("3-4 cables"),
-      large: zod.number().describe("5-8 cables"),
-      xlarge: zod.number().describe("9-12 cables"),
-      xxlarge: zod.number().describe("13-24 cables"),
-      massive: zod.number().describe("25+ cables"),
-    })
-    .describe(
-      "Multiplier applied to the pull portion based on number of cables in a run",
-    ),
 });
 
 /**
@@ -391,19 +395,6 @@ export const UpdateRatesBody = zod.object({
     journeyman: zod.number(),
     lead: zod.number(),
   }),
-  bulkPullFactors: zod
-    .object({
-      single: zod.number().describe("1 cable"),
-      small: zod.number().describe("2 cables"),
-      medium: zod.number().describe("3-4 cables"),
-      large: zod.number().describe("5-8 cables"),
-      xlarge: zod.number().describe("9-12 cables"),
-      xxlarge: zod.number().describe("13-24 cables"),
-      massive: zod.number().describe("25+ cables"),
-    })
-    .describe(
-      "Multiplier applied to the pull portion based on number of cables in a run",
-    ),
 });
 
 export const UpdateRatesResponse = zod.object({
@@ -478,19 +469,6 @@ export const UpdateRatesResponse = zod.object({
     journeyman: zod.number(),
     lead: zod.number(),
   }),
-  bulkPullFactors: zod
-    .object({
-      single: zod.number().describe("1 cable"),
-      small: zod.number().describe("2 cables"),
-      medium: zod.number().describe("3-4 cables"),
-      large: zod.number().describe("5-8 cables"),
-      xlarge: zod.number().describe("9-12 cables"),
-      xxlarge: zod.number().describe("13-24 cables"),
-      massive: zod.number().describe("25+ cables"),
-    })
-    .describe(
-      "Multiplier applied to the pull portion based on number of cables in a run",
-    ),
 });
 
 /**
@@ -568,19 +546,6 @@ export const ResetRatesResponse = zod.object({
     journeyman: zod.number(),
     lead: zod.number(),
   }),
-  bulkPullFactors: zod
-    .object({
-      single: zod.number().describe("1 cable"),
-      small: zod.number().describe("2 cables"),
-      medium: zod.number().describe("3-4 cables"),
-      large: zod.number().describe("5-8 cables"),
-      xlarge: zod.number().describe("9-12 cables"),
-      xxlarge: zod.number().describe("13-24 cables"),
-      massive: zod.number().describe("25+ cables"),
-    })
-    .describe(
-      "Multiplier applied to the pull portion based on number of cables in a run",
-    ),
 });
 
 /**
@@ -600,6 +565,9 @@ export const PreviewCalculationBody = zod.object({
       lengthFt: zod.number(),
       ceilingType: zod.enum(["open", "drywall", "hard_lid"]),
       pathwayComplexity: zod.enum(["low", "medium", "high"]),
+      bulkSize: zod
+        .number()
+        .describe("Cables pulled simultaneously per pass (default 1)"),
     }),
   ),
 });
@@ -615,6 +583,15 @@ export const PreviewCalculationResponse = zod.object({
         lengthFt: zod.number(),
         ceilingType: zod.enum(["open", "drywall", "hard_lid"]),
         pathwayComplexity: zod.enum(["low", "medium", "high"]),
+        bulkSize: zod
+          .number()
+          .describe("Cables pulled simultaneously per pass (B)"),
+        bulkFactor: zod
+          .number()
+          .describe("Computed efficiency factor: 0.4 + (0.6 \/ bulkSize)"),
+        pullsNeeded: zod
+          .number()
+          .describe("ceil(numCables \/ bulkSize) — number of pull passes"),
         pullMinutesPer10Ft: zod
           .number()
           .describe("Base pull rate in minutes per 10 ft for this cable type"),
@@ -626,19 +603,18 @@ export const PreviewCalculationResponse = zod.object({
         pullHoursPerCable: zod
           .number()
           .describe(
-            "Pull labor per cable (after multipliers and bulk discount)",
+            "Pull hours for one cable within a single bulk pass (after condition mult + bulk factor)",
           ),
         terminationHoursPerCable: zod
           .number()
           .describe(
-            "Termination labor per cable (both ends, after multipliers)",
+            "Termination hours per cable (both ends, after condition mult — NOT bulk-discounted)",
           ),
-        bulkPullFactor: zod
+        adjustedHoursPerCable: zod
           .number()
           .describe(
-            "Multiplier applied to pull portion only (lower = more efficient bulk pull)",
+            "Average total hours per cable = (totalPullHours + totalTermHours) \/ numCables",
           ),
-        adjustedHoursPerCable: zod.number(),
         runHoursLow: zod.number(),
         runHoursAvg: zod.number(),
         runHoursHigh: zod.number(),

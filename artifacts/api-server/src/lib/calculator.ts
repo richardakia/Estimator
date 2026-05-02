@@ -32,15 +32,6 @@ export interface RatesConfigShape {
   buildingMult: Record<BuildingType, number>;
   environmentMult: Record<WorkEnvironment, number>;
   skillMult: Record<SkillLevel, number>;
-  bulkPullFactors: {
-    single: number;
-    small: number;
-    medium: number;
-    large: number;
-    xlarge: number;
-    xxlarge: number;
-    massive: number;
-  };
 }
 
 export const DEFAULT_RATES: RatesConfigShape = {
@@ -95,28 +86,19 @@ export const DEFAULT_RATES: RatesConfigShape = {
     journeyman: 1.0,
     lead: 0.85,
   },
-  bulkPullFactors: {
-    single: 1.0,
-    small: 0.75,
-    medium: 0.65,
-    large: 0.55,
-    xlarge: 0.5,
-    xxlarge: 0.45,
-    massive: 0.4,
-  },
 };
 
-export function bulkPullFactorFor(
-  numCables: number,
-  factors: RatesConfigShape["bulkPullFactors"],
-): number {
-  if (numCables <= 1) return factors.single;
-  if (numCables === 2) return factors.small;
-  if (numCables <= 4) return factors.medium;
-  if (numCables <= 8) return factors.large;
-  if (numCables <= 12) return factors.xlarge;
-  if (numCables <= 24) return factors.xxlarge;
-  return factors.massive;
+/**
+ * Computes the bulk pull factor for a given bulk pull size B.
+ * Formula: bulkFactor = 0.4 + (0.6 / B)
+ *   B = 1  → 1.00  (no savings — pulling one cable at a time)
+ *   B = 6  → 0.50  (50% time per cable)
+ *   B = 12 → 0.45  (~55% savings)
+ *   B = 24 → 0.425 (diminishing returns)
+ */
+export function bulkFactorFor(bulkSize: number): number {
+  const b = Math.max(1, Math.round(bulkSize));
+  return 0.4 + 0.6 / b;
 }
 
 export interface RunInput {
@@ -127,6 +109,8 @@ export interface RunInput {
   lengthFt: number;
   ceilingType: CeilingType;
   pathwayComplexity: PathwayComplexity;
+  /** Number of cables pulled simultaneously in one pass (default 1) */
+  bulkSize: number;
 }
 
 export interface EstimateContext {
@@ -145,11 +129,19 @@ export interface RunCalculation {
   lengthFt: number;
   ceilingType: CeilingType;
   pathwayComplexity: PathwayComplexity;
+  /** How many cables are pulled simultaneously */
+  bulkSize: number;
+  /** Computed: 0.4 + (0.6 / bulkSize) */
+  bulkFactor: number;
+  /** ceil(numCables / bulkSize) */
+  pullsNeeded: number;
   pullMinutesPer10Ft: number;
   terminationMinutesPerEnd: number;
+  /** Pull hours for one cable within a single bulk pass (after condition mult + bulk factor) */
   pullHoursPerCable: number;
+  /** Termination hours per cable (both ends, after condition mult — NOT bulk-discounted) */
   terminationHoursPerCable: number;
-  bulkPullFactor: number;
+  /** Average hours per cable = (totalPullHours + totalTermHours) / numCables */
   adjustedHoursPerCable: number;
   runHoursLow: number;
   runHoursAvg: number;
@@ -206,7 +198,7 @@ export function calculateEstimate(
   const skillM = rates.skillMult[ctx.skillLevel];
 
   const calcs: RunCalculation[] = [];
-  let totalCablesPulledIndividuallyHours = 0;
+  let totalCablesSoloHours = 0;
   let totalCablesActualHoursAvg = 0;
 
   for (const run of runs) {
@@ -214,26 +206,34 @@ export function calculateEstimate(
     const termMin = rates.terminationMinutesPerEnd[run.cableType] ?? 5;
     const ceilingM = rates.ceilingMult[run.ceilingType];
     const pathM = rates.pathwayMult[run.pathwayComplexity];
+    const conditionMultiplier = installM * ceilingM * pathM * buildingM * envM * skillM;
 
-    const conditionMultiplier =
-      installM * ceilingM * pathM * buildingM * envM * skillM;
+    const B = Math.max(1, Math.round(run.bulkSize));
+    const N = run.numCables;
 
-    // Pull time: minutes-per-10ft scales linearly with length, gets bulk discount
+    // ── Pull calculation (refined bulk formula) ──────────────────────────
+    // Baseline pull hours for one cable at length, no bulk
     const rawPullHoursPerCable = (pullMin / 60) * (run.lengthFt / 10);
-    const bulkFactor = bulkPullFactorFor(run.numCables, rates.bulkPullFactors);
-    const pullHoursPerCable =
-      rawPullHoursPerCable * conditionMultiplier * bulkFactor;
 
-    // Termination time: both ends, no bulk discount (each cable terminated individually)
-    const rawTerminationHoursPerCable =
-      (termMin * TERMINATIONS_PER_CABLE) / 60;
-    const terminationHoursPerCable =
-      rawTerminationHoursPerCable * conditionMultiplier;
+    // bulkFactor = 0.4 + (0.6 / B) — time-per-cable within a single bulk pass
+    const bulkFactor = bulkFactorFor(B);
+    const pullHoursPerCable = rawPullHoursPerCable * conditionMultiplier * bulkFactor;
 
-    const adjustedHoursPerCable =
-      pullHoursPerCable + terminationHoursPerCable;
+    // Number of passes needed (partial final pass wastes B - remainder cable-slots)
+    const pullsNeeded = Math.ceil(N / B);
 
-    const runHoursAvg = adjustedHoursPerCable * run.numCables;
+    // Total pull hours accounts for the waste in the partial final pass
+    const totalPullHours = pullsNeeded * pullHoursPerCable * B;
+
+    // ── Termination calculation (bulk does NOT reduce termination) ───────
+    const rawTermHoursPerCable = (termMin * TERMINATIONS_PER_CABLE) / 60;
+    const terminationHoursPerCable = rawTermHoursPerCable * conditionMultiplier;
+    const totalTermHours = terminationHoursPerCable * N;
+
+    // ── Run totals ────────────────────────────────────────────────────────
+    const runHoursAvg = totalPullHours + totalTermHours;
+    const adjustedHoursPerCable = runHoursAvg / N;
+
     const runHoursLow = runHoursAvg * 0.85;
     const runHoursHigh = runHoursAvg * 1.2;
 
@@ -241,27 +241,28 @@ export function calculateEstimate(
     const runCostLow = runHoursLow * ctx.hourlyRate;
     const runCostHigh = runHoursHigh * ctx.hourlyRate;
 
-    // For bulk-savings comparison: what would total be if bulk factor was 1.0 (solo pulls)?
-    const soloHoursPerCable =
-      rawPullHoursPerCable * conditionMultiplier +
-      terminationHoursPerCable;
-    totalCablesPulledIndividuallyHours += soloHoursPerCable * run.numCables;
+    // ── Bulk-savings comparison (what if B=1 for every cable) ────────────
+    const soloRunHours =
+      (rawPullHoursPerCable * conditionMultiplier + terminationHoursPerCable) * N;
+    totalCablesSoloHours += soloRunHours;
     totalCablesActualHoursAvg += runHoursAvg;
 
     calcs.push({
       runId: run.id,
       label: run.label,
       cableType: run.cableType,
-      numCables: run.numCables,
+      numCables: N,
       lengthFt: run.lengthFt,
       ceilingType: run.ceilingType,
       pathwayComplexity: run.pathwayComplexity,
+      bulkSize: B,
+      bulkFactor: round(bulkFactor, 4),
+      pullsNeeded,
       pullMinutesPer10Ft: round(pullMin, 3),
       terminationMinutesPerEnd: round(termMin, 3),
-      pullHoursPerCable: round(pullHoursPerCable, 3),
-      terminationHoursPerCable: round(terminationHoursPerCable, 3),
-      bulkPullFactor: round(bulkFactor, 3),
-      adjustedHoursPerCable: round(adjustedHoursPerCable, 3),
+      pullHoursPerCable: round(pullHoursPerCable, 4),
+      terminationHoursPerCable: round(terminationHoursPerCable, 4),
+      adjustedHoursPerCable: round(adjustedHoursPerCable, 4),
       runHoursLow: round(runHoursLow, 2),
       runHoursAvg: round(runHoursAvg, 2),
       runHoursHigh: round(runHoursHigh, 2),
@@ -280,10 +281,7 @@ export function calculateEstimate(
   const totalCostHigh = totalHoursHigh * ctx.hourlyRate;
 
   const totalCables = runs.reduce((sum, r) => sum + r.numCables, 0);
-  const bulkSavings = Math.max(
-    0,
-    totalCablesPulledIndividuallyHours - totalCablesActualHoursAvg,
-  );
+  const bulkSavings = Math.max(0, totalCablesSoloHours - totalCablesActualHoursAvg);
 
   const taskBreakdown = TASK_BREAKDOWN.map((t) => ({
     task: t.task,

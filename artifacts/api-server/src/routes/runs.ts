@@ -44,6 +44,7 @@ router.post("/estimates/:id/runs", async (req, res): Promise<void> => {
       lengthFt: parsed.data.lengthFt,
       ceilingType: parsed.data.ceilingType,
       pathwayComplexity: parsed.data.pathwayComplexity,
+      bulkSize: parsed.data.bulkSize,
       sortOrder: nextOrder,
     })
     .returning();
@@ -67,6 +68,7 @@ router.post("/estimates/:id/runs", async (req, res): Promise<void> => {
     lengthFt: created.lengthFt,
     ceilingType: created.ceilingType,
     pathwayComplexity: created.pathwayComplexity,
+    bulkSize: created.bulkSize,
     sortOrder: created.sortOrder,
     createdAt: created.createdAt.toISOString(),
   });
@@ -94,6 +96,7 @@ router.put("/runs/:id", async (req, res): Promise<void> => {
       lengthFt: parsed.data.lengthFt,
       ceilingType: parsed.data.ceilingType,
       pathwayComplexity: parsed.data.pathwayComplexity,
+      bulkSize: parsed.data.bulkSize,
     })
     .where(eq(runsTable.id, params.data.id))
     .returning();
@@ -117,6 +120,7 @@ router.put("/runs/:id", async (req, res): Promise<void> => {
     lengthFt: updated.lengthFt,
     ceilingType: updated.ceilingType,
     pathwayComplexity: updated.pathwayComplexity,
+    bulkSize: updated.bulkSize,
     sortOrder: updated.sortOrder,
     createdAt: updated.createdAt.toISOString(),
   });

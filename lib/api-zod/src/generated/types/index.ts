@@ -23,7 +23,6 @@ export * from "./installType";
 export * from "./pathwayComplexity";
 export * from "./ratesConfig";
 export * from "./ratesConfigBuildingMult";
-export * from "./ratesConfigBulkPullFactors";
 export * from "./ratesConfigCeilingMult";
 export * from "./ratesConfigEnvironmentMult";
 export * from "./ratesConfigInstallTypeMult";

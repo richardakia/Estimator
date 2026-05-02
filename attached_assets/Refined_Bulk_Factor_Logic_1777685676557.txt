@@ -1,0 +1,94 @@
+Refined Bulk Factor Logic
+Instead of a single bulkFactor value (e.g., 0.7), we calculate it based on how many cables are pulled together and how many total pulls are required.
+
+Definitions:
+B = number of cables pulled simultaneously (bulk pull size)
+
+N = total number of cables in the run group (same pathway)
+
+P = number of pulls = ceil(N / B)
+
+Step 2 (Refined) — Pull Hours per Cable
+text
+bulkFactor = 0.4 + (0.6 / B)
+Where:
+
+B = 1 → bulkFactor = 1.0 (no savings)
+
+B = 6 → bulkFactor = 0.5 (50% time per cable)
+
+B = 12 → bulkFactor = 0.45 (55% savings)
+
+B = 24 → bulkFactor = 0.425 (diminishing returns)
+
+Then:
+
+text
+pullHrsPerCable_grouped = (pullMin10ft ÷ 60) × (lengthFt ÷ 10) × conditionMult × bulkFactor
+But because you pull B cables at once, the total pull time for all B cables is:
+
+text
+totalPullTime_onePull = pullHrsPerCable_grouped × B
+Thus, pull hours per individual cable averages to:
+
+text
+pullHrsPerCable = totalPullTime_onePull ÷ B
+(Which simplifies back to the same pullHrsPerCable_grouped formula — so your original structure holds, but with a nonlinear bulkFactor.)
+
+Step 2b (New) — Total Pull Time for All Cables
+If the group has P pulls:
+
+text
+totalPullHours_allCables = P × pullHrsPerCable × B
+But since P × B ≥ N, you add a small waste factor for partial final pulls (e.g., if N=10, B=6 → P=2, B×P=12, 2 extra cables worth of pull time but no termination).
+
+Step 3 — Termination Hours (Unchanged — bulk pull does NOT reduce termination)
+text
+termHrs = (termMinPerEnd × 2) ÷ 60 × conditionMult
+Bulk pulling saves only pull time, never termination.
+
+Step 4 — Adjusted Hours per Cable
+text
+hrsPerCable = pullHrsPerCable + termHrs
+But careful: pullHrsPerCable here is the average per cable including bulk savings.
+
+Example to Validate
+Inputs:
+
+N = 24 cables
+
+B = 6 (pull 6 at a time)
+
+Length = 200 ft
+
+pullMin10ft = 1.5 min (baseline pull time per 10 ft for 1 cable)
+
+termMinPerEnd = 12 min
+
+conditionMult = 1.0
+
+Calculate:
+
+text
+baselinePullPerCable = (1.5 ÷ 60) × (200 ÷ 10) = 0.025 × 20 = 0.5 hrs
+bulkFactor = 0.4 + (0.6 ÷ 6) = 0.4 + 0.1 = 0.5
+pullHrsPerCable = 0.5 × 1.0 × 0.5 = 0.25 hrs
+termHrs = (12 × 2 ÷ 60) = 0.4 hrs
+hrsPerCable = 0.25 + 0.4 = 0.65 hrs
+pullsNeeded = ceil(24 ÷ 6) = 4 pulls
+totalPullHours = 4 × (0.25 × 6) = 4 × 1.5 = 6.0 hrs
+totalTermHours = 24 × 0.4 = 9.6 hrs
+totalHours = 15.6 hrs
+Without bulk pull (B=1):
+hrsPerCable = 0.5 + 0.4 = 0.9 hrs
+total = 21.6 hrs
+→ Savings = 6 hours (28%)
+
+Final Recommendation for Your Sheet
+Replace your simple bulkFactor (e.g., 0.7 fixed) with:
+
+text
+bulkFactor = 0.4 + (0.6 / bulkSize)
+And add a note:
+
+*Bulk pull reduces pull time but not termination. Max practical bulkSize = 24 cables (0.425 factor). Partial final pulls incur small time waste.*

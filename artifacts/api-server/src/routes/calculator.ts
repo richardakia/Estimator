@@ -31,6 +31,7 @@ router.post("/calculator/preview", async (req, res): Promise<void> => {
     lengthFt: r.lengthFt,
     ceilingType: r.ceilingType as CeilingType,
     pathwayComplexity: r.pathwayComplexity as PathwayComplexity,
+    bulkSize: r.bulkSize,
   }));
 
   const calc = calculateEstimate(

@@ -106,12 +106,14 @@ export interface Run {
   estimateId: number;
   label: string;
   cableType: string;
-  /** Number of cables pulled together as a group */
+  /** Total number of cables in this run group */
   numCables: number;
   /** Average cable length per cable in feet */
   lengthFt: number;
   ceilingType: CeilingType;
   pathwayComplexity: PathwayComplexity;
+  /** Number of cables pulled simultaneously in one pass (B in bulk formula) */
+  bulkSize: number;
   sortOrder: number;
   createdAt: string;
 }
@@ -127,16 +129,21 @@ export interface RunCalculation {
   lengthFt: number;
   ceilingType: CeilingType;
   pathwayComplexity: PathwayComplexity;
+  /** Cables pulled simultaneously per pass (B) */
+  bulkSize: number;
+  /** Computed efficiency factor: 0.4 + (0.6 / bulkSize) */
+  bulkFactor: number;
+  /** ceil(numCables / bulkSize) — number of pull passes */
+  pullsNeeded: number;
   /** Base pull rate in minutes per 10 ft for this cable type */
   pullMinutesPer10Ft: number;
   /** Base termination time in minutes per end for this cable type */
   terminationMinutesPerEnd: number;
-  /** Pull labor per cable (after multipliers and bulk discount) */
+  /** Pull hours for one cable within a single bulk pass (after condition mult + bulk factor) */
   pullHoursPerCable: number;
-  /** Termination labor per cable (both ends, after multipliers) */
+  /** Termination hours per cable (both ends, after condition mult — NOT bulk-discounted) */
   terminationHoursPerCable: number;
-  /** Multiplier applied to pull portion only (lower = more efficient bulk pull) */
-  bulkPullFactor: number;
+  /** Average total hours per cable = (totalPullHours + totalTermHours) / numCables */
   adjustedHoursPerCable: number;
   runHoursLow: number;
   runHoursAvg: number;
@@ -200,6 +207,8 @@ export interface CreateRunBody {
   lengthFt: number;
   ceilingType: CeilingType;
   pathwayComplexity: PathwayComplexity;
+  /** Cables pulled simultaneously per pass (default 1) */
+  bulkSize: number;
 }
 
 export interface UpdateRunBody {
@@ -209,6 +218,8 @@ export interface UpdateRunBody {
   lengthFt: number;
   ceilingType: CeilingType;
   pathwayComplexity: PathwayComplexity;
+  /** Cables pulled simultaneously per pass (default 1) */
+  bulkSize: number;
 }
 
 export interface CustomCableType {
@@ -284,26 +295,6 @@ export type RatesConfigSkillMult = {
   lead: number;
 };
 
-/**
- * Multiplier applied to the pull portion based on number of cables in a run
- */
-export type RatesConfigBulkPullFactors = {
-  /** 1 cable */
-  single: number;
-  /** 2 cables */
-  small: number;
-  /** 3-4 cables */
-  medium: number;
-  /** 5-8 cables */
-  large: number;
-  /** 9-12 cables */
-  xlarge: number;
-  /** 13-24 cables */
-  xxlarge: number;
-  /** 25+ cables */
-  massive: number;
-};
-
 export interface RatesConfig {
   /** User-defined cable types added beyond the built-in list */
   customCableTypes?: CustomCableType[];
@@ -317,8 +308,6 @@ export interface RatesConfig {
   buildingMult: RatesConfigBuildingMult;
   environmentMult: RatesConfigEnvironmentMult;
   skillMult: RatesConfigSkillMult;
-  /** Multiplier applied to the pull portion based on number of cables in a run */
-  bulkPullFactors: RatesConfigBulkPullFactors;
 }
 
 export interface CalculationInput {

@@ -7,7 +7,6 @@
  */
 import type { CustomCableType } from "./customCableType";
 import type { RatesConfigBuildingMult } from "./ratesConfigBuildingMult";
-import type { RatesConfigBulkPullFactors } from "./ratesConfigBulkPullFactors";
 import type { RatesConfigCeilingMult } from "./ratesConfigCeilingMult";
 import type { RatesConfigEnvironmentMult } from "./ratesConfigEnvironmentMult";
 import type { RatesConfigInstallTypeMult } from "./ratesConfigInstallTypeMult";
@@ -29,6 +28,4 @@ export interface RatesConfig {
   buildingMult: RatesConfigBuildingMult;
   environmentMult: RatesConfigEnvironmentMult;
   skillMult: RatesConfigSkillMult;
-  /** Multiplier applied to the pull portion based on number of cables in a run */
-  bulkPullFactors: RatesConfigBulkPullFactors;
 }

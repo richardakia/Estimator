@@ -49,18 +49,7 @@ interface RatesShape {
   buildingMult: Record<string, number>;
   environmentMult: Record<string, number>;
   skillMult: Record<string, number>;
-  bulkPullFactors: Record<string, number>;
 }
-
-const BULK_LABELS: Array<[string, string]> = [
-  ["single", "1 cable"],
-  ["small", "2 cables"],
-  ["medium", "3–4 cables"],
-  ["large", "5–8 cables"],
-  ["xlarge", "9–12 cables"],
-  ["xxlarge", "13–24 cables"],
-  ["massive", "25+ cables"],
-];
 
 function slugify(label: string): string {
   return label
@@ -331,32 +320,31 @@ export default function RatesEditor() {
 
         <Card className="md:col-span-2">
           <CardHeader>
-            <CardTitle className="text-base">
-              Bulk Pull Efficiency Factor
-            </CardTitle>
+            <CardTitle className="text-base">Bulk Pull Efficiency Formula</CardTitle>
             <p className="text-sm text-muted-foreground">
-              Per-cable pull time is multiplied by this factor based on how many
-              cables share the same pathway. Termination time is not affected.
+              Pull time is reduced automatically based on how many cables are
+              pulled simultaneously per pass. Set <strong>Bulk Pull Size (B)</strong> on
+              each run. Termination is never bulk-discounted.
             </p>
           </CardHeader>
-          <CardContent className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            {BULK_LABELS.map(([key, label]) => (
-              <div key={key} className="flex flex-col gap-1">
-                <Label className="text-xs text-muted-foreground">{label}</Label>
-                <Input
-                  type="number"
-                  step={0.05}
-                  min={0.1}
-                  max={1}
-                  className="font-mono text-right"
-                  value={draft.bulkPullFactors[key] ?? 1}
-                  onChange={(e) =>
-                    setNested("bulkPullFactors", key, Number(e.target.value) || 0)
-                  }
-                  data-testid={`input-bulk-${key}`}
-                />
-              </div>
-            ))}
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 font-mono text-sm">
+              {[1, 2, 4, 6, 8, 12, 18, 24].map((b) => (
+                <div key={b} className="flex flex-col gap-0.5 bg-muted/40 rounded p-2">
+                  <span className="text-xs text-muted-foreground">B = {b}</span>
+                  <span className="font-semibold">
+                    {(0.4 + 0.6 / b).toFixed(3)}×
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    {(100 - (0.4 + 0.6 / b) * 100).toFixed(0)}% pull savings
+                  </span>
+                </div>
+              ))}
+            </div>
+            <p className="text-xs text-muted-foreground mt-3">
+              Formula: <code className="bg-muted px-1 rounded">bulkFactor = 0.4 + (0.6 / B)</code>
+              &nbsp;·&nbsp; B = 1 → 1.000× (no savings) &nbsp;·&nbsp; Max practical B = 24 → 0.425×
+            </p>
           </CardContent>
         </Card>
       </div>

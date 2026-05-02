@@ -15,4 +15,6 @@ export interface UpdateRunBody {
   lengthFt: number;
   ceilingType: CeilingType;
   pathwayComplexity: PathwayComplexity;
+  /** Cables pulled simultaneously per pass (default 1) */
+  bulkSize: number;
 }
