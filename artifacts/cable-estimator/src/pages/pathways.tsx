@@ -457,6 +457,11 @@ function FormulaExplainer({ rates }: { rates: PathwayRates }) {
       <CardContent className="space-y-4 text-sm">
         <div className="space-y-1">
           <p className="font-semibold">Step 1 — Pathway Labor</p>
+          <p className="text-muted-foreground text-xs">
+            Pathway Labor Hours = (Labor Minutes per Foot × Length of Pathway
+            ÷ 60) × Height Multiplier × Ceiling Multiplier × Cable Fill Labor
+            Multiplier.
+          </p>
           <div className="rounded-md bg-muted/60 px-4 py-2 font-mono text-xs">
             pathwayLaborHrs = (laborMinPerFt × length ÷ 60) × heightMult ×
             ceilingMult × fillLaborMult
@@ -464,6 +469,12 @@ function FormulaExplainer({ rates }: { rates: PathwayRates }) {
         </div>
         <div className="space-y-1">
           <p className="font-semibold">Step 2 — Fastening Hardware</p>
+          <p className="text-muted-foreground text-xs">
+            Fastener Count = round up (Length of Pathway ÷ Spacing Between
+            Fasteners). Fastener Labor Hours = (Fastener Count × Labor Minutes
+            per Fastener ÷ 60) × Height Multiplier. Fastener Material Cost =
+            Fastener Count × Cost per Fastener.
+          </p>
           <div className="rounded-md bg-muted/60 px-4 py-2 font-mono text-xs space-y-0.5">
             <div>fastenerCount = ceil(length ÷ fastenerSpacingFt)</div>
             <div>
@@ -475,6 +486,13 @@ function FormulaExplainer({ rates }: { rates: PathwayRates }) {
         </div>
         <div className="space-y-1">
           <p className="font-semibold">Step 3 — Bends & Penetrations</p>
+          <p className="text-muted-foreground text-xs">
+            Bend Hours = Number of Bends × Labor Hours per Bend × Height
+            Multiplier, and Bend Material Cost = Number of Bends × Material
+            Cost per Bend. Penetration Hours = Number of Penetrations × Labor
+            Hours per Penetration, and Penetration Material Cost = Number of
+            Penetrations × Material Cost per Penetration.
+          </p>
           <div className="rounded-md bg-muted/60 px-4 py-2 font-mono text-xs space-y-0.5">
             <div>
               bendHrs = bends × {rates.bendLaborHrs} × heightMult&nbsp;&nbsp;|
@@ -489,12 +507,23 @@ function FormulaExplainer({ rates }: { rates: PathwayRates }) {
         </div>
         <div className="space-y-1">
           <p className="font-semibold">Step 4 — Material Cost</p>
+          <p className="text-muted-foreground text-xs">
+            Pathway Material Cost = Material Cost per Foot × Length of Pathway
+            × Cable Fill Material Multiplier.
+          </p>
           <div className="rounded-md bg-muted/60 px-4 py-2 font-mono text-xs">
             pathwayMaterial = matCostPerFt × length × fillMaterialMult
           </div>
         </div>
         <div className="space-y-1">
           <p className="font-semibold">Step 5 — Segment Total</p>
+          <p className="text-muted-foreground text-xs">
+            Total Labor Hours = Pathway Labor Hours + Fastener Labor Hours +
+            Bend Hours + Penetration Hours. Total Material Cost = Pathway
+            Material + Fastener Material + Bend Material + Penetration
+            Material. Total Cost = (Total Labor Hours × Hourly Rate) + Total
+            Material Cost.
+          </p>
           <div className="rounded-md bg-muted/60 px-4 py-2 font-mono text-xs space-y-0.5">
             <div>
               totalLaborHrs = pathwayLaborHrs + fastenerLaborHrs + bendHrs +
