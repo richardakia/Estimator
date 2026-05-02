@@ -30,7 +30,7 @@ export function Layout({ children }: LayoutProps) {
   const { data: estimates = [] } = useListEstimates();
 
   const navItems = [
-    { href: "/", label: "Estimator", icon: Calculator },
+    { href: "/", label: "Cabling", icon: Calculator },
     { href: "/pathways", label: "Pathways", icon: RouteIcon },
     { href: "/rates", label: "Rate Editor", icon: Settings },
     { href: "/guide", label: "Platform Guide", icon: BookOpen },
