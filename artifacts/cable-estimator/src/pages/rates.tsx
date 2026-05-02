@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { RotateCcw, Save, Settings as SettingsIcon } from "lucide-react";
+import { RotateCcw, Save, Settings as SettingsIcon, FlaskConical } from "lucide-react";
 import {
   CABLE_TYPES,
   INSTALL_TYPES,
@@ -120,6 +120,77 @@ export default function RatesEditor() {
           </Button>
         </div>
       </div>
+
+      {/* Estimation Formula */}
+      <Card className="border-primary/30 bg-primary/5">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base flex items-center gap-2">
+            <FlaskConical className="w-4 h-4 text-primary" />
+            How Each Cable Run Is Estimated
+          </CardTitle>
+          <p className="text-sm text-muted-foreground">
+            Every value you edit below feeds directly into these formulas. All times convert to hours for the final output.
+          </p>
+        </CardHeader>
+        <CardContent className="space-y-5 text-sm">
+
+          {/* Step 1 – Condition multiplier */}
+          <div className="space-y-1">
+            <p className="font-semibold text-foreground">Step 1 — Condition Multiplier</p>
+            <div className="rounded-md bg-muted/60 px-4 py-2 font-mono text-xs leading-relaxed">
+              conditionMult = installType × ceiling × pathway × building × environment × skill
+            </div>
+            <p className="text-muted-foreground text-xs">
+              Multiplied together from the six condition sections below. A value of 1.0 means no adjustment.
+            </p>
+          </div>
+
+          {/* Step 2 – Pull hours */}
+          <div className="space-y-1">
+            <p className="font-semibold text-foreground">Step 2 — Pull Hours per Cable</p>
+            <div className="rounded-md bg-muted/60 px-4 py-2 font-mono text-xs leading-relaxed">
+              pullHrs = (pullMin10ft ÷ 60) × (lengthFt ÷ 10) × conditionMult × bulkFactor
+            </div>
+            <p className="text-muted-foreground text-xs">
+              Pull time scales linearly with cable length. The bulk-pull factor lowers this value when more cables share the same pathway — termination is unaffected by the bulk discount.
+            </p>
+          </div>
+
+          {/* Step 3 – Termination hours */}
+          <div className="space-y-1">
+            <p className="font-semibold text-foreground">Step 3 — Termination Hours per Cable</p>
+            <div className="rounded-md bg-muted/60 px-4 py-2 font-mono text-xs leading-relaxed">
+              termHrs = (termMinPerEnd × 2 ends) ÷ 60 × conditionMult
+            </div>
+            <p className="text-muted-foreground text-xs">
+              Every cable is terminated at both ends. The termination time is doubled before applying condition multipliers.
+            </p>
+          </div>
+
+          {/* Step 4 – Per-cable total */}
+          <div className="space-y-1">
+            <p className="font-semibold text-foreground">Step 4 — Adjusted Hours per Cable</p>
+            <div className="rounded-md bg-muted/60 px-4 py-2 font-mono text-xs leading-relaxed">
+              hrsPerCable = pullHrs + termHrs
+            </div>
+          </div>
+
+          {/* Step 5 – Run total */}
+          <div className="space-y-1">
+            <p className="font-semibold text-foreground">Step 5 — Run Total &amp; Range</p>
+            <div className="rounded-md bg-muted/60 px-4 py-2 font-mono text-xs leading-relaxed space-y-0.5">
+              <div>runHrsAvg  = hrsPerCable × numCables</div>
+              <div>runHrsLow  = runHrsAvg × 0.85&nbsp;&nbsp;(best case)</div>
+              <div>runHrsHigh = runHrsAvg × 1.20&nbsp;&nbsp;(worst case)</div>
+              <div className="pt-1">runCost = runHrs × hourlyRate</div>
+            </div>
+            <p className="text-muted-foreground text-xs">
+              The low/high range accounts for real-world variability. Totals across all runs are summed to produce the estimate's overall hours and cost.
+            </p>
+          </div>
+
+        </CardContent>
+      </Card>
 
       <div className="grid gap-6 md:grid-cols-2">
         <RateSection
