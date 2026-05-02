@@ -1,7 +1,17 @@
 import React from "react";
 import { Link, useLocation } from "wouter";
-import { Calculator, Settings, BookOpen } from "lucide-react";
+import { Calculator, Settings, BookOpen, Plus, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useListEstimates } from "@workspace/api-client-react";
+import { useEstimates } from "@/lib/estimates-context";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -9,12 +19,77 @@ interface LayoutProps {
 
 export function Layout({ children }: LayoutProps) {
   const [location] = useLocation();
+  const { selectedId, setSelectedId, setNewEstOpen } = useEstimates();
+  const { data: estimates = [] } = useListEstimates();
 
   const navItems = [
     { href: "/", label: "Estimator", icon: Calculator },
     { href: "/rates", label: "Rate Editor", icon: Settings },
     { href: "/guide", label: "Platform Guide", icon: BookOpen },
   ];
+
+  const selectedEstimate = estimates.find((e) => e.id === selectedId);
+  const isEstimatorRoute = location === "/";
+
+  const EstimatesDropdown = () => (
+    <div className="mt-3 space-y-1">
+      <p className="text-[10px] uppercase tracking-widest text-muted-foreground px-1 mb-2">
+        Saved Estimates
+      </p>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button
+            variant="outline"
+            className="w-full justify-between text-left font-normal h-auto py-2 px-3"
+            data-testid="dropdown-estimates"
+          >
+            <span className="truncate text-sm">
+              {selectedEstimate ? selectedEstimate.name : "Select an estimate…"}
+            </span>
+            <ChevronDown className="w-4 h-4 shrink-0 text-muted-foreground ml-2" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent
+          className="w-56"
+          align="start"
+          side="bottom"
+          sideOffset={4}
+        >
+          {estimates.length === 0 ? (
+            <DropdownMenuItem disabled>No estimates yet</DropdownMenuItem>
+          ) : (
+            estimates.map((e) => (
+              <DropdownMenuItem
+                key={e.id}
+                onSelect={() => setSelectedId(e.id)}
+                className={cn(
+                  "flex flex-col items-start gap-0.5 cursor-pointer",
+                  e.id === selectedId && "bg-primary/10 text-primary"
+                )}
+                data-testid={`dropdown-item-${e.id}`}
+              >
+                <span className="font-medium text-sm truncate max-w-[180px]">
+                  {e.name}
+                </span>
+                <span className="text-xs text-muted-foreground">
+                  {e.runCount} run{e.runCount === 1 ? "" : "s"} · {e.totalDrops} cables
+                </span>
+              </DropdownMenuItem>
+            ))
+          )}
+          <DropdownMenuSeparator />
+          <DropdownMenuItem
+            onSelect={() => setNewEstOpen(true)}
+            className="text-primary font-medium cursor-pointer"
+            data-testid="dropdown-new-estimate"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            New Estimate
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
+  );
 
   return (
     <div className="flex min-h-screen w-full bg-background text-foreground">
@@ -43,6 +118,8 @@ export function Layout({ children }: LayoutProps) {
               </div>
             </Link>
           ))}
+
+          {isEstimatorRoute && <EstimatesDropdown />}
         </nav>
         <div className="p-4 border-t border-border text-xs text-muted-foreground">
           v1.0.0 Field Tool
@@ -59,12 +136,43 @@ export function Layout({ children }: LayoutProps) {
             </div>
             <span className="font-bold">CableEst Pro</span>
           </div>
+          {isEstimatorRoute && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="max-w-[160px]">
+                  <span className="truncate text-xs">
+                    {selectedEstimate ? selectedEstimate.name : "Select…"}
+                  </span>
+                  <ChevronDown className="w-3.5 h-3.5 ml-1.5 shrink-0" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {estimates.map((e) => (
+                  <DropdownMenuItem
+                    key={e.id}
+                    onSelect={() => setSelectedId(e.id)}
+                    className={cn(e.id === selectedId && "bg-primary/10 text-primary")}
+                  >
+                    {e.name}
+                  </DropdownMenuItem>
+                ))}
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onSelect={() => setNewEstOpen(true)}
+                  className="text-primary font-medium"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  New Estimate
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
         </header>
 
         <div className="flex-1 p-4 md:p-8 overflow-y-auto">
           {children}
         </div>
-        
+
         {/* Mobile Bottom Nav */}
         <nav className="md:hidden flex items-center justify-around p-3 border-t border-border bg-card">
           {navItems.map((item) => (

@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Layout } from "@/components/layout";
+import { EstimatesProvider } from "@/lib/estimates-context";
 import Estimator from "@/pages/estimator";
 import RatesEditor from "@/pages/rates";
 import Guide from "@/pages/guide";
@@ -28,7 +29,9 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-          <Router />
+          <EstimatesProvider>
+            <Router />
+          </EstimatesProvider>
         </WouterRouter>
         <Toaster />
       </TooltipProvider>

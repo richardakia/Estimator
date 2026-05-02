@@ -1,6 +1,5 @@
 import { useState } from "react";
 import {
-  useListEstimates,
   useGetEstimate,
   useCreateEstimate,
   useUpdateEstimate,
@@ -12,9 +11,7 @@ import {
 } from "@workspace/api-client-react";
 import type {
   CreateEstimateBody,
-  UpdateEstimateBody,
   CreateRunBody,
-  UpdateRunBody,
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -50,11 +47,10 @@ import {
   Trash2,
   Pencil,
   Calculator as CalcIcon,
-  FileText,
-  Cable,
   Clock,
   DollarSign,
   TrendingDown,
+  Cable,
 } from "lucide-react";
 import {
   CABLE_TYPES,
@@ -66,6 +62,7 @@ import {
   SKILL_LEVELS,
   labelFor,
 } from "@/lib/options";
+import { useEstimates } from "@/lib/estimates-context";
 
 const fmtHours = (n: number) => `${n.toFixed(1)} h`;
 const fmtMoney = (n: number) =>
@@ -95,11 +92,9 @@ const DEFAULT_RUN: RunForm = {
 
 export default function Estimator() {
   const queryClient = useQueryClient();
-  const [selectedId, setSelectedId] = useState<number | null>(null);
-  const [newEstOpen, setNewEstOpen] = useState(false);
+  const { selectedId, setSelectedId, newEstOpen, setNewEstOpen } = useEstimates();
   const [newEstForm, setNewEstForm] = useState<EstimateForm>(DEFAULT_ESTIMATE);
 
-  const { data: estimates = [] } = useListEstimates();
   const { data: detail } = useGetEstimate(selectedId ?? 0, {
     query: {
       enabled: selectedId !== null,
@@ -129,91 +124,38 @@ export default function Estimator() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-start justify-between gap-4 flex-wrap">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">
-            Cabling Labor Estimator
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            Build estimates with multiple cable runs. Bulk pulling efficiency is
-            applied automatically.
-          </p>
-        </div>
-        <Button
-          onClick={() => setNewEstOpen(true)}
-          data-testid="button-new-estimate"
-        >
-          <Plus className="w-4 h-4 mr-2" /> New Estimate
-        </Button>
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">
+          Cabling Labor Estimator
+        </h1>
+        <p className="text-muted-foreground mt-1">
+          Select an estimate from the sidebar or create a new one. Bulk pulling
+          efficiency is applied automatically.
+        </p>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[320px_1fr]">
-        <Card className="h-fit">
-          <CardHeader>
-            <CardTitle className="text-base flex items-center gap-2">
-              <FileText className="w-4 h-4" /> Saved Estimates
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            {estimates.length === 0 && (
-              <p className="text-sm text-muted-foreground">
-                No estimates yet. Click "New Estimate" to start.
-              </p>
-            )}
-            {estimates.map((e) => (
-              <button
-                key={e.id}
-                onClick={() => setSelectedId(e.id)}
-                data-testid={`estimate-item-${e.id}`}
-                className={`w-full text-left p-3 rounded-md border transition-colors ${
-                  selectedId === e.id
-                    ? "border-primary bg-primary/10"
-                    : "border-border hover:bg-muted"
-                }`}
-              >
-                <div className="font-medium text-sm truncate">{e.name}</div>
-                <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
-                  <Cable className="w-3 h-3" />
-                  {e.runCount} run{e.runCount === 1 ? "" : "s"} · {e.totalDrops}{" "}
-                  cables
-                </div>
-                <div className="flex items-center justify-between mt-1 text-xs">
-                  <span className="text-muted-foreground">
-                    {fmtHours(e.totalHoursAvg)}
-                  </span>
-                  <span className="font-medium">
-                    {fmtMoney(e.totalCostAvg)}
-                  </span>
-                </div>
-              </button>
-            ))}
+      {!selectedId ? (
+        <Card>
+          <CardContent className="py-20 text-center text-muted-foreground">
+            <CalcIcon className="w-10 h-10 mx-auto mb-3 opacity-40" />
+            <p className="mb-4">Choose an estimate from the sidebar dropdown to view it here.</p>
+            <Button onClick={() => setNewEstOpen(true)} data-testid="button-new-estimate">
+              <Plus className="w-4 h-4 mr-2" /> New Estimate
+            </Button>
           </CardContent>
         </Card>
-
-        <div className="min-w-0">
-          {!selectedId ? (
-            <Card>
-              <CardContent className="py-16 text-center text-muted-foreground">
-                <CalcIcon className="w-10 h-10 mx-auto mb-3 opacity-50" />
-                <p>Select an estimate or create a new one to get started.</p>
-              </CardContent>
-            </Card>
-          ) : detail ? (
-            <EstimateDetail
-              detail={detail}
-              onDelete={() =>
-                deleteEstimate.mutate({ id: detail.estimate.id })
-              }
-            />
-          ) : (
-            <Card>
-              <CardContent className="py-16 text-center text-muted-foreground">
-                Loading...
-              </CardContent>
-            </Card>
-          )}
-        </div>
-      </div>
+      ) : detail ? (
+        <EstimateDetail
+          detail={detail}
+          onDelete={() => deleteEstimate.mutate({ id: detail.estimate.id })}
+        />
+      ) : (
+        <Card>
+          <CardContent className="py-16 text-center text-muted-foreground">
+            Loading…
+          </CardContent>
+        </Card>
+      )}
 
       <Dialog open={newEstOpen} onOpenChange={setNewEstOpen}>
         <DialogContent className="max-w-lg">
