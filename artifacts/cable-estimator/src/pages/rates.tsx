@@ -225,39 +225,32 @@ export default function RatesEditor() {
           </div>
 
           <div className="space-y-1">
-            <p className="font-semibold text-foreground">Step 3 — Pull Hours per Cable</p>
+            <p className="font-semibold text-foreground">Step 3 — Pull Hours per Cable Run</p>
             <div className="rounded-md bg-muted/60 px-4 py-2 font-mono text-xs leading-relaxed">
-              pullHrs = (pullMin10ft ÷ 60) × (lengthFt ÷ 10) × conditionMult × bulkFactor
+              pullHrs = (pullMin10ft ÷ 60) × (lengthFt ÷ 10) × conditionMult × bulkFactor × numCables
             </div>
             <p className="text-muted-foreground text-xs">
-              Pull time scales linearly with cable length. bulkFactor from Step 2 lowers this value when more cables share the same pathway.
+              Pull time scales linearly with cable length and cable count. bulkFactor from Step 2 discounts the per-cable pull time when multiple cables share the same pathway.
             </p>
           </div>
 
           <div className="space-y-1">
-            <p className="font-semibold text-foreground">Step 4 — Termination Hours per Cable</p>
+            <p className="font-semibold text-foreground">Step 4 — Termination Hours per Cable Run</p>
             <div className="rounded-md bg-muted/60 px-4 py-2 font-mono text-xs leading-relaxed">
-              termHrs = (termMinPerEnd × 2 ends) ÷ 60 × conditionMult
+              termHrs = (termMinPerEnd × 2 ends) ÷ 60 × conditionMult × numCables
             </div>
             <p className="text-muted-foreground text-xs">
-              Every cable is terminated at both ends. The termination time is doubled before applying condition multipliers.
+              Every cable is terminated at both ends. Termination is never bulk-discounted — it scales only with cable count and the condition multiplier.
             </p>
           </div>
 
           <div className="space-y-1">
-            <p className="font-semibold text-foreground">Step 5 — Adjusted Hours per Cable</p>
-            <div className="rounded-md bg-muted/60 px-4 py-2 font-mono text-xs leading-relaxed">
-              hrsPerCable = pullHrs + termHrs
-            </div>
-          </div>
-
-          <div className="space-y-1">
-            <p className="font-semibold text-foreground">Step 6 — Run Total &amp; Range</p>
+            <p className="font-semibold text-foreground">Step 5 — Total Run Hours &amp; Range</p>
             <div className="rounded-md bg-muted/60 px-4 py-2 font-mono text-xs leading-relaxed space-y-0.5">
-              <div>runHrsAvg  = hrsPerCable × numCables</div>
+              <div>runHrsAvg  = pullHrs + termHrs</div>
               <div>runHrsLow  = runHrsAvg × 0.85&nbsp;&nbsp;(best case)</div>
               <div>runHrsHigh = runHrsAvg × 1.20&nbsp;&nbsp;(worst case)</div>
-              <div className="pt-1">runCost = runHrs × hourlyRate</div>
+              <div className="pt-1">runCost = runHrsAvg × hourlyRate</div>
             </div>
             <p className="text-muted-foreground text-xs">
               The low/high range accounts for real-world variability. Totals across all runs are summed to produce the estimate's overall hours and cost.
