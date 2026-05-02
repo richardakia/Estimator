@@ -562,7 +562,7 @@ function EstimateDetail({
                     <TableHead className="text-right">Pull min/10ft</TableHead>
                     <TableHead className="text-right">Term min/end</TableHead>
                     <TableHead className="text-right">Pull hrs/run</TableHead>
-                    <TableHead className="text-right">Term hrs/cable</TableHead>
+                    <TableHead className="text-right">Term hrs/run</TableHead>
                     <TableHead className="text-right">Cost (avg)</TableHead>
                     <TableHead></TableHead>
                   </TableRow>
@@ -603,7 +603,7 @@ function EstimateDetail({
                         {(r.pullHoursPerCable * r.numCables).toFixed(2)}
                       </TableCell>
                       <TableCell className="text-right font-mono text-muted-foreground">
-                        {r.terminationHoursPerCable.toFixed(2)}
+                        {(r.terminationHoursPerCable * r.numCables).toFixed(2)}
                       </TableCell>
                       <TableCell className="text-right font-mono font-medium">
                         {fmtMoney(r.runCostAvg)}
