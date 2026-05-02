@@ -10,6 +10,10 @@ import {
 export const pathwayEstimatesTable = pgTable("pathway_estimates", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
+  installType: text("install_type").notNull().default("new_install"),
+  buildingType: text("building_type").notNull().default("office"),
+  environment: text("environment").notNull().default("unoccupied"),
+  skillLevel: text("skill_level").notNull().default("journeyman"),
   hourlyRate: doublePrecision("hourly_rate").notNull(),
   notes: text("notes"),
   createdAt: timestamp("created_at", { withTimezone: true })

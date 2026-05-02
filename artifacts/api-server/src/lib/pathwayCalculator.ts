@@ -135,20 +135,61 @@ const EMPTY_RESULT: PathwaySegmentResult = {
   perFtCost: 0,
 };
 
+export interface PathwayContextMultipliers {
+  installMult: number;
+  buildingMult: number;
+  environmentMult: number;
+  skillMult: number;
+}
+
+export function resolvePathwayContextMultipliers(
+  rates: RatesConfigShape,
+  ctx: {
+    installType: string;
+    buildingType: string;
+    environment: string;
+    skillLevel: string;
+  },
+): PathwayContextMultipliers {
+  return {
+    installMult:
+      (rates.installTypeMult as Record<string, number>)[ctx.installType] ?? 1,
+    buildingMult:
+      (rates.buildingMult as Record<string, number>)[ctx.buildingType] ?? 1,
+    environmentMult:
+      (rates.environmentMult as Record<string, number>)[ctx.environment] ?? 1,
+    skillMult:
+      (rates.skillMult as Record<string, number>)[ctx.skillLevel] ?? 1,
+  };
+}
+
 export function calculatePathwaySegment(
   segment: PathwaySegmentInput,
   hourlyRate: number,
   rates: PathwayRates,
+  contextMult: PathwayContextMultipliers = {
+    installMult: 1,
+    buildingMult: 1,
+    environmentMult: 1,
+    skillMult: 1,
+  },
 ): PathwaySegmentResult {
   const typeRate = rates.typeRates[segment.pathwayType];
   const heightMult = rates.heightMult[segment.mountingHeight];
   if (!typeRate || heightMult === undefined) return EMPTY_RESULT;
 
+  const ctxMult =
+    contextMult.installMult *
+    contextMult.buildingMult *
+    contextMult.environmentMult *
+    contextMult.skillMult;
+
   const length = Math.max(0, segment.lengthFt);
   const isPerEach = PER_EACH_PATHWAY_TYPES.has(segment.pathwayType);
 
   if (isPerEach) {
-    const baseLaborHrs = ((typeRate.laborMinPerFt * length) / 60) * heightMult;
+    const baseLaborHrs =
+      ((typeRate.laborMinPerFt * length) / 60) * heightMult * ctxMult;
     const pathwayMaterialCost = typeRate.materialCostPerFt * length;
     const totalLaborHrs = baseLaborHrs;
     const totalMaterialCost = pathwayMaterialCost;
@@ -178,17 +219,23 @@ export function calculatePathwaySegment(
   const fillMaterialMult = fill?.materialMult ?? 1;
 
   const baseLaborHrs =
-    ((typeRate.laborMinPerFt * length) / 60) * heightMult * ceilingMult * fillLaborMult;
+    ((typeRate.laborMinPerFt * length) / 60) *
+    heightMult *
+    ceilingMult *
+    fillLaborMult *
+    ctxMult;
 
   const fastenerCount =
     typeRate.fastenerSpacingFt > 0 && length > 0
       ? Math.ceil(length / typeRate.fastenerSpacingFt)
       : 0;
   const fastenerLaborHrs =
-    ((fastenerCount * typeRate.fastenerLaborMinEach) / 60) * heightMult;
+    ((fastenerCount * typeRate.fastenerLaborMinEach) / 60) * heightMult * ctxMult;
 
-  const bendLaborHrs = segment.bends * rates.bendLaborHrs * heightMult;
-  const penetrationLaborHrs = segment.penetrations * rates.penetrationLaborHrs;
+  const bendLaborHrs =
+    segment.bends * rates.bendLaborHrs * heightMult * ctxMult;
+  const penetrationLaborHrs =
+    segment.penetrations * rates.penetrationLaborHrs * ctxMult;
 
   const totalLaborHrs =
     baseLaborHrs + fastenerLaborHrs + bendLaborHrs + penetrationLaborHrs;

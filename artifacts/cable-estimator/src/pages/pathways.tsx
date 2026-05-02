@@ -59,7 +59,13 @@ import {
   Route as RouteIcon,
   FlaskConical,
 } from "lucide-react";
-import { labelFor } from "@/lib/options";
+import {
+  labelFor,
+  INSTALL_TYPES,
+  BUILDING_TYPES,
+  ENVIRONMENTS,
+  SKILL_LEVELS,
+} from "@/lib/options";
 import {
   PATHWAY_TYPES,
   PATHWAY_CATEGORIES,
@@ -96,9 +102,118 @@ const DEFAULT_SEGMENT_DRAFT: PathwayDraftBody = {
 
 const DEFAULT_NEW_ESTIMATE: CreatePathwayEstimateBody = {
   name: "",
+  installType: "new_install",
+  buildingType: "office",
+  environment: "unoccupied",
+  skillLevel: "journeyman",
   hourlyRate: 85,
   notes: "",
 };
+
+function EstimateContextFields({
+  form,
+  setForm,
+}: {
+  form: CreatePathwayEstimateBody;
+  setForm: (f: CreatePathwayEstimateBody) => void;
+}) {
+  return (
+    <div className="grid grid-cols-2 gap-3">
+      <div>
+        <Label>Install Type</Label>
+        <Select
+          value={form.installType}
+          onValueChange={(v) =>
+            setForm({
+              ...form,
+              installType: v as CreatePathwayEstimateBody["installType"],
+            })
+          }
+        >
+          <SelectTrigger data-testid="select-pe-install-type">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {INSTALL_TYPES.map((o) => (
+              <SelectItem key={o.value} value={o.value}>
+                {o.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      <div>
+        <Label>Building Type</Label>
+        <Select
+          value={form.buildingType}
+          onValueChange={(v) =>
+            setForm({
+              ...form,
+              buildingType: v as CreatePathwayEstimateBody["buildingType"],
+            })
+          }
+        >
+          <SelectTrigger data-testid="select-pe-building-type">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {BUILDING_TYPES.map((o) => (
+              <SelectItem key={o.value} value={o.value}>
+                {o.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      <div>
+        <Label>Environment</Label>
+        <Select
+          value={form.environment}
+          onValueChange={(v) =>
+            setForm({
+              ...form,
+              environment: v as CreatePathwayEstimateBody["environment"],
+            })
+          }
+        >
+          <SelectTrigger data-testid="select-pe-environment">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {ENVIRONMENTS.map((o) => (
+              <SelectItem key={o.value} value={o.value}>
+                {o.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      <div>
+        <Label>Skill Level</Label>
+        <Select
+          value={form.skillLevel}
+          onValueChange={(v) =>
+            setForm({
+              ...form,
+              skillLevel: v as CreatePathwayEstimateBody["skillLevel"],
+            })
+          }
+        >
+          <SelectTrigger data-testid="select-pe-skill-level">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {SKILL_LEVELS.map((o) => (
+              <SelectItem key={o.value} value={o.value}>
+                {o.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+    </div>
+  );
+}
 
 interface RatesObj {
   hourlyRate?: number;
@@ -246,7 +361,8 @@ export default function Pathways() {
           <DialogHeader>
             <DialogTitle>New Pathway Estimate</DialogTitle>
             <DialogDescription>
-              Set a name and the hourly rate. You can add segments after.
+              Set the project context, name, and hourly rate. You can add
+              segments after.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4">
@@ -262,6 +378,7 @@ export default function Pathways() {
                 data-testid="input-new-pathway-estimate-name"
               />
             </div>
+            <EstimateContextFields form={newEstForm} setForm={setNewEstForm} />
             <div>
               <Label htmlFor="new-pe-rate">Hourly Rate ($)</Label>
               <Input
@@ -305,6 +422,10 @@ export default function Pathways() {
                 createEstimate.mutate({
                   data: {
                     name: newEstForm.name,
+                    installType: newEstForm.installType,
+                    buildingType: newEstForm.buildingType,
+                    environment: newEstForm.environment,
+                    skillLevel: newEstForm.skillLevel,
                     hourlyRate: newEstForm.hourlyRate,
                     notes: newEstForm.notes || undefined,
                   },
@@ -406,6 +527,10 @@ function PathwayEstimateView({
   const [editingEstimate, setEditingEstimate] = useState(false);
   const [estimateForm, setEstimateForm] = useState<CreatePathwayEstimateBody>({
     name: estimate.name,
+    installType: estimate.installType,
+    buildingType: estimate.buildingType,
+    environment: estimate.environment,
+    skillLevel: estimate.skillLevel,
     hourlyRate: estimate.hourlyRate,
     notes: estimate.notes ?? "",
   });
@@ -523,6 +648,18 @@ function PathwayEstimateView({
               {estimate.name}
             </CardTitle>
             <div className="flex flex-wrap gap-2 mt-2">
+              <Badge variant="secondary">
+                {labelFor(INSTALL_TYPES, estimate.installType)}
+              </Badge>
+              <Badge variant="secondary">
+                {labelFor(BUILDING_TYPES, estimate.buildingType)}
+              </Badge>
+              <Badge variant="secondary">
+                {labelFor(ENVIRONMENTS, estimate.environment)}
+              </Badge>
+              <Badge variant="secondary">
+                {labelFor(SKILL_LEVELS, estimate.skillLevel)}
+              </Badge>
               <Badge variant="outline">${estimate.hourlyRate}/hr</Badge>
               <Badge variant="secondary">
                 {totals.segmentCount} segment
@@ -545,6 +682,10 @@ function PathwayEstimateView({
               onClick={() => {
                 setEstimateForm({
                   name: estimate.name,
+                  installType: estimate.installType,
+                  buildingType: estimate.buildingType,
+                  environment: estimate.environment,
+                  skillLevel: estimate.skillLevel,
                   hourlyRate: estimate.hourlyRate,
                   notes: estimate.notes ?? "",
                 });
@@ -787,6 +928,10 @@ function PathwayEstimateView({
                 data-testid="input-edit-pathway-estimate-name"
               />
             </div>
+            <EstimateContextFields
+              form={estimateForm}
+              setForm={setEstimateForm}
+            />
             <div>
               <Label htmlFor="edit-pe-rate">Hourly Rate ($)</Label>
               <Input
@@ -829,6 +974,10 @@ function PathwayEstimateView({
                   id: estimate.id,
                   data: {
                     name: estimateForm.name,
+                    installType: estimateForm.installType,
+                    buildingType: estimateForm.buildingType,
+                    environment: estimateForm.environment,
+                    skillLevel: estimateForm.skillLevel,
                     hourlyRate: estimateForm.hourlyRate,
                     notes: estimateForm.notes || undefined,
                   },

@@ -775,6 +775,10 @@ export const listPathwayEstimatesResponseHourlyRateMin = 0;
 export const ListPathwayEstimatesResponseItem = zod.object({
   id: zod.number(),
   name: zod.string(),
+  installType: zod.enum(["new_install", "retrofit", "deinstall"]),
+  buildingType: zod.enum(["office", "warehouse", "retail", "healthcare"]),
+  environment: zod.enum(["occupied", "unoccupied"]),
+  skillLevel: zod.enum(["apprentice", "journeyman", "lead"]),
   hourlyRate: zod.number().min(listPathwayEstimatesResponseHourlyRateMin),
   segmentCount: zod.number(),
   totalLengthFt: zod.number(),
@@ -799,6 +803,10 @@ export const createPathwayEstimateBodyNotesMax = 5000;
 
 export const CreatePathwayEstimateBody = zod.object({
   name: zod.string().min(1).max(createPathwayEstimateBodyNameMax),
+  installType: zod.enum(["new_install", "retrofit", "deinstall"]),
+  buildingType: zod.enum(["office", "warehouse", "retail", "healthcare"]),
+  environment: zod.enum(["occupied", "unoccupied"]),
+  skillLevel: zod.enum(["apprentice", "journeyman", "lead"]),
   hourlyRate: zod
     .number()
     .min(createPathwayEstimateBodyHourlyRateMin)
@@ -825,6 +833,10 @@ export const GetPathwayEstimateResponse = zod.object({
   estimate: zod.object({
     id: zod.number(),
     name: zod.string(),
+    installType: zod.enum(["new_install", "retrofit", "deinstall"]),
+    buildingType: zod.enum(["office", "warehouse", "retail", "healthcare"]),
+    environment: zod.enum(["occupied", "unoccupied"]),
+    skillLevel: zod.enum(["apprentice", "journeyman", "lead"]),
     hourlyRate: zod
       .number()
       .min(getPathwayEstimateResponseEstimateHourlyRateMin),
@@ -907,6 +919,10 @@ export const updatePathwayEstimateBodyNotesMax = 5000;
 
 export const UpdatePathwayEstimateBody = zod.object({
   name: zod.string().min(1).max(updatePathwayEstimateBodyNameMax),
+  installType: zod.enum(["new_install", "retrofit", "deinstall"]),
+  buildingType: zod.enum(["office", "warehouse", "retail", "healthcare"]),
+  environment: zod.enum(["occupied", "unoccupied"]),
+  skillLevel: zod.enum(["apprentice", "journeyman", "lead"]),
   hourlyRate: zod
     .number()
     .min(updatePathwayEstimateBodyHourlyRateMin)
@@ -919,6 +935,10 @@ export const updatePathwayEstimateResponseHourlyRateMin = 0;
 export const UpdatePathwayEstimateResponse = zod.object({
   id: zod.number(),
   name: zod.string(),
+  installType: zod.enum(["new_install", "retrofit", "deinstall"]),
+  buildingType: zod.enum(["office", "warehouse", "retail", "healthcare"]),
+  environment: zod.enum(["occupied", "unoccupied"]),
+  skillLevel: zod.enum(["apprentice", "journeyman", "lead"]),
   hourlyRate: zod.number().min(updatePathwayEstimateResponseHourlyRateMin),
   notes: zod.string().nullish(),
   createdAt: zod.coerce.date(),

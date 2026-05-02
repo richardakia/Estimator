@@ -1017,19 +1017,38 @@ components:
       properties:
         id: { type: integer }
         name: { type: string }
+        installType: { $ref: "#/components/schemas/InstallType" }
+        buildingType: { $ref: "#/components/schemas/BuildingType" }
+        environment: { $ref: "#/components/schemas/WorkEnvironment" }
+        skillLevel: { $ref: "#/components/schemas/SkillLevel" }
         hourlyRate: { type: number, minimum: 0 }
         notes:
           type: string
           nullable: true
         createdAt: { type: string, format: date-time }
         updatedAt: { type: string, format: date-time }
-      required: [id, name, hourlyRate, createdAt, updatedAt]
+      required:
+        [
+          id,
+          name,
+          installType,
+          buildingType,
+          environment,
+          skillLevel,
+          hourlyRate,
+          createdAt,
+          updatedAt,
+        ]
 
     PathwayEstimateSummary:
       type: object
       properties:
         id: { type: integer }
         name: { type: string }
+        installType: { $ref: "#/components/schemas/InstallType" }
+        buildingType: { $ref: "#/components/schemas/BuildingType" }
+        environment: { $ref: "#/components/schemas/WorkEnvironment" }
+        skillLevel: { $ref: "#/components/schemas/SkillLevel" }
         hourlyRate: { type: number, minimum: 0 }
         segmentCount: { type: integer }
         totalLengthFt: { type: number }
@@ -1041,6 +1060,10 @@ components:
         [
           id,
           name,
+          installType,
+          buildingType,
+          environment,
+          skillLevel,
           hourlyRate,
           segmentCount,
           totalLengthFt,
@@ -1181,23 +1204,47 @@ components:
       type: object
       properties:
         name: { type: string, minLength: 1, maxLength: 200 }
+        installType: { $ref: "#/components/schemas/InstallType" }
+        buildingType: { $ref: "#/components/schemas/BuildingType" }
+        environment: { $ref: "#/components/schemas/WorkEnvironment" }
+        skillLevel: { $ref: "#/components/schemas/SkillLevel" }
         hourlyRate: { type: number, minimum: 0, maximum: 100000 }
         notes:
           type: string
           nullable: true
           maxLength: 5000
-      required: [name, hourlyRate]
+      required:
+        [
+          name,
+          installType,
+          buildingType,
+          environment,
+          skillLevel,
+          hourlyRate,
+        ]
 
     UpdatePathwayEstimateBody:
       type: object
       properties:
         name: { type: string, minLength: 1, maxLength: 200 }
+        installType: { $ref: "#/components/schemas/InstallType" }
+        buildingType: { $ref: "#/components/schemas/BuildingType" }
+        environment: { $ref: "#/components/schemas/WorkEnvironment" }
+        skillLevel: { $ref: "#/components/schemas/SkillLevel" }
         hourlyRate: { type: number, minimum: 0, maximum: 100000 }
         notes:
           type: string
           nullable: true
           maxLength: 5000
-      required: [name, hourlyRate]
+      required:
+        [
+          name,
+          installType,
+          buildingType,
+          environment,
+          skillLevel,
+          hourlyRate,
+        ]
 
     CreatePathwaySegmentBody:
       type: object

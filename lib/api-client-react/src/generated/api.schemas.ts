@@ -422,6 +422,10 @@ export interface CalculationResult {
 export interface PathwayEstimate {
   id: number;
   name: string;
+  installType: InstallType;
+  buildingType: BuildingType;
+  environment: WorkEnvironment;
+  skillLevel: SkillLevel;
   /** @minimum 0 */
   hourlyRate: number;
   notes?: string | null;
@@ -432,6 +436,10 @@ export interface PathwayEstimate {
 export interface PathwayEstimateSummary {
   id: number;
   name: string;
+  installType: InstallType;
+  buildingType: BuildingType;
+  environment: WorkEnvironment;
+  skillLevel: SkillLevel;
   /** @minimum 0 */
   hourlyRate: number;
   segmentCount: number;
@@ -517,6 +525,10 @@ export interface CreatePathwayEstimateBody {
    * @maxLength 200
    */
   name: string;
+  installType: InstallType;
+  buildingType: BuildingType;
+  environment: WorkEnvironment;
+  skillLevel: SkillLevel;
   /**
    * @minimum 0
    * @maximum 100000
@@ -532,6 +544,10 @@ export interface UpdatePathwayEstimateBody {
    * @maxLength 200
    */
   name: string;
+  installType: InstallType;
+  buildingType: BuildingType;
+  environment: WorkEnvironment;
+  skillLevel: SkillLevel;
   /**
    * @minimum 0
    * @maximum 100000

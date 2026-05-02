@@ -10,6 +10,7 @@ import { getRates } from "../lib/ratesStore";
 import {
   calculatePathwaySegment,
   resolvePathwayRatesFromConfig,
+  resolvePathwayContextMultipliers,
 } from "../lib/pathwayCalculator";
 
 const router: IRouter = Router();
@@ -30,6 +31,13 @@ router.get("/pathway-estimates", async (_req, res): Promise<void> => {
         .from(pathwaySegmentsTable)
         .where(eq(pathwaySegmentsTable.estimateId, e.id));
 
+      const contextMult = resolvePathwayContextMultipliers(rates, {
+        installType: e.installType,
+        buildingType: e.buildingType,
+        environment: e.environment,
+        skillLevel: e.skillLevel,
+      });
+
       let totalLengthFt = 0;
       let totalLaborHrs = 0;
       let totalCost = 0;
@@ -47,6 +55,7 @@ router.get("/pathway-estimates", async (_req, res): Promise<void> => {
           },
           e.hourlyRate,
           pathwayRates,
+          contextMult,
         );
         totalLaborHrs += r.totalLaborHrs;
         totalCost += r.totalCost;
@@ -55,6 +64,10 @@ router.get("/pathway-estimates", async (_req, res): Promise<void> => {
       return {
         id: e.id,
         name: e.name,
+        installType: e.installType,
+        buildingType: e.buildingType,
+        environment: e.environment,
+        skillLevel: e.skillLevel,
         hourlyRate: e.hourlyRate,
         segmentCount: segments.length,
         totalLengthFt,
@@ -80,6 +93,10 @@ router.post("/pathway-estimates", async (req, res): Promise<void> => {
     .insert(pathwayEstimatesTable)
     .values({
       name: parsed.data.name,
+      installType: parsed.data.installType,
+      buildingType: parsed.data.buildingType,
+      environment: parsed.data.environment,
+      skillLevel: parsed.data.skillLevel,
       hourlyRate: parsed.data.hourlyRate,
       notes: parsed.data.notes ?? null,
     })
@@ -93,6 +110,10 @@ router.post("/pathway-estimates", async (req, res): Promise<void> => {
   res.status(201).json({
     id: created.id,
     name: created.name,
+    installType: created.installType,
+    buildingType: created.buildingType,
+    environment: created.environment,
+    skillLevel: created.skillLevel,
     hourlyRate: created.hourlyRate,
     notes: created.notes,
     createdAt: created.createdAt.toISOString(),
@@ -125,6 +146,12 @@ router.get("/pathway-estimates/:id", async (req, res): Promise<void> => {
 
   const rates = await getRates();
   const pathwayRates = resolvePathwayRatesFromConfig(rates);
+  const contextMult = resolvePathwayContextMultipliers(rates, {
+    installType: estimate.installType,
+    buildingType: estimate.buildingType,
+    environment: estimate.environment,
+    skillLevel: estimate.skillLevel,
+  });
 
   let totalLengthFt = 0;
   let totalLaborHrs = 0;
@@ -146,6 +173,7 @@ router.get("/pathway-estimates/:id", async (req, res): Promise<void> => {
       },
       estimate.hourlyRate,
       pathwayRates,
+      contextMult,
     );
     totalLengthFt += s.lengthFt;
     totalLaborHrs += r.totalLaborHrs;
@@ -173,6 +201,10 @@ router.get("/pathway-estimates/:id", async (req, res): Promise<void> => {
     estimate: {
       id: estimate.id,
       name: estimate.name,
+      installType: estimate.installType,
+      buildingType: estimate.buildingType,
+      environment: estimate.environment,
+      skillLevel: estimate.skillLevel,
       hourlyRate: estimate.hourlyRate,
       notes: estimate.notes,
       createdAt: estimate.createdAt.toISOString(),
@@ -208,6 +240,10 @@ router.put("/pathway-estimates/:id", async (req, res): Promise<void> => {
     .update(pathwayEstimatesTable)
     .set({
       name: parsed.data.name,
+      installType: parsed.data.installType,
+      buildingType: parsed.data.buildingType,
+      environment: parsed.data.environment,
+      skillLevel: parsed.data.skillLevel,
       hourlyRate: parsed.data.hourlyRate,
       notes: parsed.data.notes ?? null,
     })
@@ -222,6 +258,10 @@ router.put("/pathway-estimates/:id", async (req, res): Promise<void> => {
   res.json({
     id: updated.id,
     name: updated.name,
+    installType: updated.installType,
+    buildingType: updated.buildingType,
+    environment: updated.environment,
+    skillLevel: updated.skillLevel,
     hourlyRate: updated.hourlyRate,
     notes: updated.notes,
     createdAt: updated.createdAt.toISOString(),

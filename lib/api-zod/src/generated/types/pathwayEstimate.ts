@@ -5,10 +5,18 @@
  * Structured Cabling Labor Estimator API
  * OpenAPI spec version: 0.1.0
  */
+import type { BuildingType } from "./buildingType";
+import type { InstallType } from "./installType";
+import type { SkillLevel } from "./skillLevel";
+import type { WorkEnvironment } from "./workEnvironment";
 
 export interface PathwayEstimate {
   id: number;
   name: string;
+  installType: InstallType;
+  buildingType: BuildingType;
+  environment: WorkEnvironment;
+  skillLevel: SkillLevel;
   /** @minimum 0 */
   hourlyRate: number;
   notes?: string | null;
