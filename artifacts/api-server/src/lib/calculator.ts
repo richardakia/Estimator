@@ -147,13 +147,6 @@ export interface RunCalculation {
   runCostHigh: number;
 }
 
-const TASK_BREAKDOWN = [
-  { task: "Cable Pull", percent: 0.35 },
-  { task: "Termination & Testing", percent: 0.3 },
-  { task: "Pathway / Conduit Work", percent: 0.15 },
-  { task: "Labeling & Documentation", percent: 0.1 },
-  { task: "Cleanup & Punch-list", percent: 0.1 },
-];
 
 export interface EstimateTotals {
   totalCables: number;
@@ -196,6 +189,8 @@ export function calculateEstimate(
   const calcs: RunCalculation[] = [];
   let totalCablesSoloHours = 0;
   let totalCablesActualHoursAvg = 0;
+  let totalPullHoursAcrossRuns = 0;
+  let totalTermHoursAcrossRuns = 0;
 
   for (const run of runs) {
     const pullMin = rates.pullMinutesPer10Ft[run.cableType] ?? 3.0;
@@ -237,6 +232,8 @@ export function calculateEstimate(
       (rawPullHoursPerCable * conditionMultiplier + terminationHoursPerCable) * N;
     totalCablesSoloHours += soloRunHours;
     totalCablesActualHoursAvg += runHoursAvg;
+    totalPullHoursAcrossRuns += totalPullHours;
+    totalTermHoursAcrossRuns += totalTermHours;
 
     calcs.push({
       runId: run.id,
@@ -272,12 +269,25 @@ export function calculateEstimate(
   const totalCables = runs.reduce((sum, r) => sum + r.numCables, 0);
   const bulkSavings = Math.max(0, totalCablesSoloHours - totalCablesActualHoursAvg);
 
-  const taskBreakdown = TASK_BREAKDOWN.map((t) => ({
-    task: t.task,
-    percent: t.percent,
-    hoursAvg: round(totalHoursAvg * t.percent, 2),
-    costAvg: round(totalCostAvg * t.percent, 2),
-  }));
+  const pullPercent =
+    totalHoursAvg > 0 ? totalPullHoursAcrossRuns / totalHoursAvg : 0;
+  const termPercent =
+    totalHoursAvg > 0 ? totalTermHoursAcrossRuns / totalHoursAvg : 0;
+
+  const taskBreakdown = [
+    {
+      task: "Cable Pull",
+      percent: round(pullPercent, 4),
+      hoursAvg: round(totalPullHoursAcrossRuns, 2),
+      costAvg: round(totalPullHoursAcrossRuns * ctx.hourlyRate, 2),
+    },
+    {
+      task: "Termination & Testing",
+      percent: round(termPercent, 4),
+      hoursAvg: round(totalTermHoursAcrossRuns, 2),
+      costAvg: round(totalTermHoursAcrossRuns * ctx.hourlyRate, 2),
+    },
+  ];
 
   return {
     runs: calcs,

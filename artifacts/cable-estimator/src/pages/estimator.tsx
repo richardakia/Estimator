@@ -663,7 +663,7 @@ function EstimateDetail({
                     <TableRow key={t.task}>
                       <TableCell>{t.task}</TableCell>
                       <TableCell className="text-right font-mono">
-                        {(t.percent * 100).toFixed(0)}%
+                        {(t.percent * 100).toFixed(1)}%
                       </TableCell>
                       <TableCell className="text-right font-mono">
                         {t.hoursAvg.toFixed(1)}
