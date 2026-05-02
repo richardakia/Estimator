@@ -89,7 +89,6 @@ const DEFAULT_RUN: RunForm = {
   lengthFt: 150,
   ceilingType: "drywall",
   pathwayComplexity: "medium",
-  bulkSize: 1,
 };
 
 export default function Estimator() {
@@ -336,9 +335,7 @@ interface EstimateDetailData {
     lengthFt: number;
     ceilingType: string;
     pathwayComplexity: string;
-    bulkSize: number;
     bulkFactor: number;
-    pullsNeeded: number;
     pullMinutesPer10Ft: number;
     terminationMinutesPerEnd: number;
     pullHoursPerCable: number;
@@ -452,7 +449,6 @@ function EstimateDetail({
       lengthFt: r.lengthFt,
       ceilingType: r.ceilingType as RunForm["ceilingType"],
       pathwayComplexity: r.pathwayComplexity as RunForm["pathwayComplexity"],
-      bulkSize: r.bulkSize,
     });
     setRunDialogOpen(true);
   };
@@ -562,8 +558,6 @@ function EstimateDetail({
                     <TableHead className="text-right">Length</TableHead>
                     <TableHead>Ceiling</TableHead>
                     <TableHead>Pathway</TableHead>
-                    <TableHead className="text-right">Bulk Size</TableHead>
-                    <TableHead className="text-right">Pulls</TableHead>
                     <TableHead className="text-right">Bulk Factor</TableHead>
                     <TableHead className="text-right">Pull min/10ft</TableHead>
                     <TableHead className="text-right">Term min/end</TableHead>
@@ -592,12 +586,6 @@ function EstimateDetail({
                       </TableCell>
                       <TableCell>
                         {labelFor(PATHWAY_LEVELS, r.pathwayComplexity)}
-                      </TableCell>
-                      <TableCell className="text-right font-mono text-muted-foreground">
-                        {r.bulkSize}
-                      </TableCell>
-                      <TableCell className="text-right font-mono text-muted-foreground">
-                        {r.pullsNeeded}
                       </TableCell>
                       <TableCell className="text-right">
                         <Badge
@@ -831,7 +819,7 @@ function EstimateDetail({
                 </Select>
               </div>
               <div>
-                <Label htmlFor="run-num"># of Cables</Label>
+                <Label htmlFor="run-num"># of Cables in this Pull</Label>
                 <Input
                   id="run-num"
                   type="number"
@@ -845,6 +833,9 @@ function EstimateDetail({
                   }
                   data-testid="input-num-cables"
                 />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Bulk factor = 0.4 + 0.6/n
+                </p>
               </div>
               <div>
                 <Label htmlFor="run-len">Avg Length (ft)</Label>
@@ -861,26 +852,6 @@ function EstimateDetail({
                   }
                   data-testid="input-length"
                 />
-              </div>
-              <div>
-                <Label htmlFor="run-bulk">Bulk Pull Size (B)</Label>
-                <Input
-                  id="run-bulk"
-                  type="number"
-                  min={1}
-                  max={99}
-                  value={runForm.bulkSize}
-                  onChange={(e) =>
-                    setRunForm({
-                      ...runForm,
-                      bulkSize: Math.max(1, Number(e.target.value) || 1),
-                    })
-                  }
-                  data-testid="input-bulk-size"
-                />
-                <p className="text-xs text-muted-foreground mt-1">
-                  Cables pulled simultaneously. Factor = 0.4 + 0.6/B
-                </p>
               </div>
               <div>
                 <Label>Ceiling Type</Label>

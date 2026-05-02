@@ -40,7 +40,6 @@ router.get("/estimates", async (_req, res): Promise<void> => {
         lengthFt: r.lengthFt,
         ceilingType: r.ceilingType as CeilingType,
         pathwayComplexity: r.pathwayComplexity as PathwayComplexity,
-        bulkSize: r.bulkSize,
       }));
 
       const calc = calculateEstimate(
@@ -148,7 +147,6 @@ router.get("/estimates/:id", async (req, res): Promise<void> => {
     lengthFt: r.lengthFt,
     ceilingType: r.ceilingType as CeilingType,
     pathwayComplexity: r.pathwayComplexity as PathwayComplexity,
-    bulkSize: r.bulkSize,
   }));
 
   const calc = calculateEstimate(

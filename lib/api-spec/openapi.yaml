@@ -381,7 +381,7 @@ components:
           type: string
         numCables:
           type: integer
-          description: Total number of cables in this run group
+          description: Number of cables pulled simultaneously in this run (used as B in bulk factor formula)
         lengthFt:
           type: number
           description: Average cable length per cable in feet
@@ -389,9 +389,6 @@ components:
           $ref: "#/components/schemas/CeilingType"
         pathwayComplexity:
           $ref: "#/components/schemas/PathwayComplexity"
-        bulkSize:
-          type: integer
-          description: Number of cables pulled simultaneously in one pass (B in bulk formula)
         sortOrder:
           type: integer
         createdAt:
@@ -407,7 +404,6 @@ components:
           lengthFt,
           ceilingType,
           pathwayComplexity,
-          bulkSize,
           sortOrder,
           createdAt,
         ]
@@ -424,21 +420,16 @@ components:
           type: string
         numCables:
           type: integer
+          description: Cables pulled simultaneously (B) — drives the bulk factor
         lengthFt:
           type: number
         ceilingType:
           $ref: "#/components/schemas/CeilingType"
         pathwayComplexity:
           $ref: "#/components/schemas/PathwayComplexity"
-        bulkSize:
-          type: integer
-          description: Cables pulled simultaneously per pass (B)
         bulkFactor:
           type: number
-          description: "Computed efficiency factor: 0.4 + (0.6 / bulkSize)"
-        pullsNeeded:
-          type: integer
-          description: "ceil(numCables / bulkSize) — number of pull passes"
+          description: "Computed efficiency factor: 0.4 + (0.6 / numCables)"
         pullMinutesPer10Ft:
           type: number
           description: Base pull rate in minutes per 10 ft for this cable type
@@ -474,9 +465,7 @@ components:
           lengthFt,
           ceilingType,
           pathwayComplexity,
-          bulkSize,
           bulkFactor,
-          pullsNeeded,
           pullMinutesPer10Ft,
           terminationMinutesPerEnd,
           pullHoursPerCable,
@@ -613,9 +602,6 @@ components:
           $ref: "#/components/schemas/CeilingType"
         pathwayComplexity:
           $ref: "#/components/schemas/PathwayComplexity"
-        bulkSize:
-          type: integer
-          description: Cables pulled simultaneously per pass (default 1)
       required:
         [
           label,
@@ -624,7 +610,6 @@ components:
           lengthFt,
           ceilingType,
           pathwayComplexity,
-          bulkSize,
         ]
 
     UpdateRunBody:
@@ -642,9 +627,6 @@ components:
           $ref: "#/components/schemas/CeilingType"
         pathwayComplexity:
           $ref: "#/components/schemas/PathwayComplexity"
-        bulkSize:
-          type: integer
-          description: Cables pulled simultaneously per pass (default 1)
       required:
         [
           label,
@@ -653,7 +635,6 @@ components:
           lengthFt,
           ceilingType,
           pathwayComplexity,
-          bulkSize,
         ]
 
     CustomCableType:

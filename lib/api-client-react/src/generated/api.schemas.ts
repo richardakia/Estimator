@@ -106,14 +106,12 @@ export interface Run {
   estimateId: number;
   label: string;
   cableType: string;
-  /** Total number of cables in this run group */
+  /** Number of cables pulled simultaneously in this run (used as B in bulk factor formula) */
   numCables: number;
   /** Average cable length per cable in feet */
   lengthFt: number;
   ceilingType: CeilingType;
   pathwayComplexity: PathwayComplexity;
-  /** Number of cables pulled simultaneously in one pass (B in bulk formula) */
-  bulkSize: number;
   sortOrder: number;
   createdAt: string;
 }
@@ -125,16 +123,13 @@ export interface RunCalculation {
   runId?: number;
   label: string;
   cableType: string;
+  /** Cables pulled simultaneously (B) — drives the bulk factor */
   numCables: number;
   lengthFt: number;
   ceilingType: CeilingType;
   pathwayComplexity: PathwayComplexity;
-  /** Cables pulled simultaneously per pass (B) */
-  bulkSize: number;
-  /** Computed efficiency factor: 0.4 + (0.6 / bulkSize) */
+  /** Computed efficiency factor: 0.4 + (0.6 / numCables) */
   bulkFactor: number;
-  /** ceil(numCables / bulkSize) — number of pull passes */
-  pullsNeeded: number;
   /** Base pull rate in minutes per 10 ft for this cable type */
   pullMinutesPer10Ft: number;
   /** Base termination time in minutes per end for this cable type */
@@ -207,8 +202,6 @@ export interface CreateRunBody {
   lengthFt: number;
   ceilingType: CeilingType;
   pathwayComplexity: PathwayComplexity;
-  /** Cables pulled simultaneously per pass (default 1) */
-  bulkSize: number;
 }
 
 export interface UpdateRunBody {
@@ -218,8 +211,6 @@ export interface UpdateRunBody {
   lengthFt: number;
   ceilingType: CeilingType;
   pathwayComplexity: PathwayComplexity;
-  /** Cables pulled simultaneously per pass (default 1) */
-  bulkSize: number;
 }
 
 export interface CustomCableType {

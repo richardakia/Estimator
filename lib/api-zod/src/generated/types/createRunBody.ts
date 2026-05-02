@@ -15,6 +15,4 @@ export interface CreateRunBody {
   lengthFt: number;
   ceilingType: CeilingType;
   pathwayComplexity: PathwayComplexity;
-  /** Cables pulled simultaneously per pass (default 1) */
-  bulkSize: number;
 }

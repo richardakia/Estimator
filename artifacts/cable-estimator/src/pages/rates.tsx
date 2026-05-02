@@ -322,16 +322,16 @@ export default function RatesEditor() {
           <CardHeader>
             <CardTitle className="text-base">Bulk Pull Efficiency Formula</CardTitle>
             <p className="text-sm text-muted-foreground">
-              Pull time is reduced automatically based on how many cables are
-              pulled simultaneously per pass. Set <strong>Bulk Pull Size (B)</strong> on
-              each run. Termination is never bulk-discounted.
+              Each run's <strong># of Cables</strong> is used as B directly in the formula.
+              More cables pulled together = lower factor = faster per-cable pull time.
+              Termination is never bulk-discounted.
             </p>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 font-mono text-sm">
               {[1, 2, 4, 6, 8, 12, 18, 24].map((b) => (
                 <div key={b} className="flex flex-col gap-0.5 bg-muted/40 rounded p-2">
-                  <span className="text-xs text-muted-foreground">B = {b}</span>
+                  <span className="text-xs text-muted-foreground">numCables = {b}</span>
                   <span className="font-semibold">
                     {(0.4 + 0.6 / b).toFixed(3)}×
                   </span>
@@ -342,8 +342,8 @@ export default function RatesEditor() {
               ))}
             </div>
             <p className="text-xs text-muted-foreground mt-3">
-              Formula: <code className="bg-muted px-1 rounded">bulkFactor = 0.4 + (0.6 / B)</code>
-              &nbsp;·&nbsp; B = 1 → 1.000× (no savings) &nbsp;·&nbsp; Max practical B = 24 → 0.425×
+              Formula: <code className="bg-muted px-1 rounded">bulkFactor = 0.4 + (0.6 / numCables)</code>
+              &nbsp;·&nbsp; 1 cable → 1.000× (no savings) &nbsp;·&nbsp; 24 cables → 0.425×
             </p>
           </CardContent>
         </Card>

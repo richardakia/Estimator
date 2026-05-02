@@ -73,19 +73,17 @@ export const GetEstimateResponse = zod.object({
         runId: zod.number().optional(),
         label: zod.string(),
         cableType: zod.string(),
-        numCables: zod.number(),
+        numCables: zod
+          .number()
+          .describe(
+            "Cables pulled simultaneously (B) — drives the bulk factor",
+          ),
         lengthFt: zod.number(),
         ceilingType: zod.enum(["open", "drywall", "hard_lid"]),
         pathwayComplexity: zod.enum(["low", "medium", "high"]),
-        bulkSize: zod
-          .number()
-          .describe("Cables pulled simultaneously per pass (B)"),
         bulkFactor: zod
           .number()
-          .describe("Computed efficiency factor: 0.4 + (0.6 \/ bulkSize)"),
-        pullsNeeded: zod
-          .number()
-          .describe("ceil(numCables \/ bulkSize) — number of pull passes"),
+          .describe("Computed efficiency factor: 0.4 + (0.6 \/ numCables)"),
         pullMinutesPer10Ft: zod
           .number()
           .describe("Base pull rate in minutes per 10 ft for this cable type"),
@@ -194,9 +192,6 @@ export const CreateRunBody = zod.object({
   lengthFt: zod.number(),
   ceilingType: zod.enum(["open", "drywall", "hard_lid"]),
   pathwayComplexity: zod.enum(["low", "medium", "high"]),
-  bulkSize: zod
-    .number()
-    .describe("Cables pulled simultaneously per pass (default 1)"),
 });
 
 /**
@@ -213,9 +208,6 @@ export const UpdateRunBody = zod.object({
   lengthFt: zod.number(),
   ceilingType: zod.enum(["open", "drywall", "hard_lid"]),
   pathwayComplexity: zod.enum(["low", "medium", "high"]),
-  bulkSize: zod
-    .number()
-    .describe("Cables pulled simultaneously per pass (default 1)"),
 });
 
 export const UpdateRunResponse = zod.object({
@@ -223,15 +215,14 @@ export const UpdateRunResponse = zod.object({
   estimateId: zod.number(),
   label: zod.string(),
   cableType: zod.string(),
-  numCables: zod.number().describe("Total number of cables in this run group"),
+  numCables: zod
+    .number()
+    .describe(
+      "Number of cables pulled simultaneously in this run (used as B in bulk factor formula)",
+    ),
   lengthFt: zod.number().describe("Average cable length per cable in feet"),
   ceilingType: zod.enum(["open", "drywall", "hard_lid"]),
   pathwayComplexity: zod.enum(["low", "medium", "high"]),
-  bulkSize: zod
-    .number()
-    .describe(
-      "Number of cables pulled simultaneously in one pass (B in bulk formula)",
-    ),
   sortOrder: zod.number(),
   createdAt: zod.coerce.date(),
 });
@@ -565,9 +556,6 @@ export const PreviewCalculationBody = zod.object({
       lengthFt: zod.number(),
       ceilingType: zod.enum(["open", "drywall", "hard_lid"]),
       pathwayComplexity: zod.enum(["low", "medium", "high"]),
-      bulkSize: zod
-        .number()
-        .describe("Cables pulled simultaneously per pass (default 1)"),
     }),
   ),
 });
@@ -579,19 +567,17 @@ export const PreviewCalculationResponse = zod.object({
         runId: zod.number().optional(),
         label: zod.string(),
         cableType: zod.string(),
-        numCables: zod.number(),
+        numCables: zod
+          .number()
+          .describe(
+            "Cables pulled simultaneously (B) — drives the bulk factor",
+          ),
         lengthFt: zod.number(),
         ceilingType: zod.enum(["open", "drywall", "hard_lid"]),
         pathwayComplexity: zod.enum(["low", "medium", "high"]),
-        bulkSize: zod
-          .number()
-          .describe("Cables pulled simultaneously per pass (B)"),
         bulkFactor: zod
           .number()
-          .describe("Computed efficiency factor: 0.4 + (0.6 \/ bulkSize)"),
-        pullsNeeded: zod
-          .number()
-          .describe("ceil(numCables \/ bulkSize) — number of pull passes"),
+          .describe("Computed efficiency factor: 0.4 + (0.6 \/ numCables)"),
         pullMinutesPer10Ft: zod
           .number()
           .describe("Base pull rate in minutes per 10 ft for this cable type"),

@@ -105,12 +105,11 @@ export interface RunInput {
   id?: number;
   label: string;
   cableType: string;
+  /** Number of cables pulled simultaneously in this run — used as B in bulkFactor = 0.4 + (0.6 / numCables) */
   numCables: number;
   lengthFt: number;
   ceilingType: CeilingType;
   pathwayComplexity: PathwayComplexity;
-  /** Number of cables pulled simultaneously in one pass (default 1) */
-  bulkSize: number;
 }
 
 export interface EstimateContext {
@@ -125,16 +124,13 @@ export interface RunCalculation {
   runId?: number;
   label: string;
   cableType: string;
+  /** Cables pulled simultaneously (B) — same as numCables in RunInput */
   numCables: number;
   lengthFt: number;
   ceilingType: CeilingType;
   pathwayComplexity: PathwayComplexity;
-  /** How many cables are pulled simultaneously */
-  bulkSize: number;
-  /** Computed: 0.4 + (0.6 / bulkSize) */
+  /** Computed: 0.4 + (0.6 / numCables) */
   bulkFactor: number;
-  /** ceil(numCables / bulkSize) */
-  pullsNeeded: number;
   pullMinutesPer10Ft: number;
   terminationMinutesPerEnd: number;
   /** Pull hours for one cable within a single bulk pass (after condition mult + bulk factor) */
@@ -208,22 +204,17 @@ export function calculateEstimate(
     const pathM = rates.pathwayMult[run.pathwayComplexity];
     const conditionMultiplier = installM * ceilingM * pathM * buildingM * envM * skillM;
 
-    const B = Math.max(1, Math.round(run.bulkSize));
     const N = run.numCables;
 
     // ── Pull calculation (refined bulk formula) ──────────────────────────
-    // Baseline pull hours for one cable at length, no bulk
+    // numCables IS the bulk pull size B for this run.
+    // bulkFactor = 0.4 + (0.6 / N) — time-per-cable within the pull
     const rawPullHoursPerCable = (pullMin / 60) * (run.lengthFt / 10);
-
-    // bulkFactor = 0.4 + (0.6 / B) — time-per-cable within a single bulk pass
-    const bulkFactor = bulkFactorFor(B);
+    const bulkFactor = bulkFactorFor(N);
     const pullHoursPerCable = rawPullHoursPerCable * conditionMultiplier * bulkFactor;
 
-    // Number of passes needed (partial final pass wastes B - remainder cable-slots)
-    const pullsNeeded = Math.ceil(N / B);
-
-    // Total pull hours accounts for the waste in the partial final pass
-    const totalPullHours = pullsNeeded * pullHoursPerCable * B;
+    // This is a single-pass pull of N cables together
+    const totalPullHours = pullHoursPerCable * N;
 
     // ── Termination calculation (bulk does NOT reduce termination) ───────
     const rawTermHoursPerCable = (termMin * TERMINATIONS_PER_CABLE) / 60;
@@ -255,9 +246,7 @@ export function calculateEstimate(
       lengthFt: run.lengthFt,
       ceilingType: run.ceilingType,
       pathwayComplexity: run.pathwayComplexity,
-      bulkSize: B,
       bulkFactor: round(bulkFactor, 4),
-      pullsNeeded,
       pullMinutesPer10Ft: round(pullMin, 3),
       terminationMinutesPerEnd: round(termMin, 3),
       pullHoursPerCable: round(pullHoursPerCable, 4),
