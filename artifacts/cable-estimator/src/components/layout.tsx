@@ -1,6 +1,13 @@
 import React from "react";
 import { Link, useLocation } from "wouter";
-import { Calculator, Settings, BookOpen, Plus, ChevronDown } from "lucide-react";
+import {
+  Calculator,
+  Settings,
+  BookOpen,
+  Plus,
+  ChevronDown,
+  Route as RouteIcon,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useListEstimates } from "@workspace/api-client-react";
 import { useEstimates } from "@/lib/estimates-context";
@@ -24,6 +31,7 @@ export function Layout({ children }: LayoutProps) {
 
   const navItems = [
     { href: "/", label: "Estimator", icon: Calculator },
+    { href: "/pathways", label: "Pathways", icon: RouteIcon },
     { href: "/rates", label: "Rate Editor", icon: Settings },
     { href: "/guide", label: "Platform Guide", icon: BookOpen },
   ];

@@ -7,6 +7,7 @@ import { EstimatesProvider } from "@/lib/estimates-context";
 import Estimator from "@/pages/estimator";
 import RatesEditor from "@/pages/rates";
 import Guide from "@/pages/guide";
+import Pathways from "@/pages/pathways";
 import NotFound from "@/pages/not-found";
 
 const queryClient = new QueryClient();
@@ -16,6 +17,7 @@ function Router() {
     <Layout>
       <Switch>
         <Route path="/" component={Estimator} />
+        <Route path="/pathways" component={Pathways} />
         <Route path="/rates" component={RatesEditor} />
         <Route path="/guide" component={Guide} />
         <Route component={NotFound} />

@@ -6,7 +6,7 @@ pnpm workspace monorepo using TypeScript. Each package manages its own dependenc
 
 ## Artifacts
 
-- **cable-estimator** (`/`) — Structured Cabling Labor Estimator (React + Vite). Multi-run estimates with bulk-pull efficiency, low/avg/high range, and task-level cost breakdown.
+- **cable-estimator** (`/`) — Structured Cabling Labor Estimator (React + Vite). Multi-run estimates with bulk-pull efficiency, low/avg/high range, task-level cost breakdown, and a standalone Pathway Calculator at `/pathways`.
 - **api-server** (`/api`) — Express 5 + Drizzle backend. Endpoints for estimates, runs, rates config, and a stateless calculator preview.
 - **mockup-sandbox** — Canvas component preview server (template; not user-facing).
 
@@ -17,9 +17,17 @@ pnpm workspace monorepo using TypeScript. Each package manages its own dependenc
 - **Bulk pulling math**: applied to pull portion only, by cables-in-run count: 1=1.0, 2=0.75, 3-4=0.65, 5-8=0.55, 9-12=0.5, 13-24=0.45, 25+=0.4.
 - **Condition multipliers** (apply to both pull and termination): install type, ceiling, pathway, building, environment, skill.
 - **Range**: low=0.85x, avg=1.0x, high=1.20x of average hours.
-- **Task breakdown** (purely presentational split of total hours): Cable Pull 35%, Termination & Testing 30%, Pathway 15%, Labeling 10%, Cleanup 10%.
+- **Task breakdown**: derived from actual computed hours — only Cable Pull (= Σ pull hrs across runs) and Termination & Testing (= Σ term hrs across runs) rows. No fixed percentages.
 - **Persistence**: Postgres tables `estimates`, `runs`, `rates_config`. The rates row is JSONB and is validated against the API zod schema each load; if invalid (e.g. after a schema change), defaults are reseeded into the row.
 - **Calculator** lives in `artifacts/api-server/src/lib/calculator.ts`; default rates seeded on first load.
+
+## Pathway Calculator (`/pathways`)
+
+Standalone client-side calculator (no DB persistence). Inputs per segment: pathway type, length (or qty for sleeves), mounting height, ceiling/structure, cable fill, bends, penetrations, notes.
+
+- **Linear-foot pathways**: `labor = (laborMinPerFt × length / 60) × heightMult × ceilingMult × fillLaborMult` + fasteners (`ceil(length / spacing)` × labor & cost) + bends (0.5h × heightMult + $35 ea) + penetrations (0.75h + $50 ea). Material = `matCostPerFt × length × fillMaterialMult` + fastener/bend/penetration material.
+- **Per-each pathways** (sleeves & slots): treated as a quantity. Skips ceiling/fill multipliers, fasteners, bends, and the separate penetration adder (the sleeve IS the penetration). Labor = `(laborMinPerFt × qty / 60) × heightMult`.
+- Config and `calculatePathwaySegment()` live in `artifacts/cable-estimator/src/lib/pathwayConfig.ts`. 10 pathway types across Continuous Support, Non-Continuous Support, Enclosed/Protected, and Penetration categories.
 
 ## Stack
 
