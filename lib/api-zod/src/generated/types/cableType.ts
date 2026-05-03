@@ -10,8 +10,7 @@ export type CableType = (typeof CableType)[keyof typeof CableType];
 
 export const CableType = {
   category: "category",
-  sm_fiber: "sm_fiber",
-  mm_fiber: "mm_fiber",
+  fiber: "fiber",
   coax_rg6: "coax_rg6",
   coax_rg11: "coax_rg11",
   speaker_cable: "speaker_cable",

@@ -15,7 +15,7 @@ export interface Run {
   cableType: string;
   /** Number of cables pulled simultaneously in this run (used as B in bulk factor formula) */
   numCables: number;
-  /** Strands per fiber cable (only meaningful for sm_fiber/mm_fiber); each strand is terminated separately. Defaults to 1. */
+  /** Strands per fiber cable (only meaningful for fiber); each strand is terminated separately. Defaults to 1. */
   fiberStrands?: number;
   /** Average cable length per cable in feet */
   lengthFt: number;

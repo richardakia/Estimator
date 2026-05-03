@@ -629,7 +629,7 @@ function EstimateDetail({
                       <TableCell>{labelFor(cableTypes, r.cableType)}</TableCell>
                       <TableCell className="text-right">{r.numCables}</TableCell>
                       <TableCell className="text-right text-muted-foreground">
-                        {r.cableType === "sm_fiber" || r.cableType === "mm_fiber"
+                        {r.cableType === "fiber"
                           ? (r.fiberStrands ?? 1)
                           : "—"}
                       </TableCell>
@@ -840,8 +840,7 @@ function EstimateDetail({
                   Bulk factor = 1 + α × ln(n) — pulling more cables is harder
                 </p>
               </div>
-              {(runForm.cableType === "sm_fiber" ||
-                runForm.cableType === "mm_fiber") && (
+              {runForm.cableType === "fiber" && (
                 <div>
                   <Label>Fiber Strands</Label>
                   <Select

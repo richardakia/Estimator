@@ -411,7 +411,7 @@ components:
 
     CableType:
       type: string
-      enum: [category, sm_fiber, mm_fiber, coax_rg6, coax_rg11, speaker_cable]
+      enum: [category, fiber, coax_rg6, coax_rg11, speaker_cable]
 
     InstallType:
       type: string
@@ -568,7 +568,7 @@ components:
           description: Number of cables pulled simultaneously in this run (used as B in bulk factor formula)
         fiberStrands:
           type: integer
-          description: Strands per fiber cable (only meaningful for sm_fiber/mm_fiber); each strand is terminated separately. Defaults to 1.
+          description: Strands per fiber cable (only meaningful for fiber); each strand is terminated separately. Defaults to 1.
         lengthFt:
           type: number
           description: Average cable length per cable in feet
@@ -893,13 +893,12 @@ components:
             type: number
           properties:
             category: { type: number }
-            sm_fiber: { type: number }
-            mm_fiber: { type: number }
+            fiber: { type: number }
             coax_rg6: { type: number }
             coax_rg11: { type: number }
             speaker_cable: { type: number }
           required:
-            [category, sm_fiber, mm_fiber, coax_rg6, coax_rg11, speaker_cable]
+            [category, fiber, coax_rg6, coax_rg11, speaker_cable]
         terminationMinutesPerEnd:
           type: object
           description: Termination labor in minutes per cable end, by cable type (each cable has 2 ends)
@@ -907,13 +906,12 @@ components:
             type: number
           properties:
             category: { type: number }
-            sm_fiber: { type: number }
-            mm_fiber: { type: number }
+            fiber: { type: number }
             coax_rg6: { type: number }
             coax_rg11: { type: number }
             speaker_cable: { type: number }
           required:
-            [category, sm_fiber, mm_fiber, coax_rg6, coax_rg11, speaker_cable]
+            [category, fiber, coax_rg6, coax_rg11, speaker_cable]
         installTypeMult:
           type: object
           properties:

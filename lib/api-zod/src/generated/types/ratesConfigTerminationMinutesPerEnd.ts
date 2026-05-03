@@ -11,8 +11,7 @@
  */
 export type RatesConfigTerminationMinutesPerEnd = {
   category: number;
-  sm_fiber: number;
-  mm_fiber: number;
+  fiber: number;
   coax_rg6: number;
   coax_rg11: number;
   speaker_cable: number;

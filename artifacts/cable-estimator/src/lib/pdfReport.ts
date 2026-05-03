@@ -206,7 +206,7 @@ export function generateEstimatePdf(
       r.label,
       labelFor(cableTypeLookup, r.cableType),
       r.numCables,
-      r.cableType === "sm_fiber" || r.cableType === "mm_fiber"
+      r.cableType === "fiber"
         ? (r.fiberStrands ?? 1)
         : "—",
       `${r.lengthFt} ft`,

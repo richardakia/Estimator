@@ -1,7 +1,6 @@
 export const CABLE_TYPES = [
   { value: "category", label: "Category Cable" },
-  { value: "sm_fiber", label: "Single-mode Fiber" },
-  { value: "mm_fiber", label: "Multi-mode Fiber" },
+  { value: "fiber", label: "Fiber" },
   { value: "coax_rg6", label: "Coax RG6" },
   { value: "coax_rg11", label: "Coax RG11" },
   { value: "speaker_cable", label: "Speaker Cable" },

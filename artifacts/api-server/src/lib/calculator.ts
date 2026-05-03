@@ -1,7 +1,6 @@
 export type CableType =
   | "category"
-  | "sm_fiber"
-  | "mm_fiber"
+  | "fiber"
   | "coax_rg6"
   | "coax_rg11"
   | "speaker_cable";
@@ -60,16 +59,14 @@ export const DEFAULT_RATES: RatesConfigShape = {
   customCableTypes: [],
   pullMinutesPer10Ft: {
     category: 3.0,
-    sm_fiber: 4.0,
-    mm_fiber: 4.0,
+    fiber: 4.0,
     coax_rg6: 2.5,
     coax_rg11: 3.5,
     speaker_cable: 2.0,
   },
   terminationMinutesPerEnd: {
     category: 5,
-    sm_fiber: 15,
-    mm_fiber: 12,
+    fiber: 13,
     coax_rg6: 4,
     coax_rg11: 5,
     speaker_cable: 3,

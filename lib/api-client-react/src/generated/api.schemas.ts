@@ -13,8 +13,7 @@ export type CableType = (typeof CableType)[keyof typeof CableType];
 
 export const CableType = {
   category: "category",
-  sm_fiber: "sm_fiber",
-  mm_fiber: "mm_fiber",
+  fiber: "fiber",
   coax_rg6: "coax_rg6",
   coax_rg11: "coax_rg11",
   speaker_cable: "speaker_cable",
@@ -151,7 +150,7 @@ export interface Run {
   cableType: string;
   /** Number of cables pulled simultaneously in this run (used as B in bulk factor formula) */
   numCables: number;
-  /** Strands per fiber cable (only meaningful for sm_fiber/mm_fiber); each strand is terminated separately. Defaults to 1. */
+  /** Strands per fiber cable (only meaningful for fiber); each strand is terminated separately. Defaults to 1. */
   fiberStrands?: number;
   /** Average cable length per cable in feet */
   lengthFt: number;
@@ -297,8 +296,7 @@ export interface PathwayCableFillMult {
  */
 export type RatesConfigPullMinutesPer10Ft = {
   category: number;
-  sm_fiber: number;
-  mm_fiber: number;
+  fiber: number;
   coax_rg6: number;
   coax_rg11: number;
   speaker_cable: number;
@@ -310,8 +308,7 @@ export type RatesConfigPullMinutesPer10Ft = {
  */
 export type RatesConfigTerminationMinutesPerEnd = {
   category: number;
-  sm_fiber: number;
-  mm_fiber: number;
+  fiber: number;
   coax_rg6: number;
   coax_rg11: number;
   speaker_cable: number;

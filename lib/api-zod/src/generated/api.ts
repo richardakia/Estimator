@@ -237,7 +237,7 @@ export const UpdateRunResponse = zod.object({
     .number()
     .optional()
     .describe(
-      "Strands per fiber cable (only meaningful for sm_fiber\/mm_fiber); each strand is terminated separately. Defaults to 1.",
+      "Strands per fiber cable (only meaningful for fiber); each strand is terminated separately. Defaults to 1.",
     ),
   lengthFt: zod.number().describe("Average cable length per cable in feet"),
   ceilingType: zod.enum(["open", "drywall", "hard_lid"]),
@@ -288,8 +288,7 @@ export const GetRatesResponse = zod.object({
   pullMinutesPer10Ft: zod
     .object({
       category: zod.number(),
-      sm_fiber: zod.number(),
-      mm_fiber: zod.number(),
+      fiber: zod.number(),
       coax_rg6: zod.number(),
       coax_rg11: zod.number(),
       speaker_cable: zod.number(),
@@ -298,8 +297,7 @@ export const GetRatesResponse = zod.object({
   terminationMinutesPerEnd: zod
     .object({
       category: zod.number(),
-      sm_fiber: zod.number(),
-      mm_fiber: zod.number(),
+      fiber: zod.number(),
       coax_rg6: zod.number(),
       coax_rg11: zod.number(),
       speaker_cable: zod.number(),
@@ -427,8 +425,7 @@ export const UpdateRatesBody = zod.object({
   pullMinutesPer10Ft: zod
     .object({
       category: zod.number(),
-      sm_fiber: zod.number(),
-      mm_fiber: zod.number(),
+      fiber: zod.number(),
       coax_rg6: zod.number(),
       coax_rg11: zod.number(),
       speaker_cable: zod.number(),
@@ -437,8 +434,7 @@ export const UpdateRatesBody = zod.object({
   terminationMinutesPerEnd: zod
     .object({
       category: zod.number(),
-      sm_fiber: zod.number(),
-      mm_fiber: zod.number(),
+      fiber: zod.number(),
       coax_rg6: zod.number(),
       coax_rg11: zod.number(),
       speaker_cable: zod.number(),
@@ -563,8 +559,7 @@ export const UpdateRatesResponse = zod.object({
   pullMinutesPer10Ft: zod
     .object({
       category: zod.number(),
-      sm_fiber: zod.number(),
-      mm_fiber: zod.number(),
+      fiber: zod.number(),
       coax_rg6: zod.number(),
       coax_rg11: zod.number(),
       speaker_cable: zod.number(),
@@ -573,8 +568,7 @@ export const UpdateRatesResponse = zod.object({
   terminationMinutesPerEnd: zod
     .object({
       category: zod.number(),
-      sm_fiber: zod.number(),
-      mm_fiber: zod.number(),
+      fiber: zod.number(),
       coax_rg6: zod.number(),
       coax_rg11: zod.number(),
       speaker_cable: zod.number(),
@@ -702,8 +696,7 @@ export const ResetRatesResponse = zod.object({
   pullMinutesPer10Ft: zod
     .object({
       category: zod.number(),
-      sm_fiber: zod.number(),
-      mm_fiber: zod.number(),
+      fiber: zod.number(),
       coax_rg6: zod.number(),
       coax_rg11: zod.number(),
       speaker_cable: zod.number(),
@@ -712,8 +705,7 @@ export const ResetRatesResponse = zod.object({
   terminationMinutesPerEnd: zod
     .object({
       category: zod.number(),
-      sm_fiber: zod.number(),
-      mm_fiber: zod.number(),
+      fiber: zod.number(),
       coax_rg6: zod.number(),
       coax_rg11: zod.number(),
       speaker_cable: zod.number(),
