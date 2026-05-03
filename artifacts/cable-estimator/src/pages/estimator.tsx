@@ -53,7 +53,9 @@ import {
   TrendingDown,
   Cable,
   FlaskConical,
+  FileDown,
 } from "lucide-react";
+import { generateEstimatePdf } from "@/lib/pdfReport";
 import {
   CABLE_TYPES,
   INSTALL_TYPES,
@@ -409,6 +411,7 @@ function EstimateDetail({
   cableTypes: readonly { value: string; label: string }[];
 }) {
   const queryClient = useQueryClient();
+  const { data: ratesData } = useGetRates();
   const { estimate, runs, totals } = detail;
   const [editingContext, setEditingContext] = useState(false);
   const [contextForm, setContextForm] = useState<EstimateForm>({
@@ -519,6 +522,23 @@ function EstimateDetail({
             </div>
           </div>
           <div className="flex gap-2">
+            <Button
+              variant="default"
+              size="sm"
+              onClick={() => generateEstimatePdf(detail, ratesData ?? {
+                pullMinutesPer10Ft: {},
+                terminationMinutesPerEnd: {},
+                installTypeMult: {},
+                ceilingMult: {},
+                pathwayMult: {},
+                buildingMult: {},
+                environmentMult: {},
+                skillMult: {},
+              })}
+              data-testid="button-create-report"
+            >
+              <FileDown className="w-3.5 h-3.5 mr-1.5" /> Create Report
+            </Button>
             <Button
               variant="outline"
               size="sm"
