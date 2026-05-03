@@ -233,8 +233,8 @@ export interface EstimateTotals {
   totalCostLow: number;
   totalCostAvg: number;
   totalCostHigh: number;
-  /** Extra hours added by bulk-pull difficulty vs pulling each cable solo (≥ 0). */
-  bulkPenaltyHours: number;
+  /** Hours saved by pulling cables in a single bulk pass vs. pulling each one solo (≥ 0). */
+  bulkSavingsHours: number;
   taskBreakdown: {
     task: string;
     percent: number;
@@ -281,14 +281,16 @@ export function calculateEstimate(
 
     // ── Pull calculation (logarithmic bulk-difficulty formula) ───────────
     // numCables IS the bulk pull size B for this run.
-    // bulkFactor = 1 + α × ln(N) — extra per-cable difficulty when pulling
-    // multiple cables together (friction, weight, jamming).
-    const rawPullHoursPerCable = (pullMin / 60) * (run.lengthFt / 10);
+    // bulkFactor = 1 + α × ln(N) — the difficulty premium for a single
+    // bulk pass of N cables together (friction, weight, jamming).
+    // The crew makes ONE pass for the whole bundle, so total pull time
+    // does NOT multiply by N — the bulk factor already accounts for the
+    // cable count's contribution to that one pass.
+    const rawPullHoursPerPass = (pullMin / 60) * (run.lengthFt / 10);
     const bulkFactor = bulkFactorFor(N, alpha);
-    const pullHoursPerCable = rawPullHoursPerCable * conditionMultiplier * bulkFactor;
-
-    // This is a single-pass pull of N cables together
-    const totalPullHours = pullHoursPerCable * N;
+    const totalPullHours = rawPullHoursPerPass * conditionMultiplier * bulkFactor;
+    // Average pull hours attributed to each cable in the bundle.
+    const pullHoursPerCable = N > 0 ? totalPullHours / N : 0;
 
     // ── Termination calculation (bulk does NOT reduce termination) ───────
     const rawTermHoursPerCable = (termMin * TERMINATIONS_PER_CABLE) / 60;
@@ -306,9 +308,11 @@ export function calculateEstimate(
     const runCostLow = runHoursLow * ctx.hourlyRate;
     const runCostHigh = runHoursHigh * ctx.hourlyRate;
 
-    // ── Bulk-penalty comparison (what if B=1 for every cable, no penalty) ─
+    // ── Bulk-savings comparison (what if every cable pulled solo) ────────
+    // Solo: N independent passes, each = rawPullHoursPerPass × conditionMult.
+    // Termination is the same either way.
     const soloRunHours =
-      (rawPullHoursPerCable * conditionMultiplier + terminationHoursPerCable) * N;
+      rawPullHoursPerPass * conditionMultiplier * N + terminationHoursPerCable * N;
     totalCablesSoloHours += soloRunHours;
     totalCablesActualHoursAvg += runHoursAvg;
     totalPullHoursAcrossRuns += totalPullHours;
@@ -347,8 +351,9 @@ export function calculateEstimate(
   const totalCostHigh = totalHoursHigh * ctx.hourlyRate;
 
   const totalCables = runs.reduce((sum, r) => sum + r.numCables, 0);
-  // Logarithmic bulk factor ≥ 1, so actual ≥ solo. Penalty = extra time.
-  const bulkPenalty = Math.max(0, totalCablesActualHoursAvg - totalCablesSoloHours);
+  // One bulk pass with mild difficulty premium is much faster than N solo
+  // passes, so solo ≥ actual. Savings = time avoided.
+  const bulkSavings = Math.max(0, totalCablesSoloHours - totalCablesActualHoursAvg);
 
   const pullPercent =
     totalHoursAvg > 0 ? totalPullHoursAcrossRuns / totalHoursAvg : 0;
@@ -381,7 +386,7 @@ export function calculateEstimate(
       totalCostLow: round(totalCostLow, 2),
       totalCostAvg: round(totalCostAvg, 2),
       totalCostHigh: round(totalCostHigh, 2),
-      bulkPenaltyHours: round(bulkPenalty, 2),
+      bulkSavingsHours: round(bulkSavings, 2),
       taskBreakdown,
     },
   };

@@ -130,10 +130,10 @@ export const GetEstimateResponse = zod.object({
     totalCostLow: zod.number(),
     totalCostAvg: zod.number(),
     totalCostHigh: zod.number(),
-    bulkPenaltyHours: zod
+    bulkSavingsHours: zod
       .number()
       .describe(
-        "Extra hours added by bulk-pull difficulty vs. pulling each cable individually",
+        "Hours saved by pulling cables in a single bulk pass vs. pulling each one solo",
       ),
     taskBreakdown: zod.array(
       zod.object({
@@ -1222,10 +1222,10 @@ export const PreviewCalculationResponse = zod.object({
     totalCostLow: zod.number(),
     totalCostAvg: zod.number(),
     totalCostHigh: zod.number(),
-    bulkPenaltyHours: zod
+    bulkSavingsHours: zod
       .number()
       .describe(
-        "Extra hours added by bulk-pull difficulty vs. pulling each cable individually",
+        "Hours saved by pulling cables in a single bulk pass vs. pulling each one solo",
       ),
     taskBreakdown: zod.array(
       zod.object({

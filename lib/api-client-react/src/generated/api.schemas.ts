@@ -211,8 +211,8 @@ export interface EstimateTotals {
   totalCostLow: number;
   totalCostAvg: number;
   totalCostHigh: number;
-  /** Extra hours added by bulk-pull difficulty vs. pulling each cable individually */
-  bulkPenaltyHours: number;
+  /** Hours saved by pulling cables in a single bulk pass vs. pulling each one solo */
+  bulkSavingsHours: number;
   taskBreakdown: TaskBreakdownItem[];
 }
 

@@ -699,9 +699,9 @@ components:
           type: number
         totalCostHigh:
           type: number
-        bulkPenaltyHours:
+        bulkSavingsHours:
           type: number
-          description: Extra hours added by bulk-pull difficulty vs. pulling each cable individually
+          description: Hours saved by pulling cables in a single bulk pass vs. pulling each one solo
         taskBreakdown:
           type: array
           items:
@@ -716,7 +716,7 @@ components:
           totalCostLow,
           totalCostAvg,
           totalCostHigh,
-          bulkPenaltyHours,
+          bulkSavingsHours,
           taskBreakdown,
         ]
 

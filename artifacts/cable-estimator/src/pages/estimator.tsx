@@ -50,7 +50,7 @@ import {
   Calculator as CalcIcon,
   Clock,
   DollarSign,
-  TrendingUp,
+  TrendingDown,
   Cable,
   FlaskConical,
 } from "lucide-react";
@@ -387,7 +387,7 @@ interface EstimateDetailData {
     totalCostLow: number;
     totalCostAvg: number;
     totalCostHigh: number;
-    bulkPenaltyHours: number;
+    bulkSavingsHours: number;
     taskBreakdown: Array<{
       task: string;
       percent: number;
@@ -557,10 +557,10 @@ function EstimateDetail({
           highlight
         />
         <StatCard
-          icon={<TrendingUp className="w-4 h-4" />}
-          label="Bulk Pull Penalty"
-          value={fmtHours(totals.bulkPenaltyHours)}
-          sub="extra hours vs. pulling each cable solo"
+          icon={<TrendingDown className="w-4 h-4" />}
+          label="Bulk Pull Savings"
+          value={fmtHours(totals.bulkSavingsHours)}
+          sub="hours saved vs. pulling each cable solo"
         />
       </div>
 
@@ -994,14 +994,14 @@ function CablingFormulaExplainer() {
           </p>
           <p className="text-muted-foreground text-xs">
             Pull Hours = (Pull Minutes per 10 ft ÷ 60) × (Length of Run in
-            Feet ÷ 10) × Condition Multiplier × Bulk Factor × Number of
-            Cables. Pull time scales linearly with length and cable count,
-            and the bulk factor discounts per-cable time when multiple
-            cables share the same pathway.
+            Feet ÷ 10) × Condition Multiplier × Bulk Factor. The crew makes
+            one bulk pass for the whole bundle, so pull time does NOT
+            multiply by the number of cables — the bulk factor already
+            captures the cable count's contribution to that single pass.
           </p>
           <div className="rounded-md bg-muted/60 px-4 py-2 font-mono text-xs leading-relaxed">
             pullHrs = (pullMin10ft ÷ 60) × (lengthFt ÷ 10) × conditionMult ×
-            bulkFactor × numCables
+            bulkFactor
           </div>
         </div>
 
