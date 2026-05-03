@@ -184,7 +184,7 @@ export function Layout({ children }: LayoutProps) {
           <div className="w-8 h-8 rounded bg-primary flex items-center justify-center">
             <Calculator className="w-5 h-5 text-primary-foreground" />
           </div>
-          <span className="font-bold text-lg tracking-tight">AKIA-AV Estimator</span>
+          <span className="font-bold text-lg tracking-tight leading-tight whitespace-pre-line">{"AKIA-AV\nSC Labor Estimator"}</span>
         </div>
         <nav className="flex-1 p-4 space-y-2">
           {navItems.map((item) => (
@@ -219,7 +219,7 @@ export function Layout({ children }: LayoutProps) {
             <div className="w-6 h-6 rounded bg-primary flex items-center justify-center">
               <Calculator className="w-4 h-4 text-primary-foreground" />
             </div>
-            <span className="font-bold">CableEst Pro</span>
+            <span className="font-bold leading-tight whitespace-pre-line text-sm">{"AKIA-AV\nSC Labor Estimator"}</span>
           </div>
           {isEstimatorRoute && (
             <DropdownMenu>
