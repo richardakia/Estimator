@@ -604,23 +604,23 @@ function EstimateDetail({
             </p>
           ) : (
             <div className="overflow-x-auto">
-              <Table>
+              <Table className="text-xs">
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Label</TableHead>
-                    <TableHead>Cable</TableHead>
-                    <TableHead>Description</TableHead>
-                    <TableHead className="text-right"># Cables</TableHead>
-                    <TableHead className="text-right">Length</TableHead>
-                    <TableHead>Ceiling</TableHead>
-                    <TableHead>Pathway</TableHead>
-                    <TableHead className="text-right">Bulk Factor</TableHead>
-                    <TableHead className="text-right">Condition Mult</TableHead>
-                    <TableHead className="text-right">Pull hrs/run</TableHead>
-                    <TableHead className="text-right">Term hrs/run</TableHead>
-                    <TableHead className="text-right">Total hrs/run</TableHead>
-                    <TableHead className="text-right">Cost</TableHead>
-                    <TableHead></TableHead>
+                    <TableHead className="h-8 px-2 whitespace-nowrap">Label</TableHead>
+                    <TableHead className="h-8 px-2 whitespace-nowrap">Cable</TableHead>
+                    <TableHead className="h-8 px-2 whitespace-nowrap">Description</TableHead>
+                    <TableHead className="h-8 px-2 text-right whitespace-nowrap">Cables</TableHead>
+                    <TableHead className="h-8 px-2 text-right whitespace-nowrap">Length</TableHead>
+                    <TableHead className="h-8 px-2 whitespace-nowrap">Ceiling</TableHead>
+                    <TableHead className="h-8 px-2 whitespace-nowrap">Pathway</TableHead>
+                    <TableHead className="h-8 px-2 text-right whitespace-nowrap">Bulk</TableHead>
+                    <TableHead className="h-8 px-2 text-right whitespace-nowrap">Cond.</TableHead>
+                    <TableHead className="h-8 px-2 text-right whitespace-nowrap">Pull h</TableHead>
+                    <TableHead className="h-8 px-2 text-right whitespace-nowrap">Term h</TableHead>
+                    <TableHead className="h-8 px-2 text-right whitespace-nowrap">Total h</TableHead>
+                    <TableHead className="h-8 px-2 text-right whitespace-nowrap">Cost</TableHead>
+                    <TableHead className="h-8 px-1 w-[64px]"></TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -629,72 +629,78 @@ function EstimateDetail({
                       key={r.runId ?? i}
                       data-testid={`row-run-${r.runId}`}
                     >
-                      <TableCell className="font-medium">{r.label}</TableCell>
-                      <TableCell>{labelFor(cableTypes, r.cableType)}</TableCell>
-                      <TableCell className="text-xs text-muted-foreground max-w-[220px] whitespace-normal">
-                        {r.description || "—"}
+                      <TableCell className="px-2 py-1.5 font-medium whitespace-nowrap">
+                        {r.label}
                       </TableCell>
-                      <TableCell className="text-right">{r.numCables}</TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className="px-2 py-1.5 whitespace-nowrap">
+                        {labelFor(cableTypes, r.cableType)}
+                      </TableCell>
+                      <TableCell className="px-2 py-1.5 text-muted-foreground max-w-[200px] whitespace-normal leading-snug">
+                        {r.description || <span className="opacity-50">—</span>}
+                      </TableCell>
+                      <TableCell className="px-2 py-1.5 text-right font-mono whitespace-nowrap">
+                        {r.numCables}
+                      </TableCell>
+                      <TableCell className="px-2 py-1.5 text-right font-mono whitespace-nowrap">
                         {r.lengthFt} ft
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="px-2 py-1.5 whitespace-nowrap">
                         {labelFor(CEILING_TYPES, r.ceilingType)}
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="px-2 py-1.5 whitespace-nowrap">
                         {labelFor(PATHWAY_LEVELS, r.pathwayComplexity)}
                       </TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className="px-2 py-1.5 text-right whitespace-nowrap">
                         <Badge
                           variant={r.bulkFactor > 1 ? "default" : "outline"}
-                          className="font-mono"
+                          className="font-mono px-1.5 py-0 text-[10px]"
                         >
                           {r.bulkFactor.toFixed(3)}×
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-right">
+                      <TableCell className="px-2 py-1.5 text-right whitespace-nowrap">
                         <Badge
                           variant={
                             r.conditionMultiplier > 1 ? "default" : "outline"
                           }
-                          className="font-mono"
+                          className="font-mono px-1.5 py-0 text-[10px]"
                         >
                           {r.conditionMultiplier.toFixed(3)}×
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-right font-mono text-muted-foreground">
+                      <TableCell className="px-2 py-1.5 text-right font-mono text-muted-foreground whitespace-nowrap">
                         {(r.pullHoursPerCable * r.numCables).toFixed(2)}
                       </TableCell>
-                      <TableCell className="text-right font-mono text-muted-foreground">
+                      <TableCell className="px-2 py-1.5 text-right font-mono text-muted-foreground whitespace-nowrap">
                         {(r.terminationHoursPerCable * r.numCables).toFixed(2)}
                       </TableCell>
-                      <TableCell className="text-right font-mono font-medium">
+                      <TableCell className="px-2 py-1.5 text-right font-mono font-medium whitespace-nowrap">
                         {r.runHoursAvg.toFixed(2)}
                       </TableCell>
-                      <TableCell className="text-right font-mono font-medium">
+                      <TableCell className="px-2 py-1.5 text-right font-mono font-medium whitespace-nowrap">
                         {fmtMoney(r.runCostAvg)}
                       </TableCell>
-                      <TableCell>
-                        <div className="flex gap-1 justify-end">
+                      <TableCell className="px-1 py-1.5">
+                        <div className="flex gap-0.5 justify-end">
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-7 w-7"
+                            className="h-6 w-6"
                             onClick={() => openEditRun(r)}
                             data-testid={`button-edit-run-${r.runId}`}
                           >
-                            <Pencil className="w-3.5 h-3.5" />
+                            <Pencil className="w-3 h-3" />
                           </Button>
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-7 w-7"
+                            className="h-6 w-6"
                             onClick={() =>
                               r.runId && deleteRun.mutate({ id: r.runId })
                             }
                             data-testid={`button-delete-run-${r.runId}`}
                           >
-                            <Trash2 className="w-3.5 h-3.5 text-destructive" />
+                            <Trash2 className="w-3 h-3 text-destructive" />
                           </Button>
                         </div>
                       </TableCell>
