@@ -14,8 +14,7 @@ export type CableType = (typeof CableType)[keyof typeof CableType];
 export const CableType = {
   category: "category",
   fiber: "fiber",
-  coax_rg6: "coax_rg6",
-  coax_rg11: "coax_rg11",
+  coax: "coax",
   speaker_cable: "speaker_cable",
 } as const;
 
@@ -297,8 +296,7 @@ export interface PathwayCableFillMult {
 export type RatesConfigPullMinutesPer10Ft = {
   category: number;
   fiber: number;
-  coax_rg6: number;
-  coax_rg11: number;
+  coax: number;
   speaker_cable: number;
   [key: string]: number;
 };
@@ -309,8 +307,7 @@ export type RatesConfigPullMinutesPer10Ft = {
 export type RatesConfigTerminationMinutesPerEnd = {
   category: number;
   fiber: number;
-  coax_rg6: number;
-  coax_rg11: number;
+  coax: number;
   speaker_cable: number;
   [key: string]: number;
 };

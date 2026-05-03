@@ -411,7 +411,7 @@ components:
 
     CableType:
       type: string
-      enum: [category, fiber, coax_rg6, coax_rg11, speaker_cable]
+      enum: [category, fiber, coax, speaker_cable]
 
     InstallType:
       type: string
@@ -894,11 +894,10 @@ components:
           properties:
             category: { type: number }
             fiber: { type: number }
-            coax_rg6: { type: number }
-            coax_rg11: { type: number }
+            coax: { type: number }
             speaker_cable: { type: number }
           required:
-            [category, fiber, coax_rg6, coax_rg11, speaker_cable]
+            [category, fiber, coax, speaker_cable]
         terminationMinutesPerEnd:
           type: object
           description: Termination labor in minutes per cable end, by cable type (each cable has 2 ends)
@@ -907,11 +906,10 @@ components:
           properties:
             category: { type: number }
             fiber: { type: number }
-            coax_rg6: { type: number }
-            coax_rg11: { type: number }
+            coax: { type: number }
             speaker_cable: { type: number }
           required:
-            [category, fiber, coax_rg6, coax_rg11, speaker_cable]
+            [category, fiber, coax, speaker_cable]
         installTypeMult:
           type: object
           properties:

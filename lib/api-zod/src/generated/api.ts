@@ -289,8 +289,7 @@ export const GetRatesResponse = zod.object({
     .object({
       category: zod.number(),
       fiber: zod.number(),
-      coax_rg6: zod.number(),
-      coax_rg11: zod.number(),
+      coax: zod.number(),
       speaker_cable: zod.number(),
     })
     .describe("Pull labor in minutes for every 10 ft of cable, by cable type"),
@@ -298,8 +297,7 @@ export const GetRatesResponse = zod.object({
     .object({
       category: zod.number(),
       fiber: zod.number(),
-      coax_rg6: zod.number(),
-      coax_rg11: zod.number(),
+      coax: zod.number(),
       speaker_cable: zod.number(),
     })
     .describe(
@@ -426,8 +424,7 @@ export const UpdateRatesBody = zod.object({
     .object({
       category: zod.number(),
       fiber: zod.number(),
-      coax_rg6: zod.number(),
-      coax_rg11: zod.number(),
+      coax: zod.number(),
       speaker_cable: zod.number(),
     })
     .describe("Pull labor in minutes for every 10 ft of cable, by cable type"),
@@ -435,8 +432,7 @@ export const UpdateRatesBody = zod.object({
     .object({
       category: zod.number(),
       fiber: zod.number(),
-      coax_rg6: zod.number(),
-      coax_rg11: zod.number(),
+      coax: zod.number(),
       speaker_cable: zod.number(),
     })
     .describe(
@@ -560,8 +556,7 @@ export const UpdateRatesResponse = zod.object({
     .object({
       category: zod.number(),
       fiber: zod.number(),
-      coax_rg6: zod.number(),
-      coax_rg11: zod.number(),
+      coax: zod.number(),
       speaker_cable: zod.number(),
     })
     .describe("Pull labor in minutes for every 10 ft of cable, by cable type"),
@@ -569,8 +564,7 @@ export const UpdateRatesResponse = zod.object({
     .object({
       category: zod.number(),
       fiber: zod.number(),
-      coax_rg6: zod.number(),
-      coax_rg11: zod.number(),
+      coax: zod.number(),
       speaker_cable: zod.number(),
     })
     .describe(
@@ -697,8 +691,7 @@ export const ResetRatesResponse = zod.object({
     .object({
       category: zod.number(),
       fiber: zod.number(),
-      coax_rg6: zod.number(),
-      coax_rg11: zod.number(),
+      coax: zod.number(),
       speaker_cable: zod.number(),
     })
     .describe("Pull labor in minutes for every 10 ft of cable, by cable type"),
@@ -706,8 +699,7 @@ export const ResetRatesResponse = zod.object({
     .object({
       category: zod.number(),
       fiber: zod.number(),
-      coax_rg6: zod.number(),
-      coax_rg11: zod.number(),
+      coax: zod.number(),
       speaker_cable: zod.number(),
     })
     .describe(

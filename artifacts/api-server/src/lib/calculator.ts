@@ -1,8 +1,7 @@
 export type CableType =
   | "category"
   | "fiber"
-  | "coax_rg6"
-  | "coax_rg11"
+  | "coax"
   | "speaker_cable";
 
 export type InstallType = "new_install" | "retrofit" | "deinstall";
@@ -60,15 +59,13 @@ export const DEFAULT_RATES: RatesConfigShape = {
   pullMinutesPer10Ft: {
     category: 3.0,
     fiber: 4.0,
-    coax_rg6: 2.5,
-    coax_rg11: 3.5,
+    coax: 3.0,
     speaker_cable: 2.0,
   },
   terminationMinutesPerEnd: {
     category: 5,
     fiber: 13,
-    coax_rg6: 4,
-    coax_rg11: 5,
+    coax: 4.5,
     speaker_cable: 3,
   },
   installTypeMult: {
