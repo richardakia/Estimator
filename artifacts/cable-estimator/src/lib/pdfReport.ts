@@ -97,7 +97,7 @@ export function generateEstimatePdf(
   detail: EstimateForReport,
   rates: RatesForReport,
 ): void {
-  const doc = new jsPDF({ orientation: "portrait", unit: "pt", format: "letter" });
+  const doc = new jsPDF({ orientation: "landscape", unit: "pt", format: "letter" });
   const pageWidth = doc.internal.pageSize.getWidth();
   const margin = 40;
   let y = margin;
@@ -261,7 +261,7 @@ export function generateEstimatePdf(
   y = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 16;
 
   // ── Rates section (landscape, multi-column) ───────────────────────────
-  doc.addPage("letter", "landscape");
+  doc.addPage();
   const lwPage = doc.internal.pageSize.getWidth();
   const lhPage = doc.internal.pageSize.getHeight();
   const ratesMargin = 24;
