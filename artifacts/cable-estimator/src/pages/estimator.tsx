@@ -1022,21 +1022,16 @@ function CablingFormulaExplainer() {
 
         <div className="space-y-1">
           <p className="font-semibold text-foreground">
-            Step 5 — Total Run Hours &amp; Range
+            Step 5 — Total Run Hours
           </p>
           <p className="text-muted-foreground text-xs">
-            Average Run Hours = Pull Hours + Termination Hours. Low (best
-            case) Hours = Average × 0.85, High (worst case) Hours = Average
-            × 1.20, and Run Cost = Average Run Hours × Hourly Rate. The
-            low/high range accounts for real-world variability, and totals
-            across all runs are summed for the estimate's overall hours and
-            cost.
+            Total Run Hours = Pull Hours + Termination Hours. Run Cost =
+            Total Run Hours × Hourly Rate. Totals across all runs are summed
+            for the estimate's overall hours and cost.
           </p>
           <div className="rounded-md bg-muted/60 px-4 py-2 font-mono text-xs leading-relaxed space-y-0.5">
-            <div>runHrsAvg = pullHrs + termHrs</div>
-            <div>runHrsLow = runHrsAvg × 0.85&nbsp;&nbsp;(best case)</div>
-            <div>runHrsHigh = runHrsAvg × 1.20&nbsp;&nbsp;(worst case)</div>
-            <div className="pt-1">runCost = runHrsAvg × hourlyRate</div>
+            <div>runHrs = pullHrs + termHrs</div>
+            <div>runCost = runHrs × hourlyRate</div>
           </div>
         </div>
       </CardContent>
