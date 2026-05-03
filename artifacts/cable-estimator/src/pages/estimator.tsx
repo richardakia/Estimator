@@ -606,7 +606,7 @@ function EstimateDetail({
                 <TableHeader>
                   <TableRow>
                     <TableHead className="h-8 px-2 whitespace-nowrap">Label</TableHead>
-                    <TableHead className="h-8 px-2 whitespace-nowrap">Cable</TableHead>
+                    <TableHead className="h-8 px-2 whitespace-nowrap">Cable Type</TableHead>
                     <TableHead className="h-8 px-2 whitespace-nowrap">Description</TableHead>
                     <TableHead className="h-8 px-2 text-right whitespace-nowrap">Cables</TableHead>
                     <TableHead className="h-8 px-2 text-right whitespace-nowrap">Length</TableHead>
