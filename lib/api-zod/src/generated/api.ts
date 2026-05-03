@@ -125,7 +125,7 @@ export const GetEstimateResponse = zod.object({
     totalCostLow: zod.number(),
     totalCostAvg: zod.number(),
     totalCostHigh: zod.number(),
-    bulkSavingsHours: zod
+    bulkPenaltyHours: zod
       .number()
       .describe(
         "Hours saved by bulk pulling vs. pulling each cable individually",
@@ -237,11 +237,20 @@ export const DeleteRunParams = zod.object({
 /**
  * @summary Get all productivity rates and multipliers
  */
+export const getRatesResponseBulkFactorAlphaMin = 0;
+
 export const GetRatesResponse = zod.object({
   hourlyRate: zod
     .number()
     .optional()
     .describe("Default hourly labor rate ($\/hr) shared by both estimators."),
+  bulkFactorAlpha: zod
+    .number()
+    .min(getRatesResponseBulkFactorAlphaMin)
+    .optional()
+    .describe(
+      "Sensitivity (α) of the bulk-pull difficulty curve.\nbulkFactor = 1 + α × ln(numCables). Larger α = steeper penalty\nfor pulling more cables together. Default 0.15.\n",
+    ),
   customCableTypes: zod
     .array(
       zod.object({
@@ -371,11 +380,20 @@ export const GetRatesResponse = zod.object({
 /**
  * @summary Update productivity rates
  */
+export const updateRatesBodyBulkFactorAlphaMin = 0;
+
 export const UpdateRatesBody = zod.object({
   hourlyRate: zod
     .number()
     .optional()
     .describe("Default hourly labor rate ($\/hr) shared by both estimators."),
+  bulkFactorAlpha: zod
+    .number()
+    .min(updateRatesBodyBulkFactorAlphaMin)
+    .optional()
+    .describe(
+      "Sensitivity (α) of the bulk-pull difficulty curve.\nbulkFactor = 1 + α × ln(numCables). Larger α = steeper penalty\nfor pulling more cables together. Default 0.15.\n",
+    ),
   customCableTypes: zod
     .array(
       zod.object({
@@ -502,11 +520,20 @@ export const UpdateRatesBody = zod.object({
     .describe("Material cost per fire-rated penetration ($)."),
 });
 
+export const updateRatesResponseBulkFactorAlphaMin = 0;
+
 export const UpdateRatesResponse = zod.object({
   hourlyRate: zod
     .number()
     .optional()
     .describe("Default hourly labor rate ($\/hr) shared by both estimators."),
+  bulkFactorAlpha: zod
+    .number()
+    .min(updateRatesResponseBulkFactorAlphaMin)
+    .optional()
+    .describe(
+      "Sensitivity (α) of the bulk-pull difficulty curve.\nbulkFactor = 1 + α × ln(numCables). Larger α = steeper penalty\nfor pulling more cables together. Default 0.15.\n",
+    ),
   customCableTypes: zod
     .array(
       zod.object({
@@ -636,11 +663,20 @@ export const UpdateRatesResponse = zod.object({
 /**
  * @summary Reset rates to defaults
  */
+export const resetRatesResponseBulkFactorAlphaMin = 0;
+
 export const ResetRatesResponse = zod.object({
   hourlyRate: zod
     .number()
     .optional()
     .describe("Default hourly labor rate ($\/hr) shared by both estimators."),
+  bulkFactorAlpha: zod
+    .number()
+    .min(resetRatesResponseBulkFactorAlphaMin)
+    .optional()
+    .describe(
+      "Sensitivity (α) of the bulk-pull difficulty curve.\nbulkFactor = 1 + α × ln(numCables). Larger α = steeper penalty\nfor pulling more cables together. Default 0.15.\n",
+    ),
   customCableTypes: zod
     .array(
       zod.object({
@@ -1176,7 +1212,7 @@ export const PreviewCalculationResponse = zod.object({
     totalCostLow: zod.number(),
     totalCostAvg: zod.number(),
     totalCostHigh: zod.number(),
-    bulkSavingsHours: zod
+    bulkPenaltyHours: zod
       .number()
       .describe(
         "Hours saved by bulk pulling vs. pulling each cable individually",

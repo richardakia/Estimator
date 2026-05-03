@@ -37,6 +37,8 @@ export interface PathwayCableFillMult {
 
 export interface RatesConfigShape {
   hourlyRate?: number;
+  /** Sensitivity (α) of the bulk-pull difficulty curve: bulkFactor = 1 + α × ln(numCables). Default 0.15. */
+  bulkFactorAlpha?: number;
   customCableTypes?: CustomCableType[];
   pullMinutesPer10Ft: Record<string, number>;
   terminationMinutesPerEnd: Record<string, number>;
@@ -109,6 +111,7 @@ export const DEFAULT_RATES: RatesConfigShape = {
     lead: 0.85,
   },
   hourlyRate: 85,
+  bulkFactorAlpha: 0.15,
   pathwayTypeRates: {
     cable_tray: { laborMinPerFt: 12, materialCostPerFt: 14, fastenerSpacingFt: 5, fastenerCostEach: 22, fastenerLaborMinEach: 12 },
     wire_basket: { laborMinPerFt: 8, materialCostPerFt: 8, fastenerSpacingFt: 4, fastenerCostEach: 14, fastenerLaborMinEach: 8 },
@@ -145,24 +148,38 @@ export const DEFAULT_RATES: RatesConfigShape = {
   pathwayPenetrationMaterialCost: 50,
 };
 
+export const DEFAULT_BULK_FACTOR_ALPHA = 0.15;
+
 /**
- * Computes the bulk pull factor for a given bulk pull size B.
- * Formula: bulkFactor = 0.4 + (0.6 / B)
- *   B = 1  → 1.00  (no savings — pulling one cable at a time)
- *   B = 6  → 0.50  (50% time per cable)
- *   B = 12 → 0.45  (~55% savings)
- *   B = 24 → 0.425 (diminishing returns)
+ * Computes the bulk pull *difficulty* factor for a given bulk pull size B.
+ * Pulling more cables together is HARDER (friction, weight, jamming), so the
+ * factor grows with B using a logarithmic curve with diminishing marginal
+ * difficulty:
+ *
+ *   bulkFactor = 1 + α × ln(B)
+ *
+ *   B = 1  → 1.000  (baseline — no penalty)
+ *   B = 6  → 1 + α×1.792
+ *   B = 12 → 1 + α×2.485
+ *   B = 24 → 1 + α×3.178
+ *
+ * α (alpha) is the sensitivity factor (default 0.15). Larger α = steeper
+ * penalty for adding cables to the same pull.
  */
-export function bulkFactorFor(bulkSize: number): number {
+export function bulkFactorFor(
+  bulkSize: number,
+  alpha: number = DEFAULT_BULK_FACTOR_ALPHA,
+): number {
   const b = Math.max(1, Math.round(bulkSize));
-  return 0.4 + 0.6 / b;
+  const a = Math.max(0, alpha);
+  return 1 + a * Math.log(b);
 }
 
 export interface RunInput {
   id?: number;
   label: string;
   cableType: string;
-  /** Number of cables pulled simultaneously in this run — used as B in bulkFactor = 0.4 + (0.6 / numCables) */
+  /** Number of cables pulled simultaneously in this run — used as B in bulkFactor = 1 + α × ln(numCables) */
   numCables: number;
   lengthFt: number;
   ceilingType: CeilingType;
@@ -186,7 +203,7 @@ export interface RunCalculation {
   lengthFt: number;
   ceilingType: CeilingType;
   pathwayComplexity: PathwayComplexity;
-  /** Computed: 0.4 + (0.6 / numCables) */
+  /** Computed: 1 + α × ln(numCables). Values > 1 mean a per-cable difficulty penalty. */
   bulkFactor: number;
   pullMinutesPer10Ft: number;
   terminationMinutesPerEnd: number;
@@ -214,7 +231,8 @@ export interface EstimateTotals {
   totalCostLow: number;
   totalCostAvg: number;
   totalCostHigh: number;
-  bulkSavingsHours: number;
+  /** Extra hours added by bulk-pull difficulty vs pulling each cable solo (≥ 0). */
+  bulkPenaltyHours: number;
   taskBreakdown: {
     task: string;
     percent: number;
@@ -248,6 +266,7 @@ export function calculateEstimate(
   let totalCablesActualHoursAvg = 0;
   let totalPullHoursAcrossRuns = 0;
   let totalTermHoursAcrossRuns = 0;
+  const alpha = rates.bulkFactorAlpha ?? DEFAULT_BULK_FACTOR_ALPHA;
 
   for (const run of runs) {
     const pullMin = rates.pullMinutesPer10Ft[run.cableType] ?? 3.0;
@@ -258,11 +277,12 @@ export function calculateEstimate(
 
     const N = run.numCables;
 
-    // ── Pull calculation (refined bulk formula) ──────────────────────────
+    // ── Pull calculation (logarithmic bulk-difficulty formula) ───────────
     // numCables IS the bulk pull size B for this run.
-    // bulkFactor = 0.4 + (0.6 / N) — time-per-cable within the pull
+    // bulkFactor = 1 + α × ln(N) — extra per-cable difficulty when pulling
+    // multiple cables together (friction, weight, jamming).
     const rawPullHoursPerCable = (pullMin / 60) * (run.lengthFt / 10);
-    const bulkFactor = bulkFactorFor(N);
+    const bulkFactor = bulkFactorFor(N, alpha);
     const pullHoursPerCable = rawPullHoursPerCable * conditionMultiplier * bulkFactor;
 
     // This is a single-pass pull of N cables together
@@ -284,7 +304,7 @@ export function calculateEstimate(
     const runCostLow = runHoursLow * ctx.hourlyRate;
     const runCostHigh = runHoursHigh * ctx.hourlyRate;
 
-    // ── Bulk-savings comparison (what if B=1 for every cable) ────────────
+    // ── Bulk-penalty comparison (what if B=1 for every cable, no penalty) ─
     const soloRunHours =
       (rawPullHoursPerCable * conditionMultiplier + terminationHoursPerCable) * N;
     totalCablesSoloHours += soloRunHours;
@@ -324,7 +344,8 @@ export function calculateEstimate(
   const totalCostHigh = totalHoursHigh * ctx.hourlyRate;
 
   const totalCables = runs.reduce((sum, r) => sum + r.numCables, 0);
-  const bulkSavings = Math.max(0, totalCablesSoloHours - totalCablesActualHoursAvg);
+  // Logarithmic bulk factor ≥ 1, so actual ≥ solo. Penalty = extra time.
+  const bulkPenalty = Math.max(0, totalCablesActualHoursAvg - totalCablesSoloHours);
 
   const pullPercent =
     totalHoursAvg > 0 ? totalPullHoursAcrossRuns / totalHoursAvg : 0;
@@ -357,7 +378,7 @@ export function calculateEstimate(
       totalCostLow: round(totalCostLow, 2),
       totalCostAvg: round(totalCostAvg, 2),
       totalCostHigh: round(totalCostHigh, 2),
-      bulkSavingsHours: round(bulkSavings, 2),
+      bulkPenaltyHours: round(bulkPenalty, 2),
       taskBreakdown,
     },
   };

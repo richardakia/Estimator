@@ -22,6 +22,14 @@ import type { RatesConfigTerminationMinutesPerEnd } from "./ratesConfigTerminati
 export interface RatesConfig {
   /** Default hourly labor rate ($/hr) shared by both estimators. */
   hourlyRate?: number;
+  /**
+   * Sensitivity (α) of the bulk-pull difficulty curve.
+bulkFactor = 1 + α × ln(numCables). Larger α = steeper penalty
+for pulling more cables together. Default 0.15.
+
+   * @minimum 0
+   */
+  bulkFactorAlpha?: number;
   /** User-defined cable types added beyond the built-in list */
   customCableTypes?: CustomCableType[];
   /** Pull labor in minutes for every 10 ft of cable, by cable type */

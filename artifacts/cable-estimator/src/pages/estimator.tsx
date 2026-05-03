@@ -50,7 +50,7 @@ import {
   Calculator as CalcIcon,
   Clock,
   DollarSign,
-  TrendingDown,
+  TrendingUp,
   Cable,
   FlaskConical,
 } from "lucide-react";
@@ -386,7 +386,7 @@ interface EstimateDetailData {
     totalCostLow: number;
     totalCostAvg: number;
     totalCostHigh: number;
-    bulkSavingsHours: number;
+    bulkPenaltyHours: number;
     taskBreakdown: Array<{
       task: string;
       percent: number;
@@ -556,10 +556,10 @@ function EstimateDetail({
           highlight
         />
         <StatCard
-          icon={<TrendingDown className="w-4 h-4" />}
-          label="Bulk Pull Savings"
-          value={fmtHours(totals.bulkSavingsHours)}
-          sub="vs. pulling each cable solo"
+          icon={<TrendingUp className="w-4 h-4" />}
+          label="Bulk Pull Penalty"
+          value={fmtHours(totals.bulkPenaltyHours)}
+          sub="extra hours vs. pulling each cable solo"
         />
       </div>
 
@@ -616,7 +616,7 @@ function EstimateDetail({
                       </TableCell>
                       <TableCell className="text-right">
                         <Badge
-                          variant={r.bulkFactor < 1 ? "default" : "outline"}
+                          variant={r.bulkFactor > 1 ? "default" : "outline"}
                           className="font-mono"
                         >
                           {r.bulkFactor.toFixed(3)}×
@@ -857,7 +857,7 @@ function EstimateDetail({
                   data-testid="input-num-cables"
                 />
                 <p className="text-xs text-muted-foreground mt-1">
-                  Bulk factor = 0.4 + 0.6/n
+                  Bulk factor = 1 + α × ln(n) — pulling more cables is harder
                 </p>
               </div>
               <div>
@@ -971,12 +971,16 @@ function CablingFormulaExplainer() {
             Step 2 — Bulk Factor
           </p>
           <p className="text-muted-foreground text-xs">
-            Bulk Factor = 0.4 + (0.6 ÷ Number of Cables in the Run). A solo
-            pull (1 cable) gives 1.000× (no discount); 12 cables → 0.450×; 24
-            cables → 0.425×. Termination is never bulk-discounted.
+            Bulk Factor = 1 + Alpha × ln(Number of Cables in the Run).
+            Pulling more cables together is HARDER (friction, weight,
+            jamming), so the factor grows with cable count using a
+            logarithmic curve with diminishing marginal difficulty. With the
+            default α = 0.15: a solo pull (1 cable) gives 1.000× (baseline);
+            12 cables → ≈ 1.373×; 24 cables → ≈ 1.477×. Termination is
+            never affected by the bulk factor.
           </p>
           <div className="rounded-md bg-muted/60 px-4 py-2 font-mono text-xs leading-relaxed">
-            bulkFactor = 0.4 + (0.6 / numCables)
+            bulkFactor = 1 + α × ln(numCables)
           </div>
         </div>
 

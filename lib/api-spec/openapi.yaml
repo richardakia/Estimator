@@ -695,9 +695,9 @@ components:
           type: number
         totalCostHigh:
           type: number
-        bulkSavingsHours:
+        bulkPenaltyHours:
           type: number
-          description: Hours saved by bulk pulling vs. pulling each cable individually
+          description: Extra hours added by bulk-pull difficulty vs. pulling each cable individually
         taskBreakdown:
           type: array
           items:
@@ -712,7 +712,7 @@ components:
           totalCostLow,
           totalCostAvg,
           totalCostHigh,
-          bulkSavingsHours,
+          bulkPenaltyHours,
           taskBreakdown,
         ]
 
@@ -858,6 +858,13 @@ components:
         hourlyRate:
           type: number
           description: Default hourly labor rate ($/hr) shared by both estimators.
+        bulkFactorAlpha:
+          type: number
+          minimum: 0
+          description: |
+            Sensitivity (α) of the bulk-pull difficulty curve.
+            bulkFactor = 1 + α × ln(numCables). Larger α = steeper penalty
+            for pulling more cables together. Default 0.15.
         customCableTypes:
           type: array
           description: User-defined cable types added beyond the built-in list

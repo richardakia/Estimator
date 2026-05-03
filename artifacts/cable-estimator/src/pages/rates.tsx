@@ -61,6 +61,7 @@ interface CustomCableType {
 
 interface RatesShape {
   hourlyRate?: number;
+  bulkFactorAlpha?: number;
   customCableTypes?: CustomCableType[];
   pullMinutesPer10Ft: Record<string, number>;
   terminationMinutesPerEnd: Record<string, number>;
@@ -361,7 +362,7 @@ export default function RatesEditor() {
         <div className="grid gap-6 md:grid-cols-2">
           <RateSection
             title="Pull Time (minutes per 10 ft)"
-            subtitle="Base pull labor in minutes for every 10 ft of cable, before any multipliers or bulk-pull discount."
+            subtitle="Base pull labor in minutes for every 10 ft of cable, before any multipliers or bulk-pull difficulty penalty."
             options={allCableOptions}
             values={draft.pullMinutesPer10Ft}
             onChange={(k, v) => setNested("pullMinutesPer10Ft", k, v)}
@@ -398,41 +399,77 @@ export default function RatesEditor() {
           <Card className="md:col-span-2">
             <CardHeader>
               <CardTitle className="text-base">
-                Bulk Pull Efficiency Formula
+                Bulk Pull Difficulty Formula
               </CardTitle>
               <p className="text-sm text-muted-foreground">
-                Each run's <strong># of Cables</strong> is used as B directly
-                in the formula. More cables pulled together = lower factor =
-                faster per-cable pull time. Termination is never
-                bulk-discounted.
+                Pulling more cables together is HARDER (friction, weight,
+                jamming), so the factor GROWS with cable count using a
+                logarithmic curve with diminishing marginal difficulty.
+                Termination is never affected by the bulk factor.
               </p>
             </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 font-mono text-sm">
-                {[1, 2, 4, 6, 8, 12, 18, 24].map((b) => (
-                  <div
-                    key={b}
-                    className="flex flex-col gap-0.5 bg-muted/40 rounded p-2"
-                  >
-                    <span className="text-xs text-muted-foreground">
-                      numCables = {b}
-                    </span>
-                    <span className="font-semibold">
-                      {(0.4 + 0.6 / b).toFixed(3)}×
-                    </span>
-                    <span className="text-xs text-muted-foreground">
-                      {(100 - (0.4 + 0.6 / b) * 100).toFixed(0)}% pull savings
-                    </span>
-                  </div>
-                ))}
+            <CardContent className="space-y-4">
+              <div className="flex items-end gap-3 flex-wrap">
+                <div>
+                  <Label htmlFor="bulk-alpha" className="text-xs">
+                    Sensitivity α (alpha)
+                  </Label>
+                  <Input
+                    id="bulk-alpha"
+                    type="number"
+                    min={0}
+                    step={0.01}
+                    className="w-32 font-mono text-right"
+                    value={draft.bulkFactorAlpha ?? 0.15}
+                    onChange={(e) =>
+                      setDraft({
+                        ...draft,
+                        bulkFactorAlpha: Math.max(
+                          0,
+                          Number(e.target.value) || 0,
+                        ),
+                      })
+                    }
+                    data-testid="input-bulk-alpha"
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Larger α = steeper penalty for pulling more cables
+                  together. Default 0.15.
+                </p>
               </div>
-              <p className="text-xs text-muted-foreground mt-3">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 font-mono text-sm">
+                {[1, 2, 4, 6, 8, 12, 18, 24].map((b) => {
+                  const alpha = draft.bulkFactorAlpha ?? 0.15;
+                  const factor = 1 + alpha * Math.log(b);
+                  const penaltyPct = (factor - 1) * 100;
+                  return (
+                    <div
+                      key={b}
+                      className="flex flex-col gap-0.5 bg-muted/40 rounded p-2"
+                    >
+                      <span className="text-xs text-muted-foreground">
+                        numCables = {b}
+                      </span>
+                      <span className="font-semibold">
+                        {factor.toFixed(3)}×
+                      </span>
+                      <span className="text-xs text-muted-foreground">
+                        {penaltyPct < 0.05
+                          ? "baseline"
+                          : `+${penaltyPct.toFixed(0)}% pull time`}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+              <p className="text-xs text-muted-foreground">
                 Formula:{" "}
                 <code className="bg-muted px-1 rounded">
-                  bulkFactor = 0.4 + (0.6 / numCables)
+                  bulkFactor = 1 + α × ln(numCables)
                 </code>
-                &nbsp;·&nbsp; 1 cable → 1.000× (no savings) &nbsp;·&nbsp; 24
-                cables → 0.425×
+                &nbsp;·&nbsp; 1 cable → 1.000× (baseline) &nbsp;·&nbsp; 24
+                cables (α=0.15) → ≈ 1.477×
               </p>
             </CardContent>
           </Card>
