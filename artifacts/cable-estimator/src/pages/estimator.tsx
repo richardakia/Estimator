@@ -611,7 +611,7 @@ function EstimateDetail({
                     <TableHead className="h-8 px-2 text-right whitespace-nowrap">Cables</TableHead>
                     <TableHead className="h-8 px-2 text-right whitespace-nowrap">Length</TableHead>
                     <TableHead className="h-8 px-2 whitespace-nowrap">Ceiling</TableHead>
-                    <TableHead className="h-8 px-2 whitespace-nowrap">Pathway</TableHead>
+                    <TableHead className="h-8 px-2 whitespace-nowrap">Pathway Complexity</TableHead>
                     <TableHead className="h-8 px-2 text-right whitespace-nowrap">Bulk</TableHead>
                     <TableHead className="h-8 px-2 text-right whitespace-nowrap">Condition</TableHead>
                     <TableHead className="h-8 px-2 text-right whitespace-nowrap">Pull h</TableHead>
