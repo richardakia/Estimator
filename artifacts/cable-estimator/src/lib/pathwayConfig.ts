@@ -355,15 +355,11 @@ export function calculatePathwaySegment(
 
   // Linear-foot pathways: full multiplier stack
   const ceilingMult = rates.ceilingMult[segment.ceilingType] ?? 1;
-  const fill = rates.fillMult[segment.cableFill];
-  const fillLaborMult = fill?.laborMult ?? 1;
-  const fillMaterialMult = fill?.materialMult ?? 1;
 
   const baseLaborHrs =
     ((typeRate.laborMinPerFt * length) / 60) *
     heightMult *
-    ceilingMult *
-    fillLaborMult;
+    ceilingMult;
 
   const fastenerCount =
     typeRate.fastenerSpacingFt > 0 && length > 0
@@ -378,7 +374,7 @@ export function calculatePathwaySegment(
   const totalLaborHrs =
     baseLaborHrs + fastenerLaborHrs + bendLaborHrs + penetrationLaborHrs;
 
-  const pathwayMaterialCost = typeRate.materialCostPerFt * length * fillMaterialMult;
+  const pathwayMaterialCost = typeRate.materialCostPerFt * length;
   const fastenerMaterialCost = fastenerCount * typeRate.fastenerCostEach;
   const bendMaterialCost = segment.bends * rates.bendMaterialCost;
   const penetrationMaterialCost =

@@ -48,10 +48,8 @@ import {
   PATHWAY_TYPES,
   MOUNTING_HEIGHTS,
   PATHWAY_CEILING_TYPES,
-  CABLE_FILL_LEVELS,
   DEFAULT_PATHWAY_RATES,
   type PathwayTypeRateValues,
-  type CableFillMultValues,
 } from "@/lib/pathwayConfig";
 
 interface CustomCableType {
@@ -74,7 +72,6 @@ interface RatesShape {
   pathwayTypeRates?: Record<string, PathwayTypeRateValues>;
   pathwayMountingHeightMult?: Record<string, number>;
   pathwayCeilingMult?: Record<string, number>;
-  pathwayCableFillMult?: Record<string, CableFillMultValues>;
   pathwayBendLaborHrs?: number;
   pathwayBendMaterialCost?: number;
   pathwayPenetrationLaborHrs?: number;
@@ -155,22 +152,6 @@ export default function RatesEditor() {
     });
   };
 
-  const updateCableFill = (
-    fillValue: string,
-    field: keyof CableFillMultValues,
-    value: number,
-  ) => {
-    const current = draft.pathwayCableFillMult ?? {};
-    const existing =
-      current[fillValue] ?? DEFAULT_PATHWAY_RATES.fillMult[fillValue];
-    setDraft({
-      ...draft,
-      pathwayCableFillMult: {
-        ...current,
-        [fillValue]: { ...existing, [field]: value },
-      },
-    });
-  };
 
   const builtInKeys = new Set(CABLE_TYPES.map((c) => c.value));
   void builtInKeys;
@@ -229,9 +210,6 @@ export default function RatesEditor() {
   const effectiveTypeRate = (typeValue: string): PathwayTypeRateValues =>
     (draft.pathwayTypeRates ?? {})[typeValue] ??
     DEFAULT_PATHWAY_RATES.typeRates[typeValue];
-  const effectiveCableFill = (fillValue: string): CableFillMultValues =>
-    (draft.pathwayCableFillMult ?? {})[fillValue] ??
-    DEFAULT_PATHWAY_RATES.fillMult[fillValue];
 
   return (
     <div className="space-y-10">
@@ -640,68 +618,6 @@ export default function RatesEditor() {
             }
             onChange={(k, v) => setNested("pathwayCeilingMult", k, v)}
           />
-
-          <Card className="md:col-span-2">
-            <CardHeader>
-              <CardTitle className="text-base">
-                Cable Fill Multipliers
-              </CardTitle>
-              <p className="text-sm text-muted-foreground">
-                Labor and material multipliers based on how full the pathway
-                is.
-              </p>
-            </CardHeader>
-            <CardContent className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="min-w-[200px]">Fill Level</TableHead>
-                    <TableHead className="text-right">
-                      Labor multiplier
-                    </TableHead>
-                    <TableHead className="text-right">
-                      Material multiplier
-                    </TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {CABLE_FILL_LEVELS.map((f) => {
-                    const r = effectiveCableFill(f.value);
-                    return (
-                      <TableRow key={f.value}>
-                        <TableCell>
-                          <div className="font-medium">{f.label}</div>
-                          <div className="text-xs text-muted-foreground">
-                            {f.description}
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <NumCell
-                            value={r.laborMult}
-                            step={0.05}
-                            onChange={(v) =>
-                              updateCableFill(f.value, "laborMult", v)
-                            }
-                            testId={`input-fill-${f.value}-laborMult`}
-                          />
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <NumCell
-                            value={r.materialMult}
-                            step={0.05}
-                            onChange={(v) =>
-                              updateCableFill(f.value, "materialMult", v)
-                            }
-                            testId={`input-fill-${f.value}-materialMult`}
-                          />
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
 
           <Card>
             <CardHeader>

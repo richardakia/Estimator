@@ -459,12 +459,11 @@ function FormulaExplainer({ rates }: { rates: PathwayRates }) {
           <p className="font-semibold">Step 1 — Pathway Labor</p>
           <p className="text-muted-foreground text-xs">
             Pathway Labor Hours = (Labor Minutes per Foot × Length of Pathway
-            ÷ 60) × Height Multiplier × Ceiling Multiplier × Cable Fill Labor
-            Multiplier.
+            ÷ 60) × Height Multiplier × Ceiling Multiplier.
           </p>
           <div className="rounded-md bg-muted/60 px-4 py-2 font-mono text-xs">
             pathwayLaborHrs = (laborMinPerFt × length ÷ 60) × heightMult ×
-            ceilingMult × fillLaborMult
+            ceilingMult
           </div>
         </div>
         <div className="space-y-1">
@@ -508,11 +507,10 @@ function FormulaExplainer({ rates }: { rates: PathwayRates }) {
         <div className="space-y-1">
           <p className="font-semibold">Step 4 — Material Cost</p>
           <p className="text-muted-foreground text-xs">
-            Pathway Material Cost = Material Cost per Foot × Length of Pathway
-            × Cable Fill Material Multiplier.
+            Pathway Material Cost = Material Cost per Foot × Length of Pathway.
           </p>
           <div className="rounded-md bg-muted/60 px-4 py-2 font-mono text-xs">
-            pathwayMaterial = matCostPerFt × length × fillMaterialMult
+            pathwayMaterial = matCostPerFt × length
           </div>
         </div>
         <div className="space-y-1">
@@ -837,7 +835,6 @@ function PathwayEstimateView({
                     <TableHead className="text-right">Length</TableHead>
                     <TableHead>Height</TableHead>
                     <TableHead>Ceiling</TableHead>
-                    <TableHead>Fill</TableHead>
                     <TableHead className="text-right">Bends</TableHead>
                     <TableHead className="text-right">Penetr.</TableHead>
                     <TableHead className="text-right">Fasteners</TableHead>
@@ -873,11 +870,6 @@ function PathwayEstimateView({
                           {isPerEach
                             ? "—"
                             : labelFor(PATHWAY_CEILING_TYPES, s.ceilingType)}
-                        </TableCell>
-                        <TableCell>
-                          {isPerEach
-                            ? "—"
-                            : labelFor(CABLE_FILL_LEVELS, s.cableFill)}
                         </TableCell>
                         <TableCell className="text-right">
                           {isPerEach ? "—" : s.bends}
@@ -1195,30 +1187,6 @@ function PathwayEstimateView({
                 </div>
 
                 <div>
-                  <Label>Cable Fill</Label>
-                  <Select
-                    value={segDraft.cableFill}
-                    onValueChange={(v) =>
-                      setSegDraft({
-                        ...segDraft,
-                        cableFill: v as PathwayDraftBody["cableFill"],
-                      })
-                    }
-                  >
-                    <SelectTrigger data-testid="select-cable-fill">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {CABLE_FILL_LEVELS.map((f) => (
-                        <SelectItem key={f.value} value={f.value}>
-                          {f.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
                   <Label htmlFor="seg-bends">Bends / 90° turns</Label>
                   <Input
                     id="seg-bends"
@@ -1264,9 +1232,9 @@ function PathwayEstimateView({
 
             {previewType?.perEach && (
               <div className="col-span-2 rounded-md border border-border bg-muted/40 p-3 text-xs text-muted-foreground">
-                Sleeves and slots are estimated per each. Ceiling type, cable
-                fill, bends, and separate penetrations don't apply — each
-                sleeve already includes the firestop and core-drilling effort.
+                Sleeves and slots are estimated per each. Ceiling type, bends,
+                and separate penetrations don't apply — each sleeve already
+                includes the firestop and core-drilling effort.
               </div>
             )}
 

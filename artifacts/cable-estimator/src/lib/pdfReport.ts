@@ -398,23 +398,6 @@ export function generateEstimatePdf(
   multBlock("Mounting Height", rates.pathwayMountingHeightMult);
   multBlock("Pathway Ceiling", rates.pathwayCeilingMult);
 
-  // Cable fill — two-mult block
-  if (
-    rates.pathwayCableFillMult &&
-    Object.keys(rates.pathwayCableFillMult).length > 0
-  ) {
-    placeBlock(
-      "Cable Fill",
-      [["Level", "Labor ×", "Mat'l ×"]],
-      Object.entries(rates.pathwayCableFillMult).map(([k, v]) => [
-        titleCase(k),
-        `${v.laborMult.toFixed(3)}×`,
-        `${v.materialMult.toFixed(3)}×`,
-      ]),
-      { columnStyles: { 1: { halign: "right" }, 2: { halign: "right" } } },
-    );
-  }
-
   // Pathway adders (scalars)
   const scalars: Array<[string, string]> = [];
   if (rates.pathwayBendLaborHrs !== undefined)
