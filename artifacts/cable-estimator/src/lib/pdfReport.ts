@@ -260,117 +260,190 @@ export function generateEstimatePdf(
   });
   y = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 16;
 
-  // ── Rates section (new page) ──────────────────────────────────────────
-  doc.addPage();
-  y = margin;
+  // ── Rates section (landscape, multi-column) ───────────────────────────
+  doc.addPage("letter", "landscape");
+  const lwPage = doc.internal.pageSize.getWidth();
+  const lhPage = doc.internal.pageSize.getHeight();
+  const ratesMargin = 24;
+  const gutter = 10;
+  const numCols = 3;
+  const colWidth =
+    (lwPage - 2 * ratesMargin - gutter * (numCols - 1)) / numCols;
+  const colX = (i: number) => ratesMargin + i * (colWidth + gutter);
+  const colY: number[] = [0, 0, 0];
 
+  // Page header
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(16);
-  doc.text("Rate Editor Values", margin, y);
-  y += 22;
+  doc.setFontSize(13);
+  doc.text("Rate Editor Values", ratesMargin, ratesMargin + 6);
+  const headerEnd = ratesMargin + 16;
+  colY[0] = headerEnd;
+  colY[1] = headerEnd;
+  colY[2] = headerEnd;
 
-  // Common rates
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(12);
-  doc.text("Common", margin, y);
-  y += 8;
-  autoTable(doc, {
-    startY: y,
-    theme: "grid",
-    headStyles: { fillColor: [33, 37, 41] },
-    head: [["Setting", "Value"]],
-    body: [
-      ["Default Hourly Rate", fmtMoney(rates.hourlyRate ?? 0) + "/hr"],
-      [
-        "Bulk Factor α (sensitivity)",
-        (rates.bulkFactorAlpha ?? 0.15).toFixed(3),
-      ],
+  const lastY = () =>
+    (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable
+      .finalY;
+
+  // Place a small block (title + table) into the shortest column.
+  // Returns the column index used.
+  const placeBlock = (
+    title: string,
+    head: string[][],
+    body: (string | number)[][],
+    opts: { columnStyles?: Record<number, { halign?: "left" | "right" }> } = {},
+  ): number => {
+    if (body.length === 0) return -1;
+    let col = 0;
+    for (let i = 1; i < numCols; i++) if (colY[i] < colY[col]) col = i;
+    // If shortest column would overflow, start a new page
+    const estHeight = 14 + (body.length + 1) * 12 + 8;
+    if (colY[col] + estHeight > lhPage - 32) {
+      doc.addPage("letter", "landscape");
+      colY[0] = ratesMargin;
+      colY[1] = ratesMargin;
+      colY[2] = ratesMargin;
+      col = 0;
+    }
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(8.5);
+    doc.text(title, colX(col), colY[col] + 8);
+    autoTable(doc, {
+      startY: colY[col] + 11,
+      theme: "grid",
+      headStyles: {
+        fillColor: [33, 37, 41],
+        fontSize: 7,
+        cellPadding: 2,
+      },
+      bodyStyles: { fontSize: 7, cellPadding: 1.8 },
+      head,
+      body,
+      margin: { left: colX(col) },
+      tableWidth: colWidth,
+      columnStyles: opts.columnStyles,
+    });
+    colY[col] = lastY() + 8;
+    return col;
+  };
+
+  // Common
+  placeBlock(
+    "Common",
+    [["Setting", "Value"]],
+    [
+      ["Hourly Rate", fmtMoney(rates.hourlyRate ?? 0) + "/hr"],
+      ["Bulk Factor α", (rates.bulkFactorAlpha ?? 0.15).toFixed(3)],
     ],
-    margin: { left: margin, right: margin },
-    styles: { fontSize: 9 },
-  });
-  y = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 16;
+    { columnStyles: { 1: { halign: "right" } } },
+  );
 
-  // Cable Type rates
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(12);
-  doc.text("Cable Type Rates", margin, y);
-  y += 8;
+  // Cable Type Rates (combined pull + termination)
   const cableKeys = Array.from(
     new Set([
       ...Object.keys(rates.pullMinutesPer10Ft ?? {}),
       ...Object.keys(rates.terminationMinutesPerEnd ?? {}),
     ]),
   );
-  autoTable(doc, {
-    startY: y,
-    theme: "grid",
-    headStyles: { fillColor: [33, 37, 41] },
-    head: [["Cable Type", "Pull min / 10ft", "Termination min / end"]],
-    body: cableKeys.map((k) => [
+  placeBlock(
+    "Cable Type Rates",
+    [["Cable", "Pull min/10ft", "Term min/end"]],
+    cableKeys.map((k) => [
       labelFor(cableTypeLookup, k),
       String(rates.pullMinutesPer10Ft?.[k] ?? "—"),
       String(rates.terminationMinutesPerEnd?.[k] ?? "—"),
     ]),
-    margin: { left: margin, right: margin },
-    styles: { fontSize: 9 },
-    columnStyles: { 1: { halign: "right" }, 2: { halign: "right" } },
-  });
-  y = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 16;
+    { columnStyles: { 1: { halign: "right" }, 2: { halign: "right" } } },
+  );
 
-  // Multipliers
-  const multSection = (
+  // Multiplier blocks
+  const multBlock = (
     title: string,
     obj: Record<string, number> | undefined,
     lookup?: readonly { value: string; label: string }[],
   ) => {
     if (!obj || Object.keys(obj).length === 0) return;
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(12);
-    doc.text(title, margin, y);
-    y += 8;
-    autoTable(doc, {
-      startY: y,
-      theme: "grid",
-      headStyles: { fillColor: [33, 37, 41] },
-      head: [["Option", "Multiplier"]],
-      body: Object.entries(obj).map(([k, v]) => [
+    placeBlock(
+      title,
+      [["Option", "Mult"]],
+      Object.entries(obj).map(([k, v]) => [
         lookup ? labelFor(lookup, k) : titleCase(k),
         `${v.toFixed(3)}×`,
       ]),
-      margin: { left: margin, right: margin },
-      styles: { fontSize: 9 },
-      columnStyles: { 1: { halign: "right" } },
-    });
-    y =
-      (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable
-        .finalY + 16;
+      { columnStyles: { 1: { halign: "right" } } },
+    );
   };
 
-  multSection("Install Type Multipliers", rates.installTypeMult, INSTALL_TYPES);
-  multSection("Ceiling Multipliers", rates.ceilingMult, CEILING_TYPES);
-  multSection("Pathway Complexity Multipliers", rates.pathwayMult, PATHWAY_LEVELS);
-  multSection("Building Type Multipliers", rates.buildingMult, BUILDING_TYPES);
-  multSection("Environment Multipliers", rates.environmentMult, ENVIRONMENTS);
-  multSection("Skill Level Multipliers", rates.skillMult, SKILL_LEVELS);
+  multBlock("Install Type", rates.installTypeMult, INSTALL_TYPES);
+  multBlock("Ceiling", rates.ceilingMult, CEILING_TYPES);
+  multBlock("Pathway Complexity", rates.pathwayMult, PATHWAY_LEVELS);
+  multBlock("Building Type", rates.buildingMult, BUILDING_TYPES);
+  multBlock("Environment", rates.environmentMult, ENVIRONMENTS);
+  multBlock("Skill Level", rates.skillMult, SKILL_LEVELS);
+  multBlock("Mounting Height", rates.pathwayMountingHeightMult);
+  multBlock("Pathway Ceiling", rates.pathwayCeilingMult);
 
-  // Pathway type rates
+  // Cable fill — two-mult block
+  if (
+    rates.pathwayCableFillMult &&
+    Object.keys(rates.pathwayCableFillMult).length > 0
+  ) {
+    placeBlock(
+      "Cable Fill",
+      [["Level", "Labor ×", "Mat'l ×"]],
+      Object.entries(rates.pathwayCableFillMult).map(([k, v]) => [
+        titleCase(k),
+        `${v.laborMult.toFixed(3)}×`,
+        `${v.materialMult.toFixed(3)}×`,
+      ]),
+      { columnStyles: { 1: { halign: "right" }, 2: { halign: "right" } } },
+    );
+  }
+
+  // Pathway adders (scalars)
+  const scalars: Array<[string, string]> = [];
+  if (rates.pathwayBendLaborHrs !== undefined)
+    scalars.push(["Bend labor (hrs)", rates.pathwayBendLaborHrs.toFixed(2)]);
+  if (rates.pathwayBendMaterialCost !== undefined)
+    scalars.push(["Bend material", fmtMoney(rates.pathwayBendMaterialCost)]);
+  if (rates.pathwayPenetrationLaborHrs !== undefined)
+    scalars.push([
+      "Penetration labor (hrs)",
+      rates.pathwayPenetrationLaborHrs.toFixed(2),
+    ]);
+  if (rates.pathwayPenetrationMaterialCost !== undefined)
+    scalars.push([
+      "Penetration material",
+      fmtMoney(rates.pathwayPenetrationMaterialCost),
+    ]);
+  if (scalars.length > 0) {
+    placeBlock("Pathway Adders", [["Setting", "Value"]], scalars, {
+      columnStyles: { 1: { halign: "right" } },
+    });
+  }
+
+  // Pathway Type Rates — wider, spans full page width below the columns
   if (
     rates.pathwayTypeRates &&
     Object.keys(rates.pathwayTypeRates).length > 0
   ) {
-    if (y > 600) {
-      doc.addPage();
-      y = margin;
+    const maxColY = Math.max(...colY);
+    const ptHeader = maxColY + 4;
+    if (ptHeader + 80 > lhPage - 32) {
+      doc.addPage("letter", "landscape");
+      colY[0] = ratesMargin;
+      colY[1] = ratesMargin;
+      colY[2] = ratesMargin;
     }
+    const startY = Math.max(...colY) + 4;
     doc.setFont("helvetica", "bold");
-    doc.setFontSize(12);
-    doc.text("Pathway Type Rates", margin, y);
-    y += 8;
+    doc.setFontSize(8.5);
+    doc.text("Pathway Type Rates", ratesMargin, startY + 8);
     autoTable(doc, {
-      startY: y,
+      startY: startY + 11,
       theme: "grid",
-      headStyles: { fillColor: [33, 37, 41] },
+      headStyles: { fillColor: [33, 37, 41], fontSize: 7, cellPadding: 2 },
+      bodyStyles: { fontSize: 7, cellPadding: 1.8 },
       head: [
         [
           "Pathway",
@@ -389,8 +462,7 @@ export function generateEstimatePdf(
         fmtMoney(v.fastenerCostEach),
         v.fastenerLaborMinEach,
       ]),
-      margin: { left: margin, right: margin },
-      styles: { fontSize: 8 },
+      margin: { left: ratesMargin, right: ratesMargin },
       columnStyles: {
         1: { halign: "right" },
         2: { halign: "right" },
@@ -398,87 +470,6 @@ export function generateEstimatePdf(
         4: { halign: "right" },
         5: { halign: "right" },
       },
-    });
-    y =
-      (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable
-        .finalY + 16;
-  }
-
-  multSection(
-    "Pathway Mounting Height Multipliers",
-    rates.pathwayMountingHeightMult,
-  );
-  multSection("Pathway Ceiling Multipliers", rates.pathwayCeilingMult);
-
-  // Cable fill (laborMult / materialMult)
-  if (
-    rates.pathwayCableFillMult &&
-    Object.keys(rates.pathwayCableFillMult).length > 0
-  ) {
-    if (y > 650) {
-      doc.addPage();
-      y = margin;
-    }
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(12);
-    doc.text("Pathway Cable Fill Multipliers", margin, y);
-    y += 8;
-    autoTable(doc, {
-      startY: y,
-      theme: "grid",
-      headStyles: { fillColor: [33, 37, 41] },
-      head: [["Fill Level", "Labor ×", "Material ×"]],
-      body: Object.entries(rates.pathwayCableFillMult).map(([k, v]) => [
-        titleCase(k),
-        `${v.laborMult.toFixed(3)}×`,
-        `${v.materialMult.toFixed(3)}×`,
-      ]),
-      margin: { left: margin, right: margin },
-      styles: { fontSize: 9 },
-      columnStyles: { 1: { halign: "right" }, 2: { halign: "right" } },
-    });
-    y =
-      (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable
-        .finalY + 16;
-  }
-
-  // Bend / penetration scalars
-  const scalars: Array<[string, string]> = [];
-  if (rates.pathwayBendLaborHrs !== undefined)
-    scalars.push(["Bend labor (hrs each)", rates.pathwayBendLaborHrs.toFixed(2)]);
-  if (rates.pathwayBendMaterialCost !== undefined)
-    scalars.push([
-      "Bend material cost ($ each)",
-      fmtMoney(rates.pathwayBendMaterialCost),
-    ]);
-  if (rates.pathwayPenetrationLaborHrs !== undefined)
-    scalars.push([
-      "Penetration labor (hrs each)",
-      rates.pathwayPenetrationLaborHrs.toFixed(2),
-    ]);
-  if (rates.pathwayPenetrationMaterialCost !== undefined)
-    scalars.push([
-      "Penetration material cost ($ each)",
-      fmtMoney(rates.pathwayPenetrationMaterialCost),
-    ]);
-  if (scalars.length > 0) {
-    if (y > 680) {
-      doc.addPage();
-      y = margin;
-    }
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(12);
-    doc.text("Pathway Adders", margin, y);
-    y += 8;
-    autoTable(doc, {
-      startY: y,
-      theme: "grid",
-      headStyles: { fillColor: [33, 37, 41] },
-      head: [["Setting", "Value"]],
-      body: scalars,
-      margin: { left: margin, right: margin },
-      styles: { fontSize: 9 },
-      columnStyles: { 1: { halign: "right" } },
     });
   }
 
