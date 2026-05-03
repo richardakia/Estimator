@@ -563,6 +563,10 @@ components:
           type: string
         cableType:
           type: string
+        description:
+          type: string
+          nullable: true
+          description: Optional short note describing this cable run (e.g. specific cable model)
         numCables:
           type: integer
           description: Number of cables pulled simultaneously in this run (used as B in bulk factor formula)
@@ -605,6 +609,9 @@ components:
           type: string
         cableType:
           type: string
+        description:
+          type: string
+          nullable: true
         numCables:
           type: integer
           description: Cables pulled simultaneously (B) — drives the bulk factor
@@ -788,6 +795,9 @@ components:
           type: string
         cableType:
           type: string
+        description:
+          type: string
+          nullable: true
         numCables:
           type: integer
         fiberStrands:
@@ -816,6 +826,9 @@ components:
           type: string
         cableType:
           type: string
+        description:
+          type: string
+          nullable: true
         numCables:
           type: integer
         fiberStrands:

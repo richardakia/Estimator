@@ -11,6 +11,7 @@ import type { PathwayComplexity } from "./pathwayComplexity";
 export interface UpdateRunBody {
   label: string;
   cableType: string;
+  description?: string | null;
   numCables: number;
   /** @minimum 1 */
   fiberStrands?: number;

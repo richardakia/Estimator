@@ -147,6 +147,8 @@ export interface Run {
   estimateId: number;
   label: string;
   cableType: string;
+  /** Optional short note describing this cable run (e.g. specific cable model) */
+  description?: string | null;
   /** Number of cables pulled simultaneously in this run (used as B in bulk factor formula) */
   numCables: number;
   /** Strands per fiber cable (only meaningful for fiber); each strand is terminated separately. Defaults to 1. */
@@ -166,6 +168,7 @@ export interface RunCalculation {
   runId?: number;
   label: string;
   cableType: string;
+  description?: string | null;
   /** Cables pulled simultaneously (B) — drives the bulk factor */
   numCables: number;
   /** Strands per fiber cable; multiplies termination labor (1 for non-fiber) */
@@ -245,6 +248,7 @@ export interface UpdateEstimateBody {
 export interface CreateRunBody {
   label: string;
   cableType: string;
+  description?: string | null;
   numCables: number;
   /** @minimum 1 */
   fiberStrands?: number;
@@ -256,6 +260,7 @@ export interface CreateRunBody {
 export interface UpdateRunBody {
   label: string;
   cableType: string;
+  description?: string | null;
   numCables: number;
   /** @minimum 1 */
   fiberStrands?: number;

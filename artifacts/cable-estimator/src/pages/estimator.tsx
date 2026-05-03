@@ -17,6 +17,7 @@ import type {
 import { useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -88,6 +89,7 @@ const DEFAULT_ESTIMATE: EstimateForm = {
 const DEFAULT_RUN: RunForm = {
   label: "",
   cableType: "category",
+  description: "",
   numCables: 12,
   fiberStrands: 1,
   lengthFt: 150,
@@ -363,6 +365,7 @@ interface EstimateDetailData {
     runId?: number;
     label: string;
     cableType: string;
+    description?: string | null;
     numCables: number;
     fiberStrands?: number;
     lengthFt: number;
@@ -480,6 +483,7 @@ function EstimateDetail({
     setRunForm({
       label: r.label,
       cableType: r.cableType as RunForm["cableType"],
+      description: r.description ?? "",
       numCables: r.numCables,
       fiberStrands: r.fiberStrands ?? 1,
       lengthFt: r.lengthFt,
@@ -792,6 +796,19 @@ function EstimateDetail({
                 }
                 placeholder="e.g. Floor 3 Workstations"
                 data-testid="input-run-label"
+              />
+            </div>
+            <div>
+              <Label htmlFor="run-description">Description (optional)</Label>
+              <Textarea
+                id="run-description"
+                rows={2}
+                value={runForm.description ?? ""}
+                onChange={(e) =>
+                  setRunForm({ ...runForm, description: e.target.value })
+                }
+                placeholder="e.g. Plenum-rated Cat6, blue jacket, manufacturer X"
+                data-testid="input-run-description"
               />
             </div>
             <div className="grid grid-cols-2 gap-3">

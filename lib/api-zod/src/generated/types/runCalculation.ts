@@ -15,6 +15,7 @@ export interface RunCalculation {
   runId?: number;
   label: string;
   cableType: string;
+  description?: string | null;
   /** Cables pulled simultaneously (B) — drives the bulk factor */
   numCables: number;
   /** Strands per fiber cable; multiplies termination labor (1 for non-fiber) */

@@ -32,6 +32,7 @@ export const runsTable = pgTable("runs", {
     .references(() => estimatesTable.id, { onDelete: "cascade" }),
   label: text("label").notNull(),
   cableType: text("cable_type").notNull(),
+  description: text("description"),
   numCables: integer("num_cables").notNull(),
   fiberStrands: integer("fiber_strands").notNull().default(1),
   lengthFt: doublePrecision("length_ft").notNull(),

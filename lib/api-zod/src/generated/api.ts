@@ -73,6 +73,7 @@ export const GetEstimateResponse = zod.object({
         runId: zod.number().optional(),
         label: zod.string(),
         cableType: zod.string(),
+        description: zod.string().nullish(),
         numCables: zod
           .number()
           .describe(
@@ -199,6 +200,7 @@ export const CreateRunParams = zod.object({
 export const CreateRunBody = zod.object({
   label: zod.string(),
   cableType: zod.string(),
+  description: zod.string().nullish(),
   numCables: zod.number(),
   fiberStrands: zod.number().min(1).optional(),
   lengthFt: zod.number(),
@@ -216,6 +218,7 @@ export const UpdateRunParams = zod.object({
 export const UpdateRunBody = zod.object({
   label: zod.string(),
   cableType: zod.string(),
+  description: zod.string().nullish(),
   numCables: zod.number(),
   fiberStrands: zod.number().min(1).optional(),
   lengthFt: zod.number(),
@@ -228,6 +231,12 @@ export const UpdateRunResponse = zod.object({
   estimateId: zod.number(),
   label: zod.string(),
   cableType: zod.string(),
+  description: zod
+    .string()
+    .nullish()
+    .describe(
+      "Optional short note describing this cable run (e.g. specific cable model)",
+    ),
   numCables: zod
     .number()
     .describe(
@@ -1133,6 +1142,7 @@ export const PreviewCalculationBody = zod.object({
     zod.object({
       label: zod.string(),
       cableType: zod.string(),
+      description: zod.string().nullish(),
       numCables: zod.number(),
       fiberStrands: zod.number().min(1).optional(),
       lengthFt: zod.number(),
@@ -1149,6 +1159,7 @@ export const PreviewCalculationResponse = zod.object({
         runId: zod.number().optional(),
         label: zod.string(),
         cableType: zod.string(),
+        description: zod.string().nullish(),
         numCables: zod
           .number()
           .describe(

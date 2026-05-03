@@ -167,6 +167,7 @@ export interface RunInput {
   id?: number;
   label: string;
   cableType: string;
+  description?: string | null;
   /** Number of cables pulled simultaneously in this run — used as B in bulkFactor = 1 + α × ln(numCables) */
   numCables: number;
   /** Strands per fiber cable; each strand is terminated separately. Defaults to 1 for non-fiber. */
@@ -188,6 +189,7 @@ export interface RunCalculation {
   runId?: number;
   label: string;
   cableType: string;
+  description?: string | null;
   /** Cables pulled simultaneously (B) — same as numCables in RunInput */
   numCables: number;
   /** Strands per fiber cable; multiplies termination labor (1 for non-fiber) */
@@ -317,6 +319,7 @@ export function calculateEstimate(
       runId: run.id,
       label: run.label,
       cableType: run.cableType,
+      description: run.description ?? null,
       numCables: N,
       fiberStrands: strands,
       lengthFt: run.lengthFt,
