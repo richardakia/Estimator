@@ -609,6 +609,7 @@ function EstimateDetail({
                   <TableRow>
                     <TableHead>Label</TableHead>
                     <TableHead>Cable</TableHead>
+                    <TableHead>Description</TableHead>
                     <TableHead className="text-right"># Cables</TableHead>
                     <TableHead className="text-right">Length</TableHead>
                     <TableHead>Ceiling</TableHead>
@@ -630,6 +631,9 @@ function EstimateDetail({
                     >
                       <TableCell className="font-medium">{r.label}</TableCell>
                       <TableCell>{labelFor(cableTypes, r.cableType)}</TableCell>
+                      <TableCell className="text-xs text-muted-foreground max-w-[220px] whitespace-normal">
+                        {r.description || "—"}
+                      </TableCell>
                       <TableCell className="text-right">{r.numCables}</TableCell>
                       <TableCell className="text-right">
                         {r.lengthFt} ft

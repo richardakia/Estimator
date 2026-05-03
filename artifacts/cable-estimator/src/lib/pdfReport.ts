@@ -26,6 +26,7 @@ interface EstimateForReport {
   runs: Array<{
     label: string;
     cableType: string;
+    description?: string | null;
     numCables: number;
     fiberStrands?: number;
     lengthFt: number;
@@ -189,6 +190,7 @@ export function generateEstimatePdf(
       [
         "Label",
         "Cable",
+        "Description",
         "# Cables",
         "Length",
         "Ceiling",
@@ -204,6 +206,7 @@ export function generateEstimatePdf(
     body: detail.runs.map((r) => [
       r.label,
       labelFor(cableTypeLookup, r.cableType),
+      r.description ?? "",
       r.numCables,
       `${r.lengthFt} ft`,
       labelFor(CEILING_TYPES, r.ceilingType),
@@ -218,15 +221,16 @@ export function generateEstimatePdf(
     margin: { left: margin, right: margin },
     styles: { fontSize: 8 },
     columnStyles: {
-      2: { halign: "right" },
+      2: { cellWidth: 80 },
       3: { halign: "right" },
       4: { halign: "right" },
-      7: { halign: "right" },
+      5: { halign: "right" },
       8: { halign: "right" },
       9: { halign: "right" },
       10: { halign: "right" },
       11: { halign: "right" },
       12: { halign: "right" },
+      13: { halign: "right" },
     },
   });
   y = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 16;
