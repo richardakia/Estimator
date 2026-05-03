@@ -367,6 +367,7 @@ interface EstimateDetailData {
     bulkFactor: number;
     pullMinutesPer10Ft: number;
     terminationMinutesPerEnd: number;
+    conditionMultiplier: number;
     pullHoursPerCable: number;
     terminationHoursPerCable: number;
     adjustedHoursPerCable: number;
@@ -588,8 +589,7 @@ function EstimateDetail({
                     <TableHead>Ceiling</TableHead>
                     <TableHead>Pathway</TableHead>
                     <TableHead className="text-right">Bulk Factor</TableHead>
-                    <TableHead className="text-right">Pull min/10ft</TableHead>
-                    <TableHead className="text-right">Term min/end</TableHead>
+                    <TableHead className="text-right">Condition Mult</TableHead>
                     <TableHead className="text-right">Pull hrs/run</TableHead>
                     <TableHead className="text-right">Term hrs/run</TableHead>
                     <TableHead className="text-right">Cost (avg)</TableHead>
@@ -622,11 +622,15 @@ function EstimateDetail({
                           {r.bulkFactor.toFixed(3)}×
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-right font-mono text-muted-foreground">
-                        {r.pullMinutesPer10Ft.toFixed(1)}
-                      </TableCell>
-                      <TableCell className="text-right font-mono text-muted-foreground">
-                        {r.terminationMinutesPerEnd.toFixed(1)}
+                      <TableCell className="text-right">
+                        <Badge
+                          variant={
+                            r.conditionMultiplier > 1 ? "default" : "outline"
+                          }
+                          className="font-mono"
+                        >
+                          {r.conditionMultiplier.toFixed(3)}×
+                        </Badge>
                       </TableCell>
                       <TableCell className="text-right font-mono text-muted-foreground">
                         {(r.pullHoursPerCable * r.numCables).toFixed(2)}

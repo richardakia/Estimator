@@ -207,6 +207,8 @@ export interface RunCalculation {
   bulkFactor: number;
   pullMinutesPer10Ft: number;
   terminationMinutesPerEnd: number;
+  /** Combined site/condition multiplier: install × ceiling × pathway × building × environment × skill */
+  conditionMultiplier: number;
   /** Pull hours for one cable within a single bulk pass (after condition mult + bulk factor) */
   pullHoursPerCable: number;
   /** Termination hours per cable (both ends, after condition mult — NOT bulk-discounted) */
@@ -323,6 +325,7 @@ export function calculateEstimate(
       bulkFactor: round(bulkFactor, 4),
       pullMinutesPer10Ft: round(pullMin, 3),
       terminationMinutesPerEnd: round(termMin, 3),
+      conditionMultiplier: round(conditionMultiplier, 4),
       pullHoursPerCable: round(pullHoursPerCable, 4),
       terminationHoursPerCable: round(terminationHoursPerCable, 4),
       adjustedHoursPerCable: round(adjustedHoursPerCable, 4),

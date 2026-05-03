@@ -620,6 +620,9 @@ components:
         terminationMinutesPerEnd:
           type: number
           description: Base termination time in minutes per end for this cable type
+        conditionMultiplier:
+          type: number
+          description: Combined site/condition multiplier (install × ceiling × pathway × building × environment × skill)
         pullHoursPerCable:
           type: number
           description: Pull hours for one cable within a single bulk pass (after condition mult + bulk factor)
@@ -652,6 +655,7 @@ components:
           bulkFactor,
           pullMinutesPer10Ft,
           terminationMinutesPerEnd,
+          conditionMultiplier,
           pullHoursPerCable,
           terminationHoursPerCable,
           adjustedHoursPerCable,

@@ -92,6 +92,11 @@ export const GetEstimateResponse = zod.object({
           .describe(
             "Base termination time in minutes per end for this cable type",
           ),
+        conditionMultiplier: zod
+          .number()
+          .describe(
+            "Combined site\/condition multiplier (install × ceiling × pathway × building × environment × skill)",
+          ),
         pullHoursPerCable: zod
           .number()
           .describe(
@@ -128,7 +133,7 @@ export const GetEstimateResponse = zod.object({
     bulkPenaltyHours: zod
       .number()
       .describe(
-        "Hours saved by bulk pulling vs. pulling each cable individually",
+        "Extra hours added by bulk-pull difficulty vs. pulling each cable individually",
       ),
     taskBreakdown: zod.array(
       zod.object({
@@ -1179,6 +1184,11 @@ export const PreviewCalculationResponse = zod.object({
           .describe(
             "Base termination time in minutes per end for this cable type",
           ),
+        conditionMultiplier: zod
+          .number()
+          .describe(
+            "Combined site\/condition multiplier (install × ceiling × pathway × building × environment × skill)",
+          ),
         pullHoursPerCable: zod
           .number()
           .describe(
@@ -1215,7 +1225,7 @@ export const PreviewCalculationResponse = zod.object({
     bulkPenaltyHours: zod
       .number()
       .describe(
-        "Hours saved by bulk pulling vs. pulling each cable individually",
+        "Extra hours added by bulk-pull difficulty vs. pulling each cable individually",
       ),
     taskBreakdown: zod.array(
       zod.object({

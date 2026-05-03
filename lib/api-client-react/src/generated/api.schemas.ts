@@ -179,6 +179,8 @@ export interface RunCalculation {
   pullMinutesPer10Ft: number;
   /** Base termination time in minutes per end for this cable type */
   terminationMinutesPerEnd: number;
+  /** Combined site/condition multiplier (install × ceiling × pathway × building × environment × skill) */
+  conditionMultiplier: number;
   /** Pull hours for one cable within a single bulk pass (after condition mult + bulk factor) */
   pullHoursPerCable: number;
   /** Termination hours per cable (both ends, after condition mult — NOT bulk-discounted) */
@@ -209,7 +211,7 @@ export interface EstimateTotals {
   totalCostLow: number;
   totalCostAvg: number;
   totalCostHigh: number;
-  /** Hours saved by bulk pulling vs. pulling each cable individually */
+  /** Extra hours added by bulk-pull difficulty vs. pulling each cable individually */
   bulkPenaltyHours: number;
   taskBreakdown: TaskBreakdownItem[];
 }
