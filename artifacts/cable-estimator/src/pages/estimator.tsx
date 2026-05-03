@@ -559,7 +559,7 @@ function EstimateDetail({
         <StatCard
           icon={<TrendingDown className="w-4 h-4" />}
           label="Bulk Pull Savings"
-          value={fmtHours(totals.bulkSavingsHours)}
+          value={fmtHours(totals.bulkSavingsHours ?? 0)}
           sub="hours saved vs. pulling each cable solo"
         />
       </div>
