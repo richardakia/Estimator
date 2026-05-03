@@ -867,7 +867,7 @@ export default function RatesEditor() {
               <Label htmlFor="new-cable-label">Cable Name</Label>
               <Input
                 id="new-cable-label"
-                placeholder="e.g. 18/2 Plenum, HDMI, Shielded Cat6A"
+                placeholder="e.g. 18/2 Plenum, HDMI, Shielded Cable"
                 value={newLabel}
                 onChange={(e) => {
                   setNewLabel(e.target.value);

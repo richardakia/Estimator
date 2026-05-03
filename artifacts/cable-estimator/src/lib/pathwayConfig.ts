@@ -71,7 +71,7 @@ export const PATHWAY_TYPES: PathwayType[] = [
     fastenerSpacingFt: 4,
     fastenerCostEach: 2.75,
     fastenerLaborMinEach: 1.5,
-    bestFor: "Lightweight Cat5e or AV runs; not for Cat6A or fiber",
+    bestFor: "Lightweight category or AV runs; not for heavy bundles or fiber",
   },
   {
     value: "arlington_loops",

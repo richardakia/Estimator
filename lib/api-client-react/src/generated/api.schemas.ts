@@ -12,9 +12,7 @@ export interface HealthStatus {
 export type CableType = (typeof CableType)[keyof typeof CableType];
 
 export const CableType = {
-  cat5e: "cat5e",
-  cat6: "cat6",
-  cat6a: "cat6a",
+  category: "category",
   sm_fiber: "sm_fiber",
   mm_fiber: "mm_fiber",
   coax_rg6: "coax_rg6",
@@ -298,9 +296,7 @@ export interface PathwayCableFillMult {
  * Pull labor in minutes for every 10 ft of cable, by cable type
  */
 export type RatesConfigPullMinutesPer10Ft = {
-  cat5e: number;
-  cat6: number;
-  cat6a: number;
+  category: number;
   sm_fiber: number;
   mm_fiber: number;
   coax_rg6: number;
@@ -313,9 +309,7 @@ export type RatesConfigPullMinutesPer10Ft = {
  * Termination labor in minutes per cable end, by cable type (each cable has 2 ends)
  */
 export type RatesConfigTerminationMinutesPerEnd = {
-  cat5e: number;
-  cat6: number;
-  cat6a: number;
+  category: number;
   sm_fiber: number;
   mm_fiber: number;
   coax_rg6: number;

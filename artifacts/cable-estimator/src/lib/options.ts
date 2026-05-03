@@ -1,7 +1,5 @@
 export const CABLE_TYPES = [
-  { value: "cat5e", label: "Cat5e" },
-  { value: "cat6", label: "Cat6" },
-  { value: "cat6a", label: "Cat6A" },
+  { value: "category", label: "Category Cable" },
   { value: "sm_fiber", label: "Single-mode Fiber" },
   { value: "mm_fiber", label: "Multi-mode Fiber" },
   { value: "coax_rg6", label: "Coax RG6" },

@@ -1,7 +1,5 @@
 export type CableType =
-  | "cat5e"
-  | "cat6"
-  | "cat6a"
+  | "category"
   | "sm_fiber"
   | "mm_fiber"
   | "coax_rg6"
@@ -61,9 +59,7 @@ export interface RatesConfigShape {
 export const DEFAULT_RATES: RatesConfigShape = {
   customCableTypes: [],
   pullMinutesPer10Ft: {
-    cat5e: 2.5,
-    cat6: 3.0,
-    cat6a: 3.5,
+    category: 3.0,
     sm_fiber: 4.0,
     mm_fiber: 4.0,
     coax_rg6: 2.5,
@@ -71,9 +67,7 @@ export const DEFAULT_RATES: RatesConfigShape = {
     speaker_cable: 2.0,
   },
   terminationMinutesPerEnd: {
-    cat5e: 4,
-    cat6: 5,
-    cat6a: 7,
+    category: 5,
     sm_fiber: 15,
     mm_fiber: 12,
     coax_rg6: 4,

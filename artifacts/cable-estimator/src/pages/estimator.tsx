@@ -87,7 +87,7 @@ const DEFAULT_ESTIMATE: EstimateForm = {
 
 const DEFAULT_RUN: RunForm = {
   label: "",
-  cableType: "cat6",
+  cableType: "category",
   numCables: 12,
   fiberStrands: 1,
   lengthFt: 150,

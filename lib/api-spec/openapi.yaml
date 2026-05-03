@@ -411,7 +411,7 @@ components:
 
     CableType:
       type: string
-      enum: [cat5e, cat6, cat6a, sm_fiber, mm_fiber, coax_rg6, coax_rg11, speaker_cable]
+      enum: [category, sm_fiber, mm_fiber, coax_rg6, coax_rg11, speaker_cable]
 
     InstallType:
       type: string
@@ -892,32 +892,28 @@ components:
           additionalProperties:
             type: number
           properties:
-            cat5e: { type: number }
-            cat6: { type: number }
-            cat6a: { type: number }
+            category: { type: number }
             sm_fiber: { type: number }
             mm_fiber: { type: number }
             coax_rg6: { type: number }
             coax_rg11: { type: number }
             speaker_cable: { type: number }
           required:
-            [cat5e, cat6, cat6a, sm_fiber, mm_fiber, coax_rg6, coax_rg11, speaker_cable]
+            [category, sm_fiber, mm_fiber, coax_rg6, coax_rg11, speaker_cable]
         terminationMinutesPerEnd:
           type: object
           description: Termination labor in minutes per cable end, by cable type (each cable has 2 ends)
           additionalProperties:
             type: number
           properties:
-            cat5e: { type: number }
-            cat6: { type: number }
-            cat6a: { type: number }
+            category: { type: number }
             sm_fiber: { type: number }
             mm_fiber: { type: number }
             coax_rg6: { type: number }
             coax_rg11: { type: number }
             speaker_cable: { type: number }
           required:
-            [cat5e, cat6, cat6a, sm_fiber, mm_fiber, coax_rg6, coax_rg11, speaker_cable]
+            [category, sm_fiber, mm_fiber, coax_rg6, coax_rg11, speaker_cable]
         installTypeMult:
           type: object
           properties:

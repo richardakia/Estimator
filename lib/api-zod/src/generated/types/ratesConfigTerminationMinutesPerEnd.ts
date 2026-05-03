@@ -10,9 +10,7 @@
  * Termination labor in minutes per cable end, by cable type (each cable has 2 ends)
  */
 export type RatesConfigTerminationMinutesPerEnd = {
-  cat5e: number;
-  cat6: number;
-  cat6a: number;
+  category: number;
   sm_fiber: number;
   mm_fiber: number;
   coax_rg6: number;

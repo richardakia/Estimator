@@ -10,9 +10,7 @@
  * Pull labor in minutes for every 10 ft of cable, by cable type
  */
 export type RatesConfigPullMinutesPer10Ft = {
-  cat5e: number;
-  cat6: number;
-  cat6a: number;
+  category: number;
   sm_fiber: number;
   mm_fiber: number;
   coax_rg6: number;

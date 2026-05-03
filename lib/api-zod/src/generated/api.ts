@@ -287,9 +287,7 @@ export const GetRatesResponse = zod.object({
     .describe("User-defined cable types added beyond the built-in list"),
   pullMinutesPer10Ft: zod
     .object({
-      cat5e: zod.number(),
-      cat6: zod.number(),
-      cat6a: zod.number(),
+      category: zod.number(),
       sm_fiber: zod.number(),
       mm_fiber: zod.number(),
       coax_rg6: zod.number(),
@@ -299,9 +297,7 @@ export const GetRatesResponse = zod.object({
     .describe("Pull labor in minutes for every 10 ft of cable, by cable type"),
   terminationMinutesPerEnd: zod
     .object({
-      cat5e: zod.number(),
-      cat6: zod.number(),
-      cat6a: zod.number(),
+      category: zod.number(),
       sm_fiber: zod.number(),
       mm_fiber: zod.number(),
       coax_rg6: zod.number(),
@@ -430,9 +426,7 @@ export const UpdateRatesBody = zod.object({
     .describe("User-defined cable types added beyond the built-in list"),
   pullMinutesPer10Ft: zod
     .object({
-      cat5e: zod.number(),
-      cat6: zod.number(),
-      cat6a: zod.number(),
+      category: zod.number(),
       sm_fiber: zod.number(),
       mm_fiber: zod.number(),
       coax_rg6: zod.number(),
@@ -442,9 +436,7 @@ export const UpdateRatesBody = zod.object({
     .describe("Pull labor in minutes for every 10 ft of cable, by cable type"),
   terminationMinutesPerEnd: zod
     .object({
-      cat5e: zod.number(),
-      cat6: zod.number(),
-      cat6a: zod.number(),
+      category: zod.number(),
       sm_fiber: zod.number(),
       mm_fiber: zod.number(),
       coax_rg6: zod.number(),
@@ -570,9 +562,7 @@ export const UpdateRatesResponse = zod.object({
     .describe("User-defined cable types added beyond the built-in list"),
   pullMinutesPer10Ft: zod
     .object({
-      cat5e: zod.number(),
-      cat6: zod.number(),
-      cat6a: zod.number(),
+      category: zod.number(),
       sm_fiber: zod.number(),
       mm_fiber: zod.number(),
       coax_rg6: zod.number(),
@@ -582,9 +572,7 @@ export const UpdateRatesResponse = zod.object({
     .describe("Pull labor in minutes for every 10 ft of cable, by cable type"),
   terminationMinutesPerEnd: zod
     .object({
-      cat5e: zod.number(),
-      cat6: zod.number(),
-      cat6a: zod.number(),
+      category: zod.number(),
       sm_fiber: zod.number(),
       mm_fiber: zod.number(),
       coax_rg6: zod.number(),
@@ -713,9 +701,7 @@ export const ResetRatesResponse = zod.object({
     .describe("User-defined cable types added beyond the built-in list"),
   pullMinutesPer10Ft: zod
     .object({
-      cat5e: zod.number(),
-      cat6: zod.number(),
-      cat6a: zod.number(),
+      category: zod.number(),
       sm_fiber: zod.number(),
       mm_fiber: zod.number(),
       coax_rg6: zod.number(),
@@ -725,9 +711,7 @@ export const ResetRatesResponse = zod.object({
     .describe("Pull labor in minutes for every 10 ft of cable, by cable type"),
   terminationMinutesPerEnd: zod
     .object({
-      cat5e: zod.number(),
-      cat6: zod.number(),
-      cat6a: zod.number(),
+      category: zod.number(),
       sm_fiber: zod.number(),
       mm_fiber: zod.number(),
       coax_rg6: zod.number(),
