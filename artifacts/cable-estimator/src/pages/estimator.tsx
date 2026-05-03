@@ -592,6 +592,7 @@ function EstimateDetail({
                     <TableHead className="text-right">Condition Mult</TableHead>
                     <TableHead className="text-right">Pull hrs/run</TableHead>
                     <TableHead className="text-right">Term hrs/run</TableHead>
+                    <TableHead className="text-right">Total hrs/run</TableHead>
                     <TableHead className="text-right">Cost (avg)</TableHead>
                     <TableHead></TableHead>
                   </TableRow>
@@ -637,6 +638,9 @@ function EstimateDetail({
                       </TableCell>
                       <TableCell className="text-right font-mono text-muted-foreground">
                         {(r.terminationHoursPerCable * r.numCables).toFixed(2)}
+                      </TableCell>
+                      <TableCell className="text-right font-mono font-medium">
+                        {r.runHoursAvg.toFixed(2)}
                       </TableCell>
                       <TableCell className="text-right font-mono font-medium">
                         {fmtMoney(r.runCostAvg)}
