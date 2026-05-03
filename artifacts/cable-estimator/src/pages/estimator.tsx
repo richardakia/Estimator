@@ -562,7 +562,6 @@ function EstimateDetail({
           </div>
         </CardHeader>
       </Card>
-
       {/* Totals */}
       <div className="grid gap-4 md:grid-cols-4">
         <StatCard
@@ -588,7 +587,6 @@ function EstimateDetail({
           sub="hours saved vs. pulling each cable solo"
         />
       </div>
-
       {/* Runs Table */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0">
@@ -615,7 +613,7 @@ function EstimateDetail({
                     <TableHead className="h-8 px-2 whitespace-nowrap">Ceiling</TableHead>
                     <TableHead className="h-8 px-2 whitespace-nowrap">Pathway</TableHead>
                     <TableHead className="h-8 px-2 text-right whitespace-nowrap">Bulk</TableHead>
-                    <TableHead className="h-8 px-2 text-right whitespace-nowrap">Cond.</TableHead>
+                    <TableHead className="h-8 px-2 text-right whitespace-nowrap">Condition</TableHead>
                     <TableHead className="h-8 px-2 text-right whitespace-nowrap">Pull h</TableHead>
                     <TableHead className="h-8 px-2 text-right whitespace-nowrap">Term h</TableHead>
                     <TableHead className="h-8 px-2 text-right whitespace-nowrap">Total h</TableHead>
@@ -712,7 +710,6 @@ function EstimateDetail({
           )}
         </CardContent>
       </Card>
-
       {/* Task Breakdown & Range Table */}
       {runs.length > 0 && (
         <div className="grid gap-6 md:grid-cols-2">
@@ -752,9 +749,7 @@ function EstimateDetail({
 
         </div>
       )}
-
       <CablingFormulaExplainer />
-
       {/* Edit context dialog */}
       <Dialog open={editingContext} onOpenChange={setEditingContext}>
         <DialogContent className="max-w-lg">
@@ -783,7 +778,6 @@ function EstimateDetail({
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
       {/* Run dialog */}
       <Dialog open={runDialogOpen} onOpenChange={setRunDialogOpen}>
         <DialogContent className="max-w-lg">
