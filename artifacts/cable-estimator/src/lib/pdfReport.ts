@@ -123,11 +123,16 @@ export function generateEstimatePdf(
   doc.setTextColor(0);
   y += 18;
 
-  // ── Estimate context ──────────────────────────────────────────────────
+  // ── Estimate context + Totals (side by side, compact) ────────────────
+  const halfGutter = 12;
+  const halfWidth = (pageWidth - 2 * margin - halfGutter) / 2;
+  const ctxStartY = y;
+
   autoTable(doc, {
-    startY: y,
+    startY: ctxStartY,
     theme: "grid",
-    headStyles: { fillColor: [33, 37, 41] },
+    headStyles: { fillColor: [33, 37, 41], fontSize: 8, cellPadding: 2 },
+    bodyStyles: { fontSize: 8, cellPadding: 1.8 },
     head: [["Field", "Value"]],
     body: [
       ["Install Type", labelFor(INSTALL_TYPES, detail.estimate.installType)],
@@ -137,36 +142,33 @@ export function generateEstimatePdf(
       ["Hourly Rate", fmtMoney(detail.estimate.hourlyRate) + "/hr"],
       ...(detail.estimate.notes ? [["Notes", detail.estimate.notes]] : []),
     ],
-    margin: { left: margin, right: margin },
-    styles: { fontSize: 9 },
+    margin: { left: margin },
+    tableWidth: halfWidth,
   });
-  y = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 16;
-
-  // ── Totals summary ────────────────────────────────────────────────────
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(12);
-  doc.text("Totals", margin, y);
-  y += 8;
+  const ctxEndY = (doc as unknown as { lastAutoTable: { finalY: number } })
+    .lastAutoTable.finalY;
 
   autoTable(doc, {
-    startY: y,
+    startY: ctxStartY,
     theme: "grid",
-    headStyles: { fillColor: [33, 37, 41] },
+    headStyles: { fillColor: [33, 37, 41], fontSize: 8, cellPadding: 2 },
+    bodyStyles: { fontSize: 8, cellPadding: 1.8 },
     head: [["Metric", "Value"]],
     body: [
       ["Total Cables", String(detail.totals.totalCables)],
       ["Total Runs", String(detail.totals.totalRuns)],
       ["Total Hours", fmtHours(detail.totals.totalHoursAvg)],
       ["Total Cost", fmtMoney(detail.totals.totalCostAvg)],
-      [
-        "Bulk Pull Savings",
-        fmtHours(detail.totals.bulkSavingsHours ?? 0),
-      ],
+      ["Bulk Pull Savings", fmtHours(detail.totals.bulkSavingsHours ?? 0)],
     ],
-    margin: { left: margin, right: margin },
-    styles: { fontSize: 9 },
+    margin: { left: margin + halfWidth + halfGutter },
+    tableWidth: halfWidth,
+    columnStyles: { 1: { halign: "right" } },
   });
-  y = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 16;
+  const totalsEndY = (doc as unknown as { lastAutoTable: { finalY: number } })
+    .lastAutoTable.finalY;
+
+  y = Math.max(ctxEndY, totalsEndY) + 14;
 
   // ── Cable Runs ────────────────────────────────────────────────────────
   doc.setFont("helvetica", "bold");
