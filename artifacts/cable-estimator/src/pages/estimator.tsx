@@ -87,6 +87,7 @@ const DEFAULT_RUN: RunForm = {
   label: "",
   cableType: "cat6",
   numCables: 12,
+  fiberStrands: 1,
   lengthFt: 150,
   ceilingType: "drywall",
   pathwayComplexity: "medium",
@@ -361,6 +362,7 @@ interface EstimateDetailData {
     label: string;
     cableType: string;
     numCables: number;
+    fiberStrands?: number;
     lengthFt: number;
     ceilingType: string;
     pathwayComplexity: string;
@@ -476,6 +478,7 @@ function EstimateDetail({
       label: r.label,
       cableType: r.cableType as RunForm["cableType"],
       numCables: r.numCables,
+      fiberStrands: r.fiberStrands ?? 1,
       lengthFt: r.lengthFt,
       ceilingType: r.ceilingType as RunForm["ceilingType"],
       pathwayComplexity: r.pathwayComplexity as RunForm["pathwayComplexity"],
@@ -583,6 +586,7 @@ function EstimateDetail({
                     <TableHead>Label</TableHead>
                     <TableHead>Cable</TableHead>
                     <TableHead className="text-right"># Cables</TableHead>
+                    <TableHead className="text-right">Strands</TableHead>
                     <TableHead className="text-right">Length</TableHead>
                     <TableHead>Ceiling</TableHead>
                     <TableHead>Pathway</TableHead>
@@ -604,6 +608,11 @@ function EstimateDetail({
                       <TableCell className="font-medium">{r.label}</TableCell>
                       <TableCell>{labelFor(cableTypes, r.cableType)}</TableCell>
                       <TableCell className="text-right">{r.numCables}</TableCell>
+                      <TableCell className="text-right text-muted-foreground">
+                        {r.cableType === "sm_fiber" || r.cableType === "mm_fiber"
+                          ? (r.fiberStrands ?? 1)
+                          : "—"}
+                      </TableCell>
                       <TableCell className="text-right">
                         {r.lengthFt} ft
                       </TableCell>
@@ -811,6 +820,32 @@ function EstimateDetail({
                   Bulk factor = 1 + α × ln(n) — pulling more cables is harder
                 </p>
               </div>
+              {(runForm.cableType === "sm_fiber" ||
+                runForm.cableType === "mm_fiber") && (
+                <div>
+                  <Label>Fiber Strands</Label>
+                  <Select
+                    value={String(runForm.fiberStrands ?? 1)}
+                    onValueChange={(v) =>
+                      setRunForm({ ...runForm, fiberStrands: Number(v) })
+                    }
+                  >
+                    <SelectTrigger data-testid="select-fiber-strands">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {[1, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 24].map((n) => (
+                        <SelectItem key={n} value={String(n)}>
+                          {n}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Each strand is terminated separately
+                  </p>
+                </div>
+              )}
               <div>
                 <Label htmlFor="run-len">Avg Length (ft)</Label>
                 <Input

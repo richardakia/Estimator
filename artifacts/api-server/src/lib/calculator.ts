@@ -181,6 +181,8 @@ export interface RunInput {
   cableType: string;
   /** Number of cables pulled simultaneously in this run — used as B in bulkFactor = 1 + α × ln(numCables) */
   numCables: number;
+  /** Strands per fiber cable; each strand is terminated separately. Defaults to 1 for non-fiber. */
+  fiberStrands?: number;
   lengthFt: number;
   ceilingType: CeilingType;
   pathwayComplexity: PathwayComplexity;
@@ -200,6 +202,8 @@ export interface RunCalculation {
   cableType: string;
   /** Cables pulled simultaneously (B) — same as numCables in RunInput */
   numCables: number;
+  /** Strands per fiber cable; multiplies termination labor (1 for non-fiber) */
+  fiberStrands: number;
   lengthFt: number;
   ceilingType: CeilingType;
   pathwayComplexity: PathwayComplexity;
@@ -278,6 +282,7 @@ export function calculateEstimate(
     const conditionMultiplier = installM * ceilingM * pathM * buildingM * envM * skillM;
 
     const N = run.numCables;
+    const strands = Math.max(1, run.fiberStrands ?? 1);
 
     // ── Pull calculation (logarithmic bulk-difficulty formula) ───────────
     // numCables IS the bulk pull size B for this run.
@@ -293,7 +298,9 @@ export function calculateEstimate(
     const pullHoursPerCable = N > 0 ? totalPullHours / N : 0;
 
     // ── Termination calculation (bulk does NOT reduce termination) ───────
-    const rawTermHoursPerCable = (termMin * TERMINATIONS_PER_CABLE) / 60;
+    // For fiber, each strand is terminated separately, so termination labor
+    // scales with strand count. Non-fiber cables use strands = 1.
+    const rawTermHoursPerCable = (termMin * TERMINATIONS_PER_CABLE * strands) / 60;
     const terminationHoursPerCable = rawTermHoursPerCable * conditionMultiplier;
     const totalTermHours = terminationHoursPerCable * N;
 
@@ -323,6 +330,7 @@ export function calculateEstimate(
       label: run.label,
       cableType: run.cableType,
       numCables: N,
+      fiberStrands: strands,
       lengthFt: run.lengthFt,
       ceilingType: run.ceilingType,
       pathwayComplexity: run.pathwayComplexity,

@@ -78,6 +78,12 @@ export const GetEstimateResponse = zod.object({
           .describe(
             "Cables pulled simultaneously (B) — drives the bulk factor",
           ),
+        fiberStrands: zod
+          .number()
+          .optional()
+          .describe(
+            "Strands per fiber cable; multiplies termination labor (1 for non-fiber)",
+          ),
         lengthFt: zod.number(),
         ceilingType: zod.enum(["open", "drywall", "hard_lid"]),
         pathwayComplexity: zod.enum(["low", "medium", "high"]),
@@ -194,6 +200,7 @@ export const CreateRunBody = zod.object({
   label: zod.string(),
   cableType: zod.string(),
   numCables: zod.number(),
+  fiberStrands: zod.number().min(1).optional(),
   lengthFt: zod.number(),
   ceilingType: zod.enum(["open", "drywall", "hard_lid"]),
   pathwayComplexity: zod.enum(["low", "medium", "high"]),
@@ -210,6 +217,7 @@ export const UpdateRunBody = zod.object({
   label: zod.string(),
   cableType: zod.string(),
   numCables: zod.number(),
+  fiberStrands: zod.number().min(1).optional(),
   lengthFt: zod.number(),
   ceilingType: zod.enum(["open", "drywall", "hard_lid"]),
   pathwayComplexity: zod.enum(["low", "medium", "high"]),
@@ -224,6 +232,12 @@ export const UpdateRunResponse = zod.object({
     .number()
     .describe(
       "Number of cables pulled simultaneously in this run (used as B in bulk factor formula)",
+    ),
+  fiberStrands: zod
+    .number()
+    .optional()
+    .describe(
+      "Strands per fiber cable (only meaningful for sm_fiber\/mm_fiber); each strand is terminated separately. Defaults to 1.",
     ),
   lengthFt: zod.number().describe("Average cable length per cable in feet"),
   ceilingType: zod.enum(["open", "drywall", "hard_lid"]),
@@ -1140,6 +1154,7 @@ export const DeletePathwaySegmentParams = zod.object({
 /**
  * @summary Stateless calculation of an estimate (no persistence)
  */
+
 export const PreviewCalculationBody = zod.object({
   installType: zod.enum(["new_install", "retrofit", "deinstall"]),
   buildingType: zod.enum(["office", "warehouse", "retail", "healthcare"]),
@@ -1151,6 +1166,7 @@ export const PreviewCalculationBody = zod.object({
       label: zod.string(),
       cableType: zod.string(),
       numCables: zod.number(),
+      fiberStrands: zod.number().min(1).optional(),
       lengthFt: zod.number(),
       ceilingType: zod.enum(["open", "drywall", "hard_lid"]),
       pathwayComplexity: zod.enum(["low", "medium", "high"]),
@@ -1169,6 +1185,12 @@ export const PreviewCalculationResponse = zod.object({
           .number()
           .describe(
             "Cables pulled simultaneously (B) — drives the bulk factor",
+          ),
+        fiberStrands: zod
+          .number()
+          .optional()
+          .describe(
+            "Strands per fiber cable; multiplies termination labor (1 for non-fiber)",
           ),
         lengthFt: zod.number(),
         ceilingType: zod.enum(["open", "drywall", "hard_lid"]),

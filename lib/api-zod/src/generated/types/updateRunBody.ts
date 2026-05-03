@@ -12,6 +12,8 @@ export interface UpdateRunBody {
   label: string;
   cableType: string;
   numCables: number;
+  /** @minimum 1 */
+  fiberStrands?: number;
   lengthFt: number;
   ceilingType: CeilingType;
   pathwayComplexity: PathwayComplexity;

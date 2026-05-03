@@ -33,6 +33,7 @@ export const runsTable = pgTable("runs", {
   label: text("label").notNull(),
   cableType: text("cable_type").notNull(),
   numCables: integer("num_cables").notNull(),
+  fiberStrands: integer("fiber_strands").notNull().default(1),
   lengthFt: doublePrecision("length_ft").notNull(),
   ceilingType: text("ceiling_type").notNull(),
   pathwayComplexity: text("pathway_complexity").notNull(),

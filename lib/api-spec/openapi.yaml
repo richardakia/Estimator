@@ -566,6 +566,9 @@ components:
         numCables:
           type: integer
           description: Number of cables pulled simultaneously in this run (used as B in bulk factor formula)
+        fiberStrands:
+          type: integer
+          description: Strands per fiber cable (only meaningful for sm_fiber/mm_fiber); each strand is terminated separately. Defaults to 1.
         lengthFt:
           type: number
           description: Average cable length per cable in feet
@@ -605,6 +608,9 @@ components:
         numCables:
           type: integer
           description: Cables pulled simultaneously (B) — drives the bulk factor
+        fiberStrands:
+          type: integer
+          description: Strands per fiber cable; multiplies termination labor (1 for non-fiber)
         lengthFt:
           type: number
         ceilingType:
@@ -784,6 +790,9 @@ components:
           type: string
         numCables:
           type: integer
+        fiberStrands:
+          type: integer
+          minimum: 1
         lengthFt:
           type: number
         ceilingType:
@@ -809,6 +818,9 @@ components:
           type: string
         numCables:
           type: integer
+        fiberStrands:
+          type: integer
+          minimum: 1
         lengthFt:
           type: number
         ceilingType:

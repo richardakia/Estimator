@@ -153,6 +153,8 @@ export interface Run {
   cableType: string;
   /** Number of cables pulled simultaneously in this run (used as B in bulk factor formula) */
   numCables: number;
+  /** Strands per fiber cable (only meaningful for sm_fiber/mm_fiber); each strand is terminated separately. Defaults to 1. */
+  fiberStrands?: number;
   /** Average cable length per cable in feet */
   lengthFt: number;
   ceilingType: CeilingType;
@@ -170,6 +172,8 @@ export interface RunCalculation {
   cableType: string;
   /** Cables pulled simultaneously (B) — drives the bulk factor */
   numCables: number;
+  /** Strands per fiber cable; multiplies termination labor (1 for non-fiber) */
+  fiberStrands?: number;
   lengthFt: number;
   ceilingType: CeilingType;
   pathwayComplexity: PathwayComplexity;
@@ -246,6 +250,8 @@ export interface CreateRunBody {
   label: string;
   cableType: string;
   numCables: number;
+  /** @minimum 1 */
+  fiberStrands?: number;
   lengthFt: number;
   ceilingType: CeilingType;
   pathwayComplexity: PathwayComplexity;
@@ -255,6 +261,8 @@ export interface UpdateRunBody {
   label: string;
   cableType: string;
   numCables: number;
+  /** @minimum 1 */
+  fiberStrands?: number;
   lengthFt: number;
   ceilingType: CeilingType;
   pathwayComplexity: PathwayComplexity;
