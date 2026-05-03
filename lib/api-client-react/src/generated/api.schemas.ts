@@ -296,26 +296,14 @@ export interface PathwayCableFillMult {
 }
 
 /**
- * Pull labor in minutes for every 10 ft of cable, by cable type
+ * Pull labor in minutes for every 10 ft of cable, keyed by cable type value (built-ins and any user-defined custom cable types).
  */
-export type RatesConfigPullMinutesPer10Ft = {
-  category: number;
-  fiber: number;
-  coax: number;
-  speaker_cable: number;
-  [key: string]: number;
-};
+export type RatesConfigPullMinutesPer10Ft = { [key: string]: number };
 
 /**
- * Termination labor in minutes per cable end, by cable type (each cable has 2 ends)
+ * Termination labor in minutes per cable end, keyed by cable type value (each cable has 2 ends).
  */
-export type RatesConfigTerminationMinutesPerEnd = {
-  category: number;
-  fiber: number;
-  coax: number;
-  speaker_cable: number;
-  [key: string]: number;
-};
+export type RatesConfigTerminationMinutesPerEnd = { [key: string]: number };
 
 export type RatesConfigInstallTypeMult = {
   new_install: number;
@@ -388,9 +376,9 @@ for pulling more cables together. Default 0.15.
   bulkFactorAlpha?: number;
   /** User-defined cable types added beyond the built-in list */
   customCableTypes?: CustomCableType[];
-  /** Pull labor in minutes for every 10 ft of cable, by cable type */
+  /** Pull labor in minutes for every 10 ft of cable, keyed by cable type value (built-ins and any user-defined custom cable types). */
   pullMinutesPer10Ft: RatesConfigPullMinutesPer10Ft;
-  /** Termination labor in minutes per cable end, by cable type (each cable has 2 ends) */
+  /** Termination labor in minutes per cable end, keyed by cable type value (each cable has 2 ends). */
   terminationMinutesPerEnd: RatesConfigTerminationMinutesPerEnd;
   installTypeMult: RatesConfigInstallTypeMult;
   ceilingMult: RatesConfigCeilingMult;

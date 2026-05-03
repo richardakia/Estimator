@@ -7,12 +7,6 @@
  */
 
 /**
- * Pull labor in minutes for every 10 ft of cable, by cable type
+ * Pull labor in minutes for every 10 ft of cable, keyed by cable type value (built-ins and any user-defined custom cable types).
  */
-export type RatesConfigPullMinutesPer10Ft = {
-  category: number;
-  fiber: number;
-  coax: number;
-  speaker_cable: number;
-  [key: string]: number;
-};
+export type RatesConfigPullMinutesPer10Ft = { [key: string]: number };

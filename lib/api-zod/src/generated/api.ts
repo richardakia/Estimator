@@ -295,22 +295,14 @@ export const GetRatesResponse = zod.object({
     .optional()
     .describe("User-defined cable types added beyond the built-in list"),
   pullMinutesPer10Ft: zod
-    .object({
-      category: zod.number(),
-      fiber: zod.number(),
-      coax: zod.number(),
-      speaker_cable: zod.number(),
-    })
-    .describe("Pull labor in minutes for every 10 ft of cable, by cable type"),
-  terminationMinutesPerEnd: zod
-    .object({
-      category: zod.number(),
-      fiber: zod.number(),
-      coax: zod.number(),
-      speaker_cable: zod.number(),
-    })
+    .record(zod.string(), zod.number())
     .describe(
-      "Termination labor in minutes per cable end, by cable type (each cable has 2 ends)",
+      "Pull labor in minutes for every 10 ft of cable, keyed by cable type value (built-ins and any user-defined custom cable types).",
+    ),
+  terminationMinutesPerEnd: zod
+    .record(zod.string(), zod.number())
+    .describe(
+      "Termination labor in minutes per cable end, keyed by cable type value (each cable has 2 ends).",
     ),
   installTypeMult: zod.object({
     new_install: zod.number(),
@@ -430,22 +422,14 @@ export const UpdateRatesBody = zod.object({
     .optional()
     .describe("User-defined cable types added beyond the built-in list"),
   pullMinutesPer10Ft: zod
-    .object({
-      category: zod.number(),
-      fiber: zod.number(),
-      coax: zod.number(),
-      speaker_cable: zod.number(),
-    })
-    .describe("Pull labor in minutes for every 10 ft of cable, by cable type"),
-  terminationMinutesPerEnd: zod
-    .object({
-      category: zod.number(),
-      fiber: zod.number(),
-      coax: zod.number(),
-      speaker_cable: zod.number(),
-    })
+    .record(zod.string(), zod.number())
     .describe(
-      "Termination labor in minutes per cable end, by cable type (each cable has 2 ends)",
+      "Pull labor in minutes for every 10 ft of cable, keyed by cable type value (built-ins and any user-defined custom cable types).",
+    ),
+  terminationMinutesPerEnd: zod
+    .record(zod.string(), zod.number())
+    .describe(
+      "Termination labor in minutes per cable end, keyed by cable type value (each cable has 2 ends).",
     ),
   installTypeMult: zod.object({
     new_install: zod.number(),
@@ -562,22 +546,14 @@ export const UpdateRatesResponse = zod.object({
     .optional()
     .describe("User-defined cable types added beyond the built-in list"),
   pullMinutesPer10Ft: zod
-    .object({
-      category: zod.number(),
-      fiber: zod.number(),
-      coax: zod.number(),
-      speaker_cable: zod.number(),
-    })
-    .describe("Pull labor in minutes for every 10 ft of cable, by cable type"),
-  terminationMinutesPerEnd: zod
-    .object({
-      category: zod.number(),
-      fiber: zod.number(),
-      coax: zod.number(),
-      speaker_cable: zod.number(),
-    })
+    .record(zod.string(), zod.number())
     .describe(
-      "Termination labor in minutes per cable end, by cable type (each cable has 2 ends)",
+      "Pull labor in minutes for every 10 ft of cable, keyed by cable type value (built-ins and any user-defined custom cable types).",
+    ),
+  terminationMinutesPerEnd: zod
+    .record(zod.string(), zod.number())
+    .describe(
+      "Termination labor in minutes per cable end, keyed by cable type value (each cable has 2 ends).",
     ),
   installTypeMult: zod.object({
     new_install: zod.number(),
@@ -697,22 +673,14 @@ export const ResetRatesResponse = zod.object({
     .optional()
     .describe("User-defined cable types added beyond the built-in list"),
   pullMinutesPer10Ft: zod
-    .object({
-      category: zod.number(),
-      fiber: zod.number(),
-      coax: zod.number(),
-      speaker_cable: zod.number(),
-    })
-    .describe("Pull labor in minutes for every 10 ft of cable, by cable type"),
-  terminationMinutesPerEnd: zod
-    .object({
-      category: zod.number(),
-      fiber: zod.number(),
-      coax: zod.number(),
-      speaker_cable: zod.number(),
-    })
+    .record(zod.string(), zod.number())
     .describe(
-      "Termination labor in minutes per cable end, by cable type (each cable has 2 ends)",
+      "Pull labor in minutes for every 10 ft of cable, keyed by cable type value (built-ins and any user-defined custom cable types).",
+    ),
+  terminationMinutesPerEnd: zod
+    .record(zod.string(), zod.number())
+    .describe(
+      "Termination labor in minutes per cable end, keyed by cable type value (each cable has 2 ends).",
     ),
   installTypeMult: zod.object({
     new_install: zod.number(),

@@ -7,12 +7,6 @@
  */
 
 /**
- * Termination labor in minutes per cable end, by cable type (each cable has 2 ends)
+ * Termination labor in minutes per cable end, keyed by cable type value (each cable has 2 ends).
  */
-export type RatesConfigTerminationMinutesPerEnd = {
-  category: number;
-  fiber: number;
-  coax: number;
-  speaker_cable: number;
-  [key: string]: number;
-};
+export type RatesConfigTerminationMinutesPerEnd = { [key: string]: number };

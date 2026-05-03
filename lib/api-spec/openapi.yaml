@@ -901,28 +901,14 @@ components:
             $ref: "#/components/schemas/CustomCableType"
         pullMinutesPer10Ft:
           type: object
-          description: Pull labor in minutes for every 10 ft of cable, by cable type
+          description: Pull labor in minutes for every 10 ft of cable, keyed by cable type value (built-ins and any user-defined custom cable types).
           additionalProperties:
             type: number
-          properties:
-            category: { type: number }
-            fiber: { type: number }
-            coax: { type: number }
-            speaker_cable: { type: number }
-          required:
-            [category, fiber, coax, speaker_cable]
         terminationMinutesPerEnd:
           type: object
-          description: Termination labor in minutes per cable end, by cable type (each cable has 2 ends)
+          description: Termination labor in minutes per cable end, keyed by cable type value (each cable has 2 ends).
           additionalProperties:
             type: number
-          properties:
-            category: { type: number }
-            fiber: { type: number }
-            coax: { type: number }
-            speaker_cable: { type: number }
-          required:
-            [category, fiber, coax, speaker_cable]
         installTypeMult:
           type: object
           properties:
