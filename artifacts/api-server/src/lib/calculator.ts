@@ -59,14 +59,14 @@ export const DEFAULT_RATES: RatesConfigShape = {
   pullMinutesPer10Ft: {
     category: 3.0,
     fiber: 4.0,
-    coax: 3.0,
+    coax: 2.0,
     speaker_cable: 2.0,
   },
   terminationMinutesPerEnd: {
     category: 5,
     fiber: 13,
-    coax: 4.5,
-    speaker_cable: 3,
+    coax: 2,
+    speaker_cable: 2,
   },
   installTypeMult: {
     new_install: 1.0,
@@ -79,13 +79,13 @@ export const DEFAULT_RATES: RatesConfigShape = {
     hard_lid: 1.55,
   },
   pathwayMult: {
-    low: 0.9,
-    medium: 1.0,
+    low: 1.0,
+    medium: 1.2,
     high: 1.3,
   },
   buildingMult: {
     office: 1.0,
-    warehouse: 0.85,
+    warehouse: 1.0,
     retail: 1.15,
     healthcare: 1.4,
   },
@@ -98,7 +98,7 @@ export const DEFAULT_RATES: RatesConfigShape = {
     journeyman: 1.0,
     lead: 0.85,
   },
-  hourlyRate: 85,
+  hourlyRate: 75,
   bulkFactorAlpha: 0.15,
   pathwayTypeRates: {
     cable_tray: { laborMinPerFt: 12, materialCostPerFt: 14, fastenerSpacingFt: 5, fastenerCostEach: 22, fastenerLaborMinEach: 12 },
