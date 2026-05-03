@@ -190,7 +190,6 @@ export function generateEstimatePdf(
         "Label",
         "Cable",
         "# Cables",
-        "Strands",
         "Length",
         "Ceiling",
         "Pathway",
@@ -206,9 +205,6 @@ export function generateEstimatePdf(
       r.label,
       labelFor(cableTypeLookup, r.cableType),
       r.numCables,
-      r.cableType === "fiber"
-        ? (r.fiberStrands ?? 1)
-        : "—",
       `${r.lengthFt} ft`,
       labelFor(CEILING_TYPES, r.ceilingType),
       labelFor(PATHWAY_LEVELS, r.pathwayComplexity),
