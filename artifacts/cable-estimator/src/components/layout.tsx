@@ -156,7 +156,7 @@ export function Layout({ children }: LayoutProps) {
                   {e.name}
                 </span>
                 <span className="text-xs text-muted-foreground">
-                  {e.segmentCount} seg{e.segmentCount === 1 ? "" : "s"} ·{" "}
+                  {e.segmentCount} path{e.segmentCount === 1 ? "" : "s"} ·{" "}
                   {e.totalLengthFt.toLocaleString()} ft
                 </span>
               </DropdownMenuItem>

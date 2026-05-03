@@ -362,7 +362,7 @@ export default function Pathways() {
             <DialogTitle>New Pathway Estimate</DialogTitle>
             <DialogDescription>
               Set the project context, name, and hourly rate. You can add
-              segments after.
+              paths after.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4">
@@ -451,7 +451,7 @@ function FormulaExplainer({ rates }: { rates: PathwayRates }) {
       <CardHeader className="pb-3">
         <CardTitle className="text-base flex items-center gap-2">
           <FlaskConical className="w-4 h-4 text-primary" />
-          How Each Pathway Segment Is Estimated
+          How Each Path Is Estimated
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4 text-sm">
@@ -514,7 +514,7 @@ function FormulaExplainer({ rates }: { rates: PathwayRates }) {
           </div>
         </div>
         <div className="space-y-1">
-          <p className="font-semibold">Step 5 — Segment Total</p>
+          <p className="font-semibold">Step 5 — Path Total</p>
           <p className="text-muted-foreground text-xs">
             Total Labor Hours = Pathway Labor Hours + Fastener Labor Hours +
             Bend Hours + Penetration Hours. Total Material Cost = Pathway
@@ -615,7 +615,7 @@ function PathwayEstimateView({
     setEditingSegmentId(null);
     setSegDraft({
       ...DEFAULT_SEGMENT_DRAFT,
-      label: `Segment ${segments.length + 1}`,
+      label: `Path ${segments.length + 1}`,
     });
     setSegDialogOpen(true);
   };
@@ -689,7 +689,7 @@ function PathwayEstimateView({
               </Badge>
               <Badge variant="outline">${estimate.hourlyRate}/hr</Badge>
               <Badge variant="secondary">
-                {totals.segmentCount} segment
+                {totals.segmentCount} path
                 {totals.segmentCount === 1 ? "" : "s"}
               </Badge>
               <Badge variant="secondary">
@@ -806,22 +806,22 @@ function PathwayEstimateView({
       {/* Segments table */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0">
-          <CardTitle className="text-base">Pathway Segments</CardTitle>
+          <CardTitle className="text-base">Paths</CardTitle>
           <Button
             size="sm"
             onClick={openNewSegment}
             data-testid="button-add-segment"
           >
-            <Plus className="w-4 h-4 mr-1.5" /> Add Segment
+            <Plus className="w-4 h-4 mr-1.5" /> Add Path
           </Button>
         </CardHeader>
         <CardContent>
           {segments.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground">
               <RouteIcon className="w-12 h-12 mx-auto mb-3 opacity-30" />
-              <p>No pathway segments yet.</p>
+              <p>No paths yet.</p>
               <p className="text-sm mt-1">
-                Click <strong>Add Segment</strong> to start building this
+                Click <strong>Add Path</strong> to start building this
                 pathway estimate.
               </p>
             </div>
@@ -1018,8 +1018,8 @@ function PathwayEstimateView({
           <DialogHeader>
             <DialogTitle>
               {editingSegmentId !== null
-                ? "Edit Pathway Segment"
-                : "Add Pathway Segment"}
+                ? "Edit Path"
+                : "Add Path"}
             </DialogTitle>
           </DialogHeader>
           <div className="grid grid-cols-2 gap-4">
