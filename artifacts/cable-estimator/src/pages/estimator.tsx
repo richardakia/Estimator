@@ -545,15 +545,13 @@ function EstimateDetail({
         />
         <StatCard
           icon={<Clock className="w-4 h-4" />}
-          label="Total Hours (avg)"
+          label="Total Hours"
           value={fmtHours(totals.totalHoursAvg)}
-          sub={`${fmtHours(totals.totalHoursLow)} – ${fmtHours(totals.totalHoursHigh)}`}
         />
         <StatCard
           icon={<DollarSign className="w-4 h-4" />}
-          label="Total Cost (avg)"
+          label="Total Cost"
           value={fmtMoney(totals.totalCostAvg)}
-          sub={`${fmtMoney(totals.totalCostLow)} – ${fmtMoney(totals.totalCostHigh)}`}
           highlight
         />
         <StatCard
@@ -593,7 +591,7 @@ function EstimateDetail({
                     <TableHead className="text-right">Pull hrs/run</TableHead>
                     <TableHead className="text-right">Term hrs/run</TableHead>
                     <TableHead className="text-right">Total hrs/run</TableHead>
-                    <TableHead className="text-right">Cost (avg)</TableHead>
+                    <TableHead className="text-right">Cost</TableHead>
                     <TableHead></TableHead>
                   </TableRow>
                 </TableHeader>
@@ -715,61 +713,6 @@ function EstimateDetail({
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Estimate Range</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Scenario</TableHead>
-                    <TableHead className="text-right">Hours</TableHead>
-                    <TableHead className="text-right">Cost</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  <TableRow>
-                    <TableCell>
-                      <Badge variant="outline" className="text-emerald-500">
-                        Low (best case)
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right font-mono">
-                      {totals.totalHoursLow.toFixed(1)}
-                    </TableCell>
-                    <TableCell className="text-right font-mono">
-                      {fmtMoney(totals.totalCostLow)}
-                    </TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell>
-                      <Badge>Average</Badge>
-                    </TableCell>
-                    <TableCell className="text-right font-mono font-bold">
-                      {totals.totalHoursAvg.toFixed(1)}
-                    </TableCell>
-                    <TableCell className="text-right font-mono font-bold">
-                      {fmtMoney(totals.totalCostAvg)}
-                    </TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell>
-                      <Badge variant="outline" className="text-amber-500">
-                        High (worst case)
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right font-mono">
-                      {totals.totalHoursHigh.toFixed(1)}
-                    </TableCell>
-                    <TableCell className="text-right font-mono">
-                      {fmtMoney(totals.totalCostHigh)}
-                    </TableCell>
-                  </TableRow>
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
         </div>
       )}
 
