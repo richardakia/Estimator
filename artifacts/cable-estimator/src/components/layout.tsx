@@ -184,7 +184,7 @@ export function Layout({ children }: LayoutProps) {
           <div className="w-8 h-8 rounded bg-primary flex items-center justify-center">
             <Calculator className="w-5 h-5 text-primary-foreground" />
           </div>
-          <span className="font-bold text-lg tracking-tight">CableEst Pro</span>
+          <span className="font-bold text-lg tracking-tight">AKIA-AV Estimator</span>
         </div>
         <nav className="flex-1 p-4 space-y-2">
           {navItems.map((item) => (
@@ -211,7 +211,6 @@ export function Layout({ children }: LayoutProps) {
           v1.0.0 Field Tool
         </div>
       </aside>
-
       {/* Main Content */}
       <main className="flex-1 flex flex-col min-h-[100dvh] overflow-x-hidden">
         {/* Mobile Header */}
