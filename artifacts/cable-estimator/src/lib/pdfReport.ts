@@ -52,6 +52,39 @@ interface EstimateForReport {
       costAvg: number;
     }>;
   };
+  hardwareItems?: Array<{
+    name: string;
+    quantity: number;
+    unit?: string | null;
+    unitCost: number;
+    lineTotal: number;
+    notes?: string | null;
+  }>;
+  materials?: {
+    cableSubtotal: number;
+    cableWasteAmount: number;
+    terminationSubtotal: number;
+    pathwaySubtotal: number;
+    hardwareSubtotal: number;
+    subtotal: number;
+    wastePercent: number;
+    markupPercent: number;
+    markupAmount: number;
+    total: number;
+    cableLines: Array<{
+      cableType: string;
+      totalLengthFt: number;
+      costPerFt: number;
+      subtotal: number;
+    }>;
+    terminationLines: Array<{
+      cableType: string;
+      totalEnds: number;
+      costPerEnd: number;
+      subtotal: number;
+    }>;
+  };
+  projectTotal?: number;
 }
 
 interface RatesForReport {
@@ -274,6 +307,84 @@ export function generateEstimatePdf(
     },
   });
   y = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 16;
+
+  // ── Materials & Project Total ────────────────────────────────────────
+  if (detail.materials) {
+    const m = detail.materials;
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(12);
+    doc.text("Materials", margin, y);
+    y += 8;
+
+    const matRows: Array<[string, string]> = [];
+    if (m.cableLines.length > 0) {
+      for (const c of m.cableLines) {
+        matRows.push([
+          `Cable — ${labelFor(cableTypeLookup, c.cableType)} (${c.totalLengthFt.toLocaleString()} ft @ $${c.costPerFt.toFixed(2)}/ft)`,
+          fmtMoney(c.subtotal),
+        ]);
+      }
+    }
+    if (m.cableWasteAmount > 0) {
+      matRows.push([
+        `Cable waste (${m.wastePercent.toFixed(1)}%)`,
+        fmtMoney(m.cableWasteAmount),
+      ]);
+    }
+    for (const t of m.terminationLines) {
+      matRows.push([
+        `Termination — ${labelFor(cableTypeLookup, t.cableType)} (${t.totalEnds} ends @ $${t.costPerEnd.toFixed(2)})`,
+        fmtMoney(t.subtotal),
+      ]);
+    }
+    if (m.pathwaySubtotal > 0) {
+      matRows.push(["Pathway material (segments)", fmtMoney(m.pathwaySubtotal)]);
+    }
+    for (const h of detail.hardwareItems ?? []) {
+      matRows.push([
+        `Hardware — ${h.name} (${h.quantity}${h.unit ? " " + h.unit : ""} @ ${fmtMoney(h.unitCost)})`,
+        fmtMoney(h.lineTotal),
+      ]);
+    }
+    matRows.push(["Materials subtotal", fmtMoney(m.subtotal)]);
+    if (m.markupAmount > 0) {
+      matRows.push([
+        `Markup (${m.markupPercent.toFixed(1)}%)`,
+        fmtMoney(m.markupAmount),
+      ]);
+    }
+    matRows.push(["Materials total", fmtMoney(m.total)]);
+
+    autoTable(doc, {
+      startY: y,
+      theme: "grid",
+      headStyles: { fillColor: [33, 37, 41] },
+      head: [["Item", "Amount"]],
+      body: matRows,
+      margin: { left: margin, right: margin },
+      styles: { fontSize: 9 },
+      columnStyles: { 1: { halign: "right", cellWidth: 90 } },
+    });
+    y = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 12;
+
+    if (typeof detail.projectTotal === "number") {
+      autoTable(doc, {
+        startY: y,
+        theme: "grid",
+        headStyles: { fillColor: [33, 37, 41] },
+        head: [["", ""]],
+        body: [
+          ["Labor (avg)", fmtMoney(detail.totals.totalCostAvg)],
+          ["Materials total", fmtMoney(m.total)],
+          ["PROJECT TOTAL", fmtMoney(detail.projectTotal)],
+        ],
+        margin: { left: margin, right: margin },
+        styles: { fontSize: 10, fontStyle: "bold" },
+        columnStyles: { 1: { halign: "right", cellWidth: 120 } },
+      });
+      y = (doc as unknown as { lastAutoTable: { finalY: number } }).lastAutoTable.finalY + 16;
+    }
+  }
 
   // ── Rates section (landscape, multi-column) ───────────────────────────
   doc.addPage();

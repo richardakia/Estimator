@@ -57,6 +57,13 @@ interface CustomCableType {
   label: string;
 }
 
+interface HardwareCatalogEntry {
+  value: string;
+  label: string;
+  unitCost: number;
+  unit?: string | null;
+}
+
 interface RatesShape {
   hourlyRate?: number;
   bulkFactorAlpha?: number;
@@ -76,6 +83,11 @@ interface RatesShape {
   pathwayBendMaterialCost?: number;
   pathwayPenetrationLaborHrs?: number;
   pathwayPenetrationMaterialCost?: number;
+  cableMaterialCostPerFt?: Record<string, number>;
+  terminationHardwareCostPerEnd?: Record<string, number>;
+  hardwareCatalog?: HardwareCatalogEntry[];
+  materialWastePercent?: number;
+  materialMarkupPercent?: number;
 }
 
 function slugify(label: string): string {
@@ -374,6 +386,27 @@ export default function RatesEditor() {
             onChange={(k, v) => setNested("pathwayMult", k, v)}
           />
 
+          <RateSection
+            title="Cable Material Cost ($ / ft)"
+            subtitle="Per-foot price of the cable itself. Multiplied by total feet pulled (length × number of cables) for each run."
+            options={allCableOptions}
+            values={draft.cableMaterialCostPerFt ?? {}}
+            onChange={(k, v) => setNested("cableMaterialCostPerFt", k, v)}
+            step={0.05}
+            unit="$ / ft"
+          />
+          <RateSection
+            title="Termination Hardware ($ / end)"
+            subtitle="Connector / jack / boot cost per cable end. Each cable has 2 ends; fiber strands count separately."
+            options={allCableOptions}
+            values={draft.terminationHardwareCostPerEnd ?? {}}
+            onChange={(k, v) =>
+              setNested("terminationHardwareCostPerEnd", k, v)
+            }
+            step={0.25}
+            unit="$ / end"
+          />
+
           <Card className="md:col-span-2">
             <CardHeader>
               <CardTitle className="text-base">
@@ -452,6 +485,217 @@ export default function RatesEditor() {
             </CardContent>
           </Card>
         </div>
+      </section>
+
+      {/* ---------------- MATERIAL DEFAULTS + CATALOG ---------------- */}
+      <section className="space-y-4">
+        <div className="border-l-4 border-primary pl-3">
+          <h2 className="text-xl font-bold flex items-center gap-2">
+            <DollarSign className="w-5 h-5 text-primary" />
+            Materials — used by both estimators
+          </h2>
+          <p className="text-sm text-muted-foreground mt-1">
+            Defaults for waste %, markup %, and the reusable hardware catalog
+            shared by Cabling and Pathway estimates.
+          </p>
+        </div>
+
+        <Card className="md:max-w-xl">
+          <CardHeader>
+            <CardTitle className="text-base">Waste & Markup Defaults</CardTitle>
+            <p className="text-sm text-muted-foreground">
+              Waste % is applied to auto-computed cable material cost only.
+              Markup % is applied to the full material subtotal (cable + waste +
+              termination + pathway + hardware).
+            </p>
+          </CardHeader>
+          <CardContent className="grid grid-cols-2 gap-4">
+            <div>
+              <Label className="text-sm">Cable Waste %</Label>
+              <div className="flex items-center gap-2 mt-1">
+                <Input
+                  type="number"
+                  min={0}
+                  step={0.5}
+                  className="w-28 font-mono text-right"
+                  value={draft.materialWastePercent ?? 10}
+                  onChange={(e) =>
+                    setDraft({
+                      ...draft,
+                      materialWastePercent: Math.max(
+                        0,
+                        Number(e.target.value) || 0,
+                      ),
+                    })
+                  }
+                  data-testid="input-material-waste"
+                />
+                <span className="text-xs text-muted-foreground">%</span>
+              </div>
+            </div>
+            <div>
+              <Label className="text-sm">Material Markup %</Label>
+              <div className="flex items-center gap-2 mt-1">
+                <Input
+                  type="number"
+                  min={0}
+                  step={0.5}
+                  className="w-28 font-mono text-right"
+                  value={draft.materialMarkupPercent ?? 0}
+                  onChange={(e) =>
+                    setDraft({
+                      ...draft,
+                      materialMarkupPercent: Math.max(
+                        0,
+                        Number(e.target.value) || 0,
+                      ),
+                    })
+                  }
+                  data-testid="input-material-markup"
+                />
+                <span className="text-xs text-muted-foreground">%</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-start justify-between gap-2 space-y-0">
+            <div>
+              <CardTitle className="text-base">Hardware Catalog</CardTitle>
+              <p className="text-sm text-muted-foreground">
+                Reusable parts (patch panels, faceplates, racks, etc.). Items
+                here appear in the dropdown when adding hardware to any
+                estimate.
+              </p>
+            </div>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() =>
+                setDraft({
+                  ...draft,
+                  hardwareCatalog: [
+                    ...(draft.hardwareCatalog ?? []),
+                    {
+                      value: `item_${(draft.hardwareCatalog?.length ?? 0) + 1}`,
+                      label: "New Item",
+                      unitCost: 0,
+                      unit: "ea",
+                    },
+                  ],
+                })
+              }
+              data-testid="button-add-catalog-item"
+            >
+              <Plus className="w-3.5 h-3.5 mr-1" /> Add Catalog Item
+            </Button>
+          </CardHeader>
+          <CardContent className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Label</TableHead>
+                  <TableHead className="w-40">Key</TableHead>
+                  <TableHead className="text-right w-32">Unit Cost $</TableHead>
+                  <TableHead className="w-24">Unit</TableHead>
+                  <TableHead className="w-12" />
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {(draft.hardwareCatalog ?? []).map((item, idx) => (
+                  <TableRow key={idx}>
+                    <TableCell>
+                      <Input
+                        value={item.label}
+                        onChange={(e) => {
+                          const next = [...(draft.hardwareCatalog ?? [])];
+                          next[idx] = { ...item, label: e.target.value };
+                          setDraft({ ...draft, hardwareCatalog: next });
+                        }}
+                        data-testid={`input-catalog-label-${idx}`}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Input
+                        className="font-mono text-xs"
+                        value={item.value}
+                        onChange={(e) => {
+                          const next = [...(draft.hardwareCatalog ?? [])];
+                          next[idx] = {
+                            ...item,
+                            value: slugify(e.target.value) || item.value,
+                          };
+                          setDraft({ ...draft, hardwareCatalog: next });
+                        }}
+                        data-testid={`input-catalog-key-${idx}`}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Input
+                        type="number"
+                        min={0}
+                        step={0.25}
+                        className="font-mono text-right"
+                        value={item.unitCost}
+                        onChange={(e) => {
+                          const next = [...(draft.hardwareCatalog ?? [])];
+                          next[idx] = {
+                            ...item,
+                            unitCost: Math.max(
+                              0,
+                              Number(e.target.value) || 0,
+                            ),
+                          };
+                          setDraft({ ...draft, hardwareCatalog: next });
+                        }}
+                        data-testid={`input-catalog-cost-${idx}`}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Input
+                        value={item.unit ?? ""}
+                        onChange={(e) => {
+                          const next = [...(draft.hardwareCatalog ?? [])];
+                          next[idx] = { ...item, unit: e.target.value };
+                          setDraft({ ...draft, hardwareCatalog: next });
+                        }}
+                        placeholder="ea"
+                        data-testid={`input-catalog-unit-${idx}`}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-8 w-8"
+                        onClick={() => {
+                          const next = [...(draft.hardwareCatalog ?? [])];
+                          next.splice(idx, 1);
+                          setDraft({ ...draft, hardwareCatalog: next });
+                        }}
+                        data-testid={`button-delete-catalog-${idx}`}
+                      >
+                        <Trash2 className="w-3.5 h-3.5 text-destructive" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+                {(draft.hardwareCatalog ?? []).length === 0 && (
+                  <TableRow>
+                    <TableCell
+                      colSpan={5}
+                      className="text-center text-sm text-muted-foreground py-6"
+                    >
+                      No catalog items. Click <strong>Add Catalog Item</strong>{" "}
+                      to start.
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </Card>
       </section>
 
       {/* ---------------- PATHWAY ---------------- */}

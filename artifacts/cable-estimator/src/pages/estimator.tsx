@@ -57,6 +57,8 @@ import {
   FileDown,
 } from "lucide-react";
 import { generateEstimatePdf } from "@/lib/pdfReport";
+import { MaterialsCard } from "@/components/MaterialsCard";
+import type { HardwareItem, MaterialBreakdown, HardwareCatalogItem } from "@workspace/api-client-react";
 import {
   CABLE_TYPES,
   INSTALL_TYPES,
@@ -402,6 +404,9 @@ interface EstimateDetailData {
       costAvg: number;
     }>;
   };
+  hardwareItems: HardwareItem[];
+  materials: MaterialBreakdown;
+  projectTotal: number;
 }
 
 function EstimateDetail({
@@ -415,7 +420,8 @@ function EstimateDetail({
 }) {
   const queryClient = useQueryClient();
   const { data: ratesData } = useGetRates();
-  const { estimate, runs, totals } = detail;
+  const { estimate, runs, totals, hardwareItems, materials, projectTotal } = detail;
+  const catalog = ((ratesData as { hardwareCatalog?: HardwareCatalogItem[] } | undefined)?.hardwareCatalog) ?? [];
   const [editingContext, setEditingContext] = useState(false);
   const [contextForm, setContextForm] = useState<EstimateForm>({
     name: estimate.name,
@@ -749,6 +755,16 @@ function EstimateDetail({
 
         </div>
       )}
+      <MaterialsCard
+        scope="cabling"
+        estimateId={estimate.id}
+        hardwareItems={hardwareItems}
+        materials={materials}
+        projectTotal={projectTotal}
+        laborTotalLabel="Labor (avg)"
+        laborTotalValue={totals.totalCostAvg}
+        catalog={catalog}
+      />
       <CablingFormulaExplainer />
       {/* Edit context dialog */}
       <Dialog open={editingContext} onOpenChange={setEditingContext}>

@@ -219,10 +219,75 @@ export interface EstimateTotals {
   taskBreakdown: TaskBreakdownItem[];
 }
 
+/**
+ * A hardware/material line item attached to an estimate.
+ */
+export interface HardwareItem {
+  id: number;
+  estimateId: number;
+  /** If set, references a hardwareCatalog entry by its `value`. May be null for one-off items. */
+  catalogKey?: string | null;
+  name: string;
+  /** @minimum 0 */
+  quantity: number;
+  /** @minimum 0 */
+  unitCost: number;
+  unit?: string | null;
+  notes?: string | null;
+  sortOrder: number;
+  /** quantity × unitCost */
+  lineTotal: number;
+  createdAt: string;
+}
+
+export interface MaterialCableLine {
+  cableType: string;
+  totalLengthFt: number;
+  totalCables: number;
+  costPerFt: number;
+  subtotal: number;
+}
+
+export interface MaterialTerminationLine {
+  cableType: string;
+  totalEnds: number;
+  costPerEnd: number;
+  subtotal: number;
+}
+
+/**
+ * Material cost breakdown for an estimate. For Cabling estimates, cable + termination
+subtotals are auto-computed from runs. For Pathway estimates, pathwaySubtotal is
+the sum of segment material (already includes pathway, fasteners, bends, penetrations).
+Hardware items are user-added line items. Waste is applied to cableSubtotal only.
+Markup is applied to the full subtotal.
+
+ */
+export interface MaterialBreakdown {
+  cableSubtotal: number;
+  cableWasteAmount: number;
+  terminationSubtotal: number;
+  pathwaySubtotal: number;
+  hardwareSubtotal: number;
+  /** Sum of (cable + waste) + termination + pathway + hardware */
+  subtotal: number;
+  wastePercent: number;
+  markupPercent: number;
+  markupAmount: number;
+  /** subtotal + markupAmount */
+  total: number;
+  cableLines: MaterialCableLine[];
+  terminationLines: MaterialTerminationLine[];
+}
+
 export interface EstimateDetail {
   estimate: Estimate;
   runs: RunCalculation[];
   totals: EstimateTotals;
+  hardwareItems: HardwareItem[];
+  materials: MaterialBreakdown;
+  /** totals.totalCostAvg + materials.total */
+  projectTotal: number;
 }
 
 export interface CreateEstimateBody {
@@ -363,6 +428,41 @@ export type RatesConfigPathwayCableFillMult = {
   [key: string]: PathwayCableFillMult;
 };
 
+/**
+ * Cable material cost ($/ft) keyed by cable type value (built-ins and custom). Used by the Material Cost Module.
+ */
+export type RatesConfigCableMaterialCostPerFt = { [key: string]: number };
+
+/**
+ * Termination hardware cost ($/end) keyed by cable type — covers jacks, connectors, boots.
+ */
+export type RatesConfigTerminationHardwareCostPerEnd = {
+  [key: string]: number;
+};
+
+/**
+ * A reusable hardware/material item defined in the rates catalog.
+ */
+export interface HardwareCatalogItem {
+  /**
+   * Unique identifier key (e.g. "patch_panel_24")
+   * @minLength 1
+   */
+  value: string;
+  /**
+   * Human-readable display name
+   * @minLength 1
+   */
+  label: string;
+  /**
+   * Default unit cost ($)
+   * @minimum 0
+   */
+  unitCost: number;
+  /** Optional unit label (e.g. "ea", "ft", "box") */
+  unit?: string | null;
+}
+
 export interface RatesConfig {
   /** Default hourly labor rate ($/hr) shared by both estimators. */
   hourlyRate?: number;
@@ -402,6 +502,70 @@ for pulling more cables together. Default 0.15.
   pathwayPenetrationLaborHrs?: number;
   /** Material cost per fire-rated penetration ($). */
   pathwayPenetrationMaterialCost?: number;
+  /** Cable material cost ($/ft) keyed by cable type value (built-ins and custom). Used by the Material Cost Module. */
+  cableMaterialCostPerFt?: RatesConfigCableMaterialCostPerFt;
+  /** Termination hardware cost ($/end) keyed by cable type — covers jacks, connectors, boots. */
+  terminationHardwareCostPerEnd?: RatesConfigTerminationHardwareCostPerEnd;
+  /** Reusable hardware/material catalog. Items can be picked from a dropdown when adding hardware to an estimate. */
+  hardwareCatalog?: HardwareCatalogItem[];
+  /**
+   * Default cable scrap/waste % applied to auto-computed cable material cost.
+   * @minimum 0
+   */
+  materialWastePercent?: number;
+  /**
+   * Default markup % applied to all material totals (cable + termination + pathway + hardware).
+   * @minimum 0
+   */
+  materialMarkupPercent?: number;
+}
+
+export interface CreateHardwareItemBody {
+  /** @maxLength 200 */
+  catalogKey?: string | null;
+  /**
+   * @minLength 1
+   * @maxLength 200
+   */
+  name: string;
+  /**
+   * @minimum 0
+   * @maximum 1000000
+   */
+  quantity: number;
+  /**
+   * @minimum 0
+   * @maximum 1000000
+   */
+  unitCost: number;
+  /** @maxLength 50 */
+  unit?: string | null;
+  /** @maxLength 1000 */
+  notes?: string | null;
+}
+
+export interface UpdateHardwareItemBody {
+  /** @maxLength 200 */
+  catalogKey?: string | null;
+  /**
+   * @minLength 1
+   * @maxLength 200
+   */
+  name: string;
+  /**
+   * @minimum 0
+   * @maximum 1000000
+   */
+  quantity: number;
+  /**
+   * @minimum 0
+   * @maximum 1000000
+   */
+  unitCost: number;
+  /** @maxLength 50 */
+  unit?: string | null;
+  /** @maxLength 1000 */
+  notes?: string | null;
 }
 
 export interface CalculationInput {
@@ -516,6 +680,10 @@ export interface PathwayEstimateDetail {
   estimate: PathwayEstimate;
   segments: PathwaySegmentCalculation[];
   totals: PathwayEstimateTotals;
+  hardwareItems: HardwareItem[];
+  materials: MaterialBreakdown;
+  /** totals.totalCost + materials.hardwareSubtotal + markup (segment material is already in totals.totalCost) */
+  projectTotal: number;
 }
 
 export interface CreatePathwayEstimateBody {

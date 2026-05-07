@@ -20,12 +20,14 @@ import type {
   CalculationInput,
   CalculationResult,
   CreateEstimateBody,
+  CreateHardwareItemBody,
   CreatePathwayEstimateBody,
   CreatePathwaySegmentBody,
   CreateRunBody,
   Estimate,
   EstimateDetail,
   EstimateSummary,
+  HardwareItem,
   HealthStatus,
   PathwayEstimate,
   PathwayEstimateDetail,
@@ -34,6 +36,7 @@ import type {
   RatesConfig,
   Run,
   UpdateEstimateBody,
+  UpdateHardwareItemBody,
   UpdatePathwayEstimateBody,
   UpdatePathwaySegmentBody,
   UpdateRunBody,
@@ -1711,6 +1714,526 @@ export const useDeletePathwaySegment = <
   TContext
 > => {
   return useMutation(getDeletePathwaySegmentMutationOptions(options));
+};
+
+/**
+ * @summary Add a hardware/material line item to a cabling estimate
+ */
+export const getCreateCablingHardwareItemUrl = (id: number) => {
+  return `/api/estimates/${id}/hardware-items`;
+};
+
+export const createCablingHardwareItem = async (
+  id: number,
+  createHardwareItemBody: CreateHardwareItemBody,
+  options?: RequestInit,
+): Promise<HardwareItem> => {
+  return customFetch<HardwareItem>(getCreateCablingHardwareItemUrl(id), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(createHardwareItemBody),
+  });
+};
+
+export const getCreateCablingHardwareItemMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createCablingHardwareItem>>,
+    TError,
+    { id: number; data: BodyType<CreateHardwareItemBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof createCablingHardwareItem>>,
+  TError,
+  { id: number; data: BodyType<CreateHardwareItemBody> },
+  TContext
+> => {
+  const mutationKey = ["createCablingHardwareItem"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof createCablingHardwareItem>>,
+    { id: number; data: BodyType<CreateHardwareItemBody> }
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return createCablingHardwareItem(id, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CreateCablingHardwareItemMutationResult = NonNullable<
+  Awaited<ReturnType<typeof createCablingHardwareItem>>
+>;
+export type CreateCablingHardwareItemMutationBody =
+  BodyType<CreateHardwareItemBody>;
+export type CreateCablingHardwareItemMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Add a hardware/material line item to a cabling estimate
+ */
+export const useCreateCablingHardwareItem = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createCablingHardwareItem>>,
+    TError,
+    { id: number; data: BodyType<CreateHardwareItemBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof createCablingHardwareItem>>,
+  TError,
+  { id: number; data: BodyType<CreateHardwareItemBody> },
+  TContext
+> => {
+  return useMutation(getCreateCablingHardwareItemMutationOptions(options));
+};
+
+/**
+ * @summary Update a cabling hardware/material line item
+ */
+export const getUpdateCablingHardwareItemUrl = (id: number) => {
+  return `/api/hardware-items/${id}`;
+};
+
+export const updateCablingHardwareItem = async (
+  id: number,
+  updateHardwareItemBody: UpdateHardwareItemBody,
+  options?: RequestInit,
+): Promise<HardwareItem> => {
+  return customFetch<HardwareItem>(getUpdateCablingHardwareItemUrl(id), {
+    ...options,
+    method: "PUT",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(updateHardwareItemBody),
+  });
+};
+
+export const getUpdateCablingHardwareItemMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateCablingHardwareItem>>,
+    TError,
+    { id: number; data: BodyType<UpdateHardwareItemBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updateCablingHardwareItem>>,
+  TError,
+  { id: number; data: BodyType<UpdateHardwareItemBody> },
+  TContext
+> => {
+  const mutationKey = ["updateCablingHardwareItem"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updateCablingHardwareItem>>,
+    { id: number; data: BodyType<UpdateHardwareItemBody> }
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return updateCablingHardwareItem(id, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdateCablingHardwareItemMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updateCablingHardwareItem>>
+>;
+export type UpdateCablingHardwareItemMutationBody =
+  BodyType<UpdateHardwareItemBody>;
+export type UpdateCablingHardwareItemMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Update a cabling hardware/material line item
+ */
+export const useUpdateCablingHardwareItem = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updateCablingHardwareItem>>,
+    TError,
+    { id: number; data: BodyType<UpdateHardwareItemBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof updateCablingHardwareItem>>,
+  TError,
+  { id: number; data: BodyType<UpdateHardwareItemBody> },
+  TContext
+> => {
+  return useMutation(getUpdateCablingHardwareItemMutationOptions(options));
+};
+
+/**
+ * @summary Delete a cabling hardware/material line item
+ */
+export const getDeleteCablingHardwareItemUrl = (id: number) => {
+  return `/api/hardware-items/${id}`;
+};
+
+export const deleteCablingHardwareItem = async (
+  id: number,
+  options?: RequestInit,
+): Promise<void> => {
+  return customFetch<void>(getDeleteCablingHardwareItemUrl(id), {
+    ...options,
+    method: "DELETE",
+  });
+};
+
+export const getDeleteCablingHardwareItemMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteCablingHardwareItem>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof deleteCablingHardwareItem>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  const mutationKey = ["deleteCablingHardwareItem"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof deleteCablingHardwareItem>>,
+    { id: number }
+  > = (props) => {
+    const { id } = props ?? {};
+
+    return deleteCablingHardwareItem(id, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DeleteCablingHardwareItemMutationResult = NonNullable<
+  Awaited<ReturnType<typeof deleteCablingHardwareItem>>
+>;
+
+export type DeleteCablingHardwareItemMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Delete a cabling hardware/material line item
+ */
+export const useDeleteCablingHardwareItem = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deleteCablingHardwareItem>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof deleteCablingHardwareItem>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  return useMutation(getDeleteCablingHardwareItemMutationOptions(options));
+};
+
+/**
+ * @summary Add a hardware/material line item to a pathway estimate
+ */
+export const getCreatePathwayHardwareItemUrl = (id: number) => {
+  return `/api/pathway-estimates/${id}/hardware-items`;
+};
+
+export const createPathwayHardwareItem = async (
+  id: number,
+  createHardwareItemBody: CreateHardwareItemBody,
+  options?: RequestInit,
+): Promise<HardwareItem> => {
+  return customFetch<HardwareItem>(getCreatePathwayHardwareItemUrl(id), {
+    ...options,
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(createHardwareItemBody),
+  });
+};
+
+export const getCreatePathwayHardwareItemMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createPathwayHardwareItem>>,
+    TError,
+    { id: number; data: BodyType<CreateHardwareItemBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof createPathwayHardwareItem>>,
+  TError,
+  { id: number; data: BodyType<CreateHardwareItemBody> },
+  TContext
+> => {
+  const mutationKey = ["createPathwayHardwareItem"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof createPathwayHardwareItem>>,
+    { id: number; data: BodyType<CreateHardwareItemBody> }
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return createPathwayHardwareItem(id, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type CreatePathwayHardwareItemMutationResult = NonNullable<
+  Awaited<ReturnType<typeof createPathwayHardwareItem>>
+>;
+export type CreatePathwayHardwareItemMutationBody =
+  BodyType<CreateHardwareItemBody>;
+export type CreatePathwayHardwareItemMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Add a hardware/material line item to a pathway estimate
+ */
+export const useCreatePathwayHardwareItem = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof createPathwayHardwareItem>>,
+    TError,
+    { id: number; data: BodyType<CreateHardwareItemBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof createPathwayHardwareItem>>,
+  TError,
+  { id: number; data: BodyType<CreateHardwareItemBody> },
+  TContext
+> => {
+  return useMutation(getCreatePathwayHardwareItemMutationOptions(options));
+};
+
+/**
+ * @summary Update a pathway hardware/material line item
+ */
+export const getUpdatePathwayHardwareItemUrl = (id: number) => {
+  return `/api/pathway-hardware-items/${id}`;
+};
+
+export const updatePathwayHardwareItem = async (
+  id: number,
+  updateHardwareItemBody: UpdateHardwareItemBody,
+  options?: RequestInit,
+): Promise<HardwareItem> => {
+  return customFetch<HardwareItem>(getUpdatePathwayHardwareItemUrl(id), {
+    ...options,
+    method: "PUT",
+    headers: { "Content-Type": "application/json", ...options?.headers },
+    body: JSON.stringify(updateHardwareItemBody),
+  });
+};
+
+export const getUpdatePathwayHardwareItemMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updatePathwayHardwareItem>>,
+    TError,
+    { id: number; data: BodyType<UpdateHardwareItemBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof updatePathwayHardwareItem>>,
+  TError,
+  { id: number; data: BodyType<UpdateHardwareItemBody> },
+  TContext
+> => {
+  const mutationKey = ["updatePathwayHardwareItem"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof updatePathwayHardwareItem>>,
+    { id: number; data: BodyType<UpdateHardwareItemBody> }
+  > = (props) => {
+    const { id, data } = props ?? {};
+
+    return updatePathwayHardwareItem(id, data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type UpdatePathwayHardwareItemMutationResult = NonNullable<
+  Awaited<ReturnType<typeof updatePathwayHardwareItem>>
+>;
+export type UpdatePathwayHardwareItemMutationBody =
+  BodyType<UpdateHardwareItemBody>;
+export type UpdatePathwayHardwareItemMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Update a pathway hardware/material line item
+ */
+export const useUpdatePathwayHardwareItem = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof updatePathwayHardwareItem>>,
+    TError,
+    { id: number; data: BodyType<UpdateHardwareItemBody> },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof updatePathwayHardwareItem>>,
+  TError,
+  { id: number; data: BodyType<UpdateHardwareItemBody> },
+  TContext
+> => {
+  return useMutation(getUpdatePathwayHardwareItemMutationOptions(options));
+};
+
+/**
+ * @summary Delete a pathway hardware/material line item
+ */
+export const getDeletePathwayHardwareItemUrl = (id: number) => {
+  return `/api/pathway-hardware-items/${id}`;
+};
+
+export const deletePathwayHardwareItem = async (
+  id: number,
+  options?: RequestInit,
+): Promise<void> => {
+  return customFetch<void>(getDeletePathwayHardwareItemUrl(id), {
+    ...options,
+    method: "DELETE",
+  });
+};
+
+export const getDeletePathwayHardwareItemMutationOptions = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deletePathwayHardwareItem>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationOptions<
+  Awaited<ReturnType<typeof deletePathwayHardwareItem>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  const mutationKey = ["deletePathwayHardwareItem"];
+  const { mutation: mutationOptions, request: requestOptions } = options
+    ? options.mutation &&
+      "mutationKey" in options.mutation &&
+      options.mutation.mutationKey
+      ? options
+      : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<
+    Awaited<ReturnType<typeof deletePathwayHardwareItem>>,
+    { id: number }
+  > = (props) => {
+    const { id } = props ?? {};
+
+    return deletePathwayHardwareItem(id, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type DeletePathwayHardwareItemMutationResult = NonNullable<
+  Awaited<ReturnType<typeof deletePathwayHardwareItem>>
+>;
+
+export type DeletePathwayHardwareItemMutationError = ErrorType<unknown>;
+
+/**
+ * @summary Delete a pathway hardware/material line item
+ */
+export const useDeletePathwayHardwareItem = <
+  TError = ErrorType<unknown>,
+  TContext = unknown,
+>(options?: {
+  mutation?: UseMutationOptions<
+    Awaited<ReturnType<typeof deletePathwayHardwareItem>>,
+    TError,
+    { id: number },
+    TContext
+  >;
+  request?: SecondParameter<typeof customFetch>;
+}): UseMutationResult<
+  Awaited<ReturnType<typeof deletePathwayHardwareItem>>,
+  TError,
+  { id: number },
+  TContext
+> => {
+  return useMutation(getDeletePathwayHardwareItemMutationOptions(options));
 };
 
 /**

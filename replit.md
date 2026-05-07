@@ -40,6 +40,24 @@ Pathway estimates are now persisted in Postgres and follow the same "Saved Estim
 - **Server calculator**: `artifacts/api-server/src/lib/pathwayCalculator.ts` mirrors the client logic.
 - **Routes**: `/api/pathway-estimates` (GET list w/ summary totals, POST create, PUT, DELETE), `/api/pathway-estimates/:id/segments` (POST add segment with auto sortOrder), `/api/pathway-segments/:id` (PUT, DELETE; bumps parent `updatedAt`).
 
+## Material Cost Module (used by both estimators)
+
+The Cabling and Pathway estimators both attach materials to each saved estimate and report a **Project Total = Labor + Materials Total**.
+
+- **Auto-priced lines (cabling)**: each run produces a cable line (`lengthFt × numCables × cableMaterialCostPerFt[type]`) and a termination line (`numCables × 2 × strands × terminationHardwareCostPerEnd[type]`). Aggregated by cable type for display.
+- **Auto-priced lines (pathway)**: per-segment material cost (already computed by `pathwayCalculator`) is summed into a `pathwaySubtotal`.
+- **Hardware items**: per-estimate rows (`cabling_hardware_items`, `pathway_hardware_items`) holding either a catalog reference (`catalogKey` → entry in `hardwareCatalog`) or a one-off (`name`, `unitCost`, `quantity`, `unit`, `notes`). Edited via the Materials card on the estimate page (Add / Edit / Delete).
+- **Catalog**: `rates.hardwareCatalog` (managed in Rate Editor → "Materials — used by both estimators") feeds the Add Item dropdown on every estimate.
+- **Math** (`materialCalculator.ts`):
+  - `cableWasteAmount = cableSubtotal × materialWastePercent / 100` — waste applied to cable only.
+  - `subtotal = cableSubtotal + cableWasteAmount + terminationSubtotal + pathwaySubtotal + hardwareSubtotal`
+  - `markupAmount = subtotal × materialMarkupPercent / 100` — markup applied to full materials subtotal.
+  - `total = subtotal + markupAmount`
+  - **Project total** for cabling = `totals.totalCostAvg + materials.total`. For pathway = `totals.totalCost (labor + segment material) + hardwareSubtotal + markupAmount` (segment material is already in `totals.totalCost`, so we don't double-count it).
+- **API**: `POST/PUT/DELETE /api/estimates/:id/hardware-items` and `/api/pathway-estimates/:id/hardware-items`. `GET /api/estimates/:id` and `GET /api/pathway-estimates/:id` return `hardwareItems`, `materials`, and `projectTotal`.
+- **Rate Editor adds**: `Cable Material Cost ($/ft)` and `Termination Hardware ($/end)` per cable type (Cabling section); `Waste %`, `Markup %`, and the **Hardware Catalog** table (Materials section, shared by both estimators).
+- **PDF export**: includes a Materials section listing all cable/termination/pathway/hardware lines plus a final "Labor / Materials / Project Total" panel.
+
 ## Stack
 
 - **Monorepo tool**: pnpm workspaces

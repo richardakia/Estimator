@@ -6,7 +6,9 @@
  * OpenAPI spec version: 0.1.0
  */
 import type { CustomCableType } from "./customCableType";
+import type { HardwareCatalogItem } from "./hardwareCatalogItem";
 import type { RatesConfigBuildingMult } from "./ratesConfigBuildingMult";
+import type { RatesConfigCableMaterialCostPerFt } from "./ratesConfigCableMaterialCostPerFt";
 import type { RatesConfigCeilingMult } from "./ratesConfigCeilingMult";
 import type { RatesConfigEnvironmentMult } from "./ratesConfigEnvironmentMult";
 import type { RatesConfigInstallTypeMult } from "./ratesConfigInstallTypeMult";
@@ -17,6 +19,7 @@ import type { RatesConfigPathwayMult } from "./ratesConfigPathwayMult";
 import type { RatesConfigPathwayTypeRates } from "./ratesConfigPathwayTypeRates";
 import type { RatesConfigPullMinutesPer10Ft } from "./ratesConfigPullMinutesPer10Ft";
 import type { RatesConfigSkillMult } from "./ratesConfigSkillMult";
+import type { RatesConfigTerminationHardwareCostPerEnd } from "./ratesConfigTerminationHardwareCostPerEnd";
 import type { RatesConfigTerminationMinutesPerEnd } from "./ratesConfigTerminationMinutesPerEnd";
 
 export interface RatesConfig {
@@ -58,4 +61,20 @@ for pulling more cables together. Default 0.15.
   pathwayPenetrationLaborHrs?: number;
   /** Material cost per fire-rated penetration ($). */
   pathwayPenetrationMaterialCost?: number;
+  /** Cable material cost ($/ft) keyed by cable type value (built-ins and custom). Used by the Material Cost Module. */
+  cableMaterialCostPerFt?: RatesConfigCableMaterialCostPerFt;
+  /** Termination hardware cost ($/end) keyed by cable type — covers jacks, connectors, boots. */
+  terminationHardwareCostPerEnd?: RatesConfigTerminationHardwareCostPerEnd;
+  /** Reusable hardware/material catalog. Items can be picked from a dropdown when adding hardware to an estimate. */
+  hardwareCatalog?: HardwareCatalogItem[];
+  /**
+   * Default cable scrap/waste % applied to auto-computed cable material cost.
+   * @minimum 0
+   */
+  materialWastePercent?: number;
+  /**
+   * Default markup % applied to all material totals (cable + termination + pathway + hardware).
+   * @minimum 0
+   */
+  materialMarkupPercent?: number;
 }

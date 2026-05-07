@@ -7,10 +7,16 @@
  */
 import type { Estimate } from "./estimate";
 import type { EstimateTotals } from "./estimateTotals";
+import type { HardwareItem } from "./hardwareItem";
+import type { MaterialBreakdown } from "./materialBreakdown";
 import type { RunCalculation } from "./runCalculation";
 
 export interface EstimateDetail {
   estimate: Estimate;
   runs: RunCalculation[];
   totals: EstimateTotals;
+  hardwareItems: HardwareItem[];
+  materials: MaterialBreakdown;
+  /** totals.totalCostAvg + materials.total */
+  projectTotal: number;
 }

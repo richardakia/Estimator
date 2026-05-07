@@ -1,8 +1,14 @@
 import { Router, type IRouter } from "express";
 import { eq, desc, asc } from "drizzle-orm";
-import { db, estimatesTable, runsTable } from "@workspace/db";
+import {
+  db,
+  estimatesTable,
+  runsTable,
+  cablingHardwareItemsTable,
+} from "@workspace/db";
 import { apiSchemas } from "@workspace/api-zod";
 import { calculateEstimate } from "../lib/calculator";
+import { computeMaterials } from "../lib/materialCalculator";
 import type {
   CableType,
   CeilingType,
@@ -139,6 +145,15 @@ router.get("/estimates/:id", async (req, res): Promise<void> => {
     .where(eq(runsTable.estimateId, estimate.id))
     .orderBy(asc(runsTable.sortOrder), asc(runsTable.id));
 
+  const hardwareRows = await db
+    .select()
+    .from(cablingHardwareItemsTable)
+    .where(eq(cablingHardwareItemsTable.estimateId, estimate.id))
+    .orderBy(
+      asc(cablingHardwareItemsTable.sortOrder),
+      asc(cablingHardwareItemsTable.id),
+    );
+
   const rates = await getRates();
 
   const runInputs: RunInput[] = runs.map((r) => ({
@@ -165,6 +180,30 @@ router.get("/estimates/:id", async (req, res): Promise<void> => {
     rates,
   );
 
+  const materials = computeMaterials({
+    runs: runInputs,
+    hardware: hardwareRows.map((h) => ({
+      quantity: h.quantity,
+      unitCost: h.unitCost,
+    })),
+    rates,
+  });
+
+  const round2 = (n: number) => Math.round(n * 100) / 100;
+  const hardwareItems = hardwareRows.map((h) => ({
+    id: h.id,
+    estimateId: h.estimateId,
+    catalogKey: h.catalogKey,
+    name: h.name,
+    quantity: h.quantity,
+    unitCost: h.unitCost,
+    unit: h.unit,
+    notes: h.notes,
+    sortOrder: h.sortOrder,
+    lineTotal: round2(h.quantity * h.unitCost),
+    createdAt: h.createdAt.toISOString(),
+  }));
+
   res.json({
     estimate: {
       id: estimate.id,
@@ -180,6 +219,9 @@ router.get("/estimates/:id", async (req, res): Promise<void> => {
     },
     runs: calc.runs,
     totals: calc.totals,
+    hardwareItems,
+    materials,
+    projectTotal: round2(calc.totals.totalCostAvg + materials.total),
   });
 });
 

@@ -54,6 +54,10 @@ export const GetEstimateParams = zod.object({
   id: zod.coerce.number(),
 });
 
+export const getEstimateResponseHardwareItemsItemQuantityMin = 0;
+
+export const getEstimateResponseHardwareItemsItemUnitCostMin = 0;
+
 export const GetEstimateResponse = zod.object({
   estimate: zod.object({
     id: zod.number(),
@@ -151,6 +155,68 @@ export const GetEstimateResponse = zod.object({
       }),
     ),
   }),
+  hardwareItems: zod.array(
+    zod
+      .object({
+        id: zod.number(),
+        estimateId: zod.number(),
+        catalogKey: zod
+          .string()
+          .nullish()
+          .describe(
+            "If set, references a hardwareCatalog entry by its `value`. May be null for one-off items.",
+          ),
+        name: zod.string(),
+        quantity: zod
+          .number()
+          .min(getEstimateResponseHardwareItemsItemQuantityMin),
+        unitCost: zod
+          .number()
+          .min(getEstimateResponseHardwareItemsItemUnitCostMin),
+        unit: zod.string().nullish(),
+        notes: zod.string().nullish(),
+        sortOrder: zod.number(),
+        lineTotal: zod.number().describe("quantity × unitCost"),
+        createdAt: zod.coerce.date(),
+      })
+      .describe("A hardware\/material line item attached to an estimate."),
+  ),
+  materials: zod
+    .object({
+      cableSubtotal: zod.number(),
+      cableWasteAmount: zod.number(),
+      terminationSubtotal: zod.number(),
+      pathwaySubtotal: zod.number(),
+      hardwareSubtotal: zod.number(),
+      subtotal: zod
+        .number()
+        .describe("Sum of (cable + waste) + termination + pathway + hardware"),
+      wastePercent: zod.number(),
+      markupPercent: zod.number(),
+      markupAmount: zod.number(),
+      total: zod.number().describe("subtotal + markupAmount"),
+      cableLines: zod.array(
+        zod.object({
+          cableType: zod.string(),
+          totalLengthFt: zod.number(),
+          totalCables: zod.number(),
+          costPerFt: zod.number(),
+          subtotal: zod.number(),
+        }),
+      ),
+      terminationLines: zod.array(
+        zod.object({
+          cableType: zod.string(),
+          totalEnds: zod.number(),
+          costPerEnd: zod.number(),
+          subtotal: zod.number(),
+        }),
+      ),
+    })
+    .describe(
+      "Material cost breakdown for an estimate. For Cabling estimates, cable + termination\nsubtotals are auto-computed from runs. For Pathway estimates, pathwaySubtotal is\nthe sum of segment material (already includes pathway, fasteners, bends, penetrations).\nHardware items are user-added line items. Waste is applied to cableSubtotal only.\nMarkup is applied to the full subtotal.\n",
+    ),
+  projectTotal: zod.number().describe("totals.totalCostAvg + materials.total"),
 });
 
 /**
@@ -266,6 +332,12 @@ export const DeleteRunParams = zod.object({
  * @summary Get all productivity rates and multipliers
  */
 export const getRatesResponseBulkFactorAlphaMin = 0;
+
+export const getRatesResponseHardwareCatalogItemUnitCostMin = 0;
+
+export const getRatesResponseMaterialWastePercentMin = 0;
+
+export const getRatesResponseMaterialMarkupPercentMin = 0;
 
 export const GetRatesResponse = zod.object({
   hourlyRate: zod
@@ -387,12 +459,70 @@ export const GetRatesResponse = zod.object({
     .number()
     .optional()
     .describe("Material cost per fire-rated penetration ($)."),
+  cableMaterialCostPerFt: zod
+    .record(zod.string(), zod.number())
+    .optional()
+    .describe(
+      "Cable material cost ($\/ft) keyed by cable type value (built-ins and custom). Used by the Material Cost Module.",
+    ),
+  terminationHardwareCostPerEnd: zod
+    .record(zod.string(), zod.number())
+    .optional()
+    .describe(
+      "Termination hardware cost ($\/end) keyed by cable type — covers jacks, connectors, boots.",
+    ),
+  hardwareCatalog: zod
+    .array(
+      zod
+        .object({
+          value: zod
+            .string()
+            .min(1)
+            .describe('Unique identifier key (e.g. \"patch_panel_24\")'),
+          label: zod.string().min(1).describe("Human-readable display name"),
+          unitCost: zod
+            .number()
+            .min(getRatesResponseHardwareCatalogItemUnitCostMin)
+            .describe("Default unit cost ($)"),
+          unit: zod
+            .string()
+            .nullish()
+            .describe('Optional unit label (e.g. \"ea\", \"ft\", \"box\")'),
+        })
+        .describe(
+          "A reusable hardware\/material item defined in the rates catalog.",
+        ),
+    )
+    .optional()
+    .describe(
+      "Reusable hardware\/material catalog. Items can be picked from a dropdown when adding hardware to an estimate.",
+    ),
+  materialWastePercent: zod
+    .number()
+    .min(getRatesResponseMaterialWastePercentMin)
+    .optional()
+    .describe(
+      "Default cable scrap\/waste % applied to auto-computed cable material cost.",
+    ),
+  materialMarkupPercent: zod
+    .number()
+    .min(getRatesResponseMaterialMarkupPercentMin)
+    .optional()
+    .describe(
+      "Default markup % applied to all material totals (cable + termination + pathway + hardware).",
+    ),
 });
 
 /**
  * @summary Update productivity rates
  */
 export const updateRatesBodyBulkFactorAlphaMin = 0;
+
+export const updateRatesBodyHardwareCatalogItemUnitCostMin = 0;
+
+export const updateRatesBodyMaterialWastePercentMin = 0;
+
+export const updateRatesBodyMaterialMarkupPercentMin = 0;
 
 export const UpdateRatesBody = zod.object({
   hourlyRate: zod
@@ -514,9 +644,67 @@ export const UpdateRatesBody = zod.object({
     .number()
     .optional()
     .describe("Material cost per fire-rated penetration ($)."),
+  cableMaterialCostPerFt: zod
+    .record(zod.string(), zod.number())
+    .optional()
+    .describe(
+      "Cable material cost ($\/ft) keyed by cable type value (built-ins and custom). Used by the Material Cost Module.",
+    ),
+  terminationHardwareCostPerEnd: zod
+    .record(zod.string(), zod.number())
+    .optional()
+    .describe(
+      "Termination hardware cost ($\/end) keyed by cable type — covers jacks, connectors, boots.",
+    ),
+  hardwareCatalog: zod
+    .array(
+      zod
+        .object({
+          value: zod
+            .string()
+            .min(1)
+            .describe('Unique identifier key (e.g. \"patch_panel_24\")'),
+          label: zod.string().min(1).describe("Human-readable display name"),
+          unitCost: zod
+            .number()
+            .min(updateRatesBodyHardwareCatalogItemUnitCostMin)
+            .describe("Default unit cost ($)"),
+          unit: zod
+            .string()
+            .nullish()
+            .describe('Optional unit label (e.g. \"ea\", \"ft\", \"box\")'),
+        })
+        .describe(
+          "A reusable hardware\/material item defined in the rates catalog.",
+        ),
+    )
+    .optional()
+    .describe(
+      "Reusable hardware\/material catalog. Items can be picked from a dropdown when adding hardware to an estimate.",
+    ),
+  materialWastePercent: zod
+    .number()
+    .min(updateRatesBodyMaterialWastePercentMin)
+    .optional()
+    .describe(
+      "Default cable scrap\/waste % applied to auto-computed cable material cost.",
+    ),
+  materialMarkupPercent: zod
+    .number()
+    .min(updateRatesBodyMaterialMarkupPercentMin)
+    .optional()
+    .describe(
+      "Default markup % applied to all material totals (cable + termination + pathway + hardware).",
+    ),
 });
 
 export const updateRatesResponseBulkFactorAlphaMin = 0;
+
+export const updateRatesResponseHardwareCatalogItemUnitCostMin = 0;
+
+export const updateRatesResponseMaterialWastePercentMin = 0;
+
+export const updateRatesResponseMaterialMarkupPercentMin = 0;
 
 export const UpdateRatesResponse = zod.object({
   hourlyRate: zod
@@ -638,12 +826,70 @@ export const UpdateRatesResponse = zod.object({
     .number()
     .optional()
     .describe("Material cost per fire-rated penetration ($)."),
+  cableMaterialCostPerFt: zod
+    .record(zod.string(), zod.number())
+    .optional()
+    .describe(
+      "Cable material cost ($\/ft) keyed by cable type value (built-ins and custom). Used by the Material Cost Module.",
+    ),
+  terminationHardwareCostPerEnd: zod
+    .record(zod.string(), zod.number())
+    .optional()
+    .describe(
+      "Termination hardware cost ($\/end) keyed by cable type — covers jacks, connectors, boots.",
+    ),
+  hardwareCatalog: zod
+    .array(
+      zod
+        .object({
+          value: zod
+            .string()
+            .min(1)
+            .describe('Unique identifier key (e.g. \"patch_panel_24\")'),
+          label: zod.string().min(1).describe("Human-readable display name"),
+          unitCost: zod
+            .number()
+            .min(updateRatesResponseHardwareCatalogItemUnitCostMin)
+            .describe("Default unit cost ($)"),
+          unit: zod
+            .string()
+            .nullish()
+            .describe('Optional unit label (e.g. \"ea\", \"ft\", \"box\")'),
+        })
+        .describe(
+          "A reusable hardware\/material item defined in the rates catalog.",
+        ),
+    )
+    .optional()
+    .describe(
+      "Reusable hardware\/material catalog. Items can be picked from a dropdown when adding hardware to an estimate.",
+    ),
+  materialWastePercent: zod
+    .number()
+    .min(updateRatesResponseMaterialWastePercentMin)
+    .optional()
+    .describe(
+      "Default cable scrap\/waste % applied to auto-computed cable material cost.",
+    ),
+  materialMarkupPercent: zod
+    .number()
+    .min(updateRatesResponseMaterialMarkupPercentMin)
+    .optional()
+    .describe(
+      "Default markup % applied to all material totals (cable + termination + pathway + hardware).",
+    ),
 });
 
 /**
  * @summary Reset rates to defaults
  */
 export const resetRatesResponseBulkFactorAlphaMin = 0;
+
+export const resetRatesResponseHardwareCatalogItemUnitCostMin = 0;
+
+export const resetRatesResponseMaterialWastePercentMin = 0;
+
+export const resetRatesResponseMaterialMarkupPercentMin = 0;
 
 export const ResetRatesResponse = zod.object({
   hourlyRate: zod
@@ -765,6 +1011,58 @@ export const ResetRatesResponse = zod.object({
     .number()
     .optional()
     .describe("Material cost per fire-rated penetration ($)."),
+  cableMaterialCostPerFt: zod
+    .record(zod.string(), zod.number())
+    .optional()
+    .describe(
+      "Cable material cost ($\/ft) keyed by cable type value (built-ins and custom). Used by the Material Cost Module.",
+    ),
+  terminationHardwareCostPerEnd: zod
+    .record(zod.string(), zod.number())
+    .optional()
+    .describe(
+      "Termination hardware cost ($\/end) keyed by cable type — covers jacks, connectors, boots.",
+    ),
+  hardwareCatalog: zod
+    .array(
+      zod
+        .object({
+          value: zod
+            .string()
+            .min(1)
+            .describe('Unique identifier key (e.g. \"patch_panel_24\")'),
+          label: zod.string().min(1).describe("Human-readable display name"),
+          unitCost: zod
+            .number()
+            .min(resetRatesResponseHardwareCatalogItemUnitCostMin)
+            .describe("Default unit cost ($)"),
+          unit: zod
+            .string()
+            .nullish()
+            .describe('Optional unit label (e.g. \"ea\", \"ft\", \"box\")'),
+        })
+        .describe(
+          "A reusable hardware\/material item defined in the rates catalog.",
+        ),
+    )
+    .optional()
+    .describe(
+      "Reusable hardware\/material catalog. Items can be picked from a dropdown when adding hardware to an estimate.",
+    ),
+  materialWastePercent: zod
+    .number()
+    .min(resetRatesResponseMaterialWastePercentMin)
+    .optional()
+    .describe(
+      "Default cable scrap\/waste % applied to auto-computed cable material cost.",
+    ),
+  materialMarkupPercent: zod
+    .number()
+    .min(resetRatesResponseMaterialMarkupPercentMin)
+    .optional()
+    .describe(
+      "Default markup % applied to all material totals (cable + termination + pathway + hardware).",
+    ),
 });
 
 /**
@@ -828,6 +1126,10 @@ export const getPathwayEstimateResponseSegmentsItemLengthFtMin = 0;
 export const getPathwayEstimateResponseSegmentsItemBendsMin = 0;
 
 export const getPathwayEstimateResponseSegmentsItemPenetrationsMin = 0;
+
+export const getPathwayEstimateResponseHardwareItemsItemQuantityMin = 0;
+
+export const getPathwayEstimateResponseHardwareItemsItemUnitCostMin = 0;
 
 export const GetPathwayEstimateResponse = zod.object({
   estimate: zod.object({
@@ -901,6 +1203,72 @@ export const GetPathwayEstimateResponse = zod.object({
     totalFasteners: zod.number(),
     totalCost: zod.number(),
   }),
+  hardwareItems: zod.array(
+    zod
+      .object({
+        id: zod.number(),
+        estimateId: zod.number(),
+        catalogKey: zod
+          .string()
+          .nullish()
+          .describe(
+            "If set, references a hardwareCatalog entry by its `value`. May be null for one-off items.",
+          ),
+        name: zod.string(),
+        quantity: zod
+          .number()
+          .min(getPathwayEstimateResponseHardwareItemsItemQuantityMin),
+        unitCost: zod
+          .number()
+          .min(getPathwayEstimateResponseHardwareItemsItemUnitCostMin),
+        unit: zod.string().nullish(),
+        notes: zod.string().nullish(),
+        sortOrder: zod.number(),
+        lineTotal: zod.number().describe("quantity × unitCost"),
+        createdAt: zod.coerce.date(),
+      })
+      .describe("A hardware\/material line item attached to an estimate."),
+  ),
+  materials: zod
+    .object({
+      cableSubtotal: zod.number(),
+      cableWasteAmount: zod.number(),
+      terminationSubtotal: zod.number(),
+      pathwaySubtotal: zod.number(),
+      hardwareSubtotal: zod.number(),
+      subtotal: zod
+        .number()
+        .describe("Sum of (cable + waste) + termination + pathway + hardware"),
+      wastePercent: zod.number(),
+      markupPercent: zod.number(),
+      markupAmount: zod.number(),
+      total: zod.number().describe("subtotal + markupAmount"),
+      cableLines: zod.array(
+        zod.object({
+          cableType: zod.string(),
+          totalLengthFt: zod.number(),
+          totalCables: zod.number(),
+          costPerFt: zod.number(),
+          subtotal: zod.number(),
+        }),
+      ),
+      terminationLines: zod.array(
+        zod.object({
+          cableType: zod.string(),
+          totalEnds: zod.number(),
+          costPerEnd: zod.number(),
+          subtotal: zod.number(),
+        }),
+      ),
+    })
+    .describe(
+      "Material cost breakdown for an estimate. For Cabling estimates, cable + termination\nsubtotals are auto-computed from runs. For Pathway estimates, pathwaySubtotal is\nthe sum of segment material (already includes pathway, fasteners, bends, penetrations).\nHardware items are user-added line items. Waste is applied to cableSubtotal only.\nMarkup is applied to the full subtotal.\n",
+    ),
+  projectTotal: zod
+    .number()
+    .describe(
+      "totals.totalCost + materials.hardwareSubtotal + markup (segment material is already in totals.totalCost)",
+    ),
 });
 
 /**
@@ -1093,6 +1461,226 @@ export const UpdatePathwaySegmentResponse = zod.object({
  * @summary Delete a pathway segment
  */
 export const DeletePathwaySegmentParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+/**
+ * @summary Add a hardware/material line item to a cabling estimate
+ */
+export const CreateCablingHardwareItemParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const createCablingHardwareItemBodyCatalogKeyMax = 200;
+
+export const createCablingHardwareItemBodyNameMax = 200;
+
+export const createCablingHardwareItemBodyQuantityMin = 0;
+export const createCablingHardwareItemBodyQuantityMax = 1000000;
+
+export const createCablingHardwareItemBodyUnitCostMin = 0;
+export const createCablingHardwareItemBodyUnitCostMax = 1000000;
+
+export const createCablingHardwareItemBodyUnitMax = 50;
+
+export const createCablingHardwareItemBodyNotesMax = 1000;
+
+export const CreateCablingHardwareItemBody = zod.object({
+  catalogKey: zod
+    .string()
+    .max(createCablingHardwareItemBodyCatalogKeyMax)
+    .nullish(),
+  name: zod.string().min(1).max(createCablingHardwareItemBodyNameMax),
+  quantity: zod
+    .number()
+    .min(createCablingHardwareItemBodyQuantityMin)
+    .max(createCablingHardwareItemBodyQuantityMax),
+  unitCost: zod
+    .number()
+    .min(createCablingHardwareItemBodyUnitCostMin)
+    .max(createCablingHardwareItemBodyUnitCostMax),
+  unit: zod.string().max(createCablingHardwareItemBodyUnitMax).nullish(),
+  notes: zod.string().max(createCablingHardwareItemBodyNotesMax).nullish(),
+});
+
+/**
+ * @summary Update a cabling hardware/material line item
+ */
+export const UpdateCablingHardwareItemParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const updateCablingHardwareItemBodyCatalogKeyMax = 200;
+
+export const updateCablingHardwareItemBodyNameMax = 200;
+
+export const updateCablingHardwareItemBodyQuantityMin = 0;
+export const updateCablingHardwareItemBodyQuantityMax = 1000000;
+
+export const updateCablingHardwareItemBodyUnitCostMin = 0;
+export const updateCablingHardwareItemBodyUnitCostMax = 1000000;
+
+export const updateCablingHardwareItemBodyUnitMax = 50;
+
+export const updateCablingHardwareItemBodyNotesMax = 1000;
+
+export const UpdateCablingHardwareItemBody = zod.object({
+  catalogKey: zod
+    .string()
+    .max(updateCablingHardwareItemBodyCatalogKeyMax)
+    .nullish(),
+  name: zod.string().min(1).max(updateCablingHardwareItemBodyNameMax),
+  quantity: zod
+    .number()
+    .min(updateCablingHardwareItemBodyQuantityMin)
+    .max(updateCablingHardwareItemBodyQuantityMax),
+  unitCost: zod
+    .number()
+    .min(updateCablingHardwareItemBodyUnitCostMin)
+    .max(updateCablingHardwareItemBodyUnitCostMax),
+  unit: zod.string().max(updateCablingHardwareItemBodyUnitMax).nullish(),
+  notes: zod.string().max(updateCablingHardwareItemBodyNotesMax).nullish(),
+});
+
+export const updateCablingHardwareItemResponseQuantityMin = 0;
+
+export const updateCablingHardwareItemResponseUnitCostMin = 0;
+
+export const UpdateCablingHardwareItemResponse = zod
+  .object({
+    id: zod.number(),
+    estimateId: zod.number(),
+    catalogKey: zod
+      .string()
+      .nullish()
+      .describe(
+        "If set, references a hardwareCatalog entry by its `value`. May be null for one-off items.",
+      ),
+    name: zod.string(),
+    quantity: zod.number().min(updateCablingHardwareItemResponseQuantityMin),
+    unitCost: zod.number().min(updateCablingHardwareItemResponseUnitCostMin),
+    unit: zod.string().nullish(),
+    notes: zod.string().nullish(),
+    sortOrder: zod.number(),
+    lineTotal: zod.number().describe("quantity × unitCost"),
+    createdAt: zod.coerce.date(),
+  })
+  .describe("A hardware\/material line item attached to an estimate.");
+
+/**
+ * @summary Delete a cabling hardware/material line item
+ */
+export const DeleteCablingHardwareItemParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+/**
+ * @summary Add a hardware/material line item to a pathway estimate
+ */
+export const CreatePathwayHardwareItemParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const createPathwayHardwareItemBodyCatalogKeyMax = 200;
+
+export const createPathwayHardwareItemBodyNameMax = 200;
+
+export const createPathwayHardwareItemBodyQuantityMin = 0;
+export const createPathwayHardwareItemBodyQuantityMax = 1000000;
+
+export const createPathwayHardwareItemBodyUnitCostMin = 0;
+export const createPathwayHardwareItemBodyUnitCostMax = 1000000;
+
+export const createPathwayHardwareItemBodyUnitMax = 50;
+
+export const createPathwayHardwareItemBodyNotesMax = 1000;
+
+export const CreatePathwayHardwareItemBody = zod.object({
+  catalogKey: zod
+    .string()
+    .max(createPathwayHardwareItemBodyCatalogKeyMax)
+    .nullish(),
+  name: zod.string().min(1).max(createPathwayHardwareItemBodyNameMax),
+  quantity: zod
+    .number()
+    .min(createPathwayHardwareItemBodyQuantityMin)
+    .max(createPathwayHardwareItemBodyQuantityMax),
+  unitCost: zod
+    .number()
+    .min(createPathwayHardwareItemBodyUnitCostMin)
+    .max(createPathwayHardwareItemBodyUnitCostMax),
+  unit: zod.string().max(createPathwayHardwareItemBodyUnitMax).nullish(),
+  notes: zod.string().max(createPathwayHardwareItemBodyNotesMax).nullish(),
+});
+
+/**
+ * @summary Update a pathway hardware/material line item
+ */
+export const UpdatePathwayHardwareItemParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const updatePathwayHardwareItemBodyCatalogKeyMax = 200;
+
+export const updatePathwayHardwareItemBodyNameMax = 200;
+
+export const updatePathwayHardwareItemBodyQuantityMin = 0;
+export const updatePathwayHardwareItemBodyQuantityMax = 1000000;
+
+export const updatePathwayHardwareItemBodyUnitCostMin = 0;
+export const updatePathwayHardwareItemBodyUnitCostMax = 1000000;
+
+export const updatePathwayHardwareItemBodyUnitMax = 50;
+
+export const updatePathwayHardwareItemBodyNotesMax = 1000;
+
+export const UpdatePathwayHardwareItemBody = zod.object({
+  catalogKey: zod
+    .string()
+    .max(updatePathwayHardwareItemBodyCatalogKeyMax)
+    .nullish(),
+  name: zod.string().min(1).max(updatePathwayHardwareItemBodyNameMax),
+  quantity: zod
+    .number()
+    .min(updatePathwayHardwareItemBodyQuantityMin)
+    .max(updatePathwayHardwareItemBodyQuantityMax),
+  unitCost: zod
+    .number()
+    .min(updatePathwayHardwareItemBodyUnitCostMin)
+    .max(updatePathwayHardwareItemBodyUnitCostMax),
+  unit: zod.string().max(updatePathwayHardwareItemBodyUnitMax).nullish(),
+  notes: zod.string().max(updatePathwayHardwareItemBodyNotesMax).nullish(),
+});
+
+export const updatePathwayHardwareItemResponseQuantityMin = 0;
+
+export const updatePathwayHardwareItemResponseUnitCostMin = 0;
+
+export const UpdatePathwayHardwareItemResponse = zod
+  .object({
+    id: zod.number(),
+    estimateId: zod.number(),
+    catalogKey: zod
+      .string()
+      .nullish()
+      .describe(
+        "If set, references a hardwareCatalog entry by its `value`. May be null for one-off items.",
+      ),
+    name: zod.string(),
+    quantity: zod.number().min(updatePathwayHardwareItemResponseQuantityMin),
+    unitCost: zod.number().min(updatePathwayHardwareItemResponseUnitCostMin),
+    unit: zod.string().nullish(),
+    notes: zod.string().nullish(),
+    sortOrder: zod.number(),
+    lineTotal: zod.number().describe("quantity × unitCost"),
+    createdAt: zod.coerce.date(),
+  })
+  .describe("A hardware\/material line item attached to an estimate.");
+
+/**
+ * @summary Delete a pathway hardware/material line item
+ */
+export const DeletePathwayHardwareItemParams = zod.object({
   id: zod.coerce.number(),
 });
 

@@ -22,6 +22,8 @@ tags:
     description: Saved pathway estimates
   - name: pathwaySegments
     description: Pathway segments within a pathway estimate
+  - name: hardwareItems
+    description: Material/hardware line items attached to estimates
 paths:
   /healthz:
     get:
@@ -377,6 +379,126 @@ paths:
           required: true
           schema:
             type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /estimates/{id}/hardware-items:
+    post:
+      operationId: createCablingHardwareItem
+      tags: [hardwareItems]
+      summary: Add a hardware/material line item to a cabling estimate
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateHardwareItemBody"
+      responses:
+        "201":
+          description: Created hardware item
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HardwareItem"
+
+  /hardware-items/{id}:
+    put:
+      operationId: updateCablingHardwareItem
+      tags: [hardwareItems]
+      summary: Update a cabling hardware/material line item
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateHardwareItemBody"
+      responses:
+        "200":
+          description: Updated hardware item
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HardwareItem"
+    delete:
+      operationId: deleteCablingHardwareItem
+      tags: [hardwareItems]
+      summary: Delete a cabling hardware/material line item
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      responses:
+        "204":
+          description: Deleted
+
+  /pathway-estimates/{id}/hardware-items:
+    post:
+      operationId: createPathwayHardwareItem
+      tags: [hardwareItems]
+      summary: Add a hardware/material line item to a pathway estimate
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateHardwareItemBody"
+      responses:
+        "201":
+          description: Created hardware item
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HardwareItem"
+
+  /pathway-hardware-items/{id}:
+    put:
+      operationId: updatePathwayHardwareItem
+      tags: [hardwareItems]
+      summary: Update a pathway hardware/material line item
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateHardwareItemBody"
+      responses:
+        "200":
+          description: Updated hardware item
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HardwareItem"
+    delete:
+      operationId: deletePathwayHardwareItem
+      tags: [hardwareItems]
+      summary: Delete a pathway hardware/material line item
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
       responses:
         "204":
           description: Deleted
@@ -744,7 +866,16 @@ components:
             $ref: "#/components/schemas/RunCalculation"
         totals:
           $ref: "#/components/schemas/EstimateTotals"
-      required: [estimate, runs, totals]
+        hardwareItems:
+          type: array
+          items:
+            $ref: "#/components/schemas/HardwareItem"
+        materials:
+          $ref: "#/components/schemas/MaterialBreakdown"
+        projectTotal:
+          type: number
+          description: totals.totalCostAvg + materials.total
+      required: [estimate, runs, totals, hardwareItems, materials, projectTotal]
 
     CreateEstimateBody:
       type: object
@@ -983,6 +1114,29 @@ components:
         pathwayPenetrationMaterialCost:
           type: number
           description: Material cost per fire-rated penetration ($).
+        cableMaterialCostPerFt:
+          type: object
+          description: Cable material cost ($/ft) keyed by cable type value (built-ins and custom). Used by the Material Cost Module.
+          additionalProperties:
+            type: number
+        terminationHardwareCostPerEnd:
+          type: object
+          description: Termination hardware cost ($/end) keyed by cable type — covers jacks, connectors, boots.
+          additionalProperties:
+            type: number
+        hardwareCatalog:
+          type: array
+          description: Reusable hardware/material catalog. Items can be picked from a dropdown when adding hardware to an estimate.
+          items:
+            $ref: "#/components/schemas/HardwareCatalogItem"
+        materialWastePercent:
+          type: number
+          minimum: 0
+          description: Default cable scrap/waste % applied to auto-computed cable material cost.
+        materialMarkupPercent:
+          type: number
+          minimum: 0
+          description: Default markup % applied to all material totals (cable + termination + pathway + hardware).
       required:
         [
           pullMinutesPer10Ft,
@@ -993,6 +1147,166 @@ components:
           buildingMult,
           environmentMult,
           skillMult,
+        ]
+
+    HardwareCatalogItem:
+      type: object
+      description: A reusable hardware/material item defined in the rates catalog.
+      properties:
+        value:
+          type: string
+          minLength: 1
+          description: Unique identifier key (e.g. "patch_panel_24")
+        label:
+          type: string
+          minLength: 1
+          description: Human-readable display name
+        unitCost:
+          type: number
+          minimum: 0
+          description: Default unit cost ($)
+        unit:
+          type: string
+          nullable: true
+          description: Optional unit label (e.g. "ea", "ft", "box")
+      required: [value, label, unitCost]
+
+    HardwareItem:
+      type: object
+      description: A hardware/material line item attached to an estimate.
+      properties:
+        id: { type: integer }
+        estimateId: { type: integer }
+        catalogKey:
+          type: string
+          nullable: true
+          description: If set, references a hardwareCatalog entry by its `value`. May be null for one-off items.
+        name: { type: string }
+        quantity: { type: number, minimum: 0 }
+        unitCost: { type: number, minimum: 0 }
+        unit:
+          type: string
+          nullable: true
+        notes:
+          type: string
+          nullable: true
+        sortOrder: { type: integer }
+        lineTotal:
+          type: number
+          description: quantity × unitCost
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        [
+          id,
+          estimateId,
+          name,
+          quantity,
+          unitCost,
+          sortOrder,
+          lineTotal,
+          createdAt,
+        ]
+
+    CreateHardwareItemBody:
+      type: object
+      properties:
+        catalogKey:
+          type: string
+          nullable: true
+          maxLength: 200
+        name: { type: string, minLength: 1, maxLength: 200 }
+        quantity: { type: number, minimum: 0, maximum: 1000000 }
+        unitCost: { type: number, minimum: 0, maximum: 1000000 }
+        unit:
+          type: string
+          nullable: true
+          maxLength: 50
+        notes:
+          type: string
+          nullable: true
+          maxLength: 1000
+      required: [name, quantity, unitCost]
+
+    UpdateHardwareItemBody:
+      type: object
+      properties:
+        catalogKey:
+          type: string
+          nullable: true
+          maxLength: 200
+        name: { type: string, minLength: 1, maxLength: 200 }
+        quantity: { type: number, minimum: 0, maximum: 1000000 }
+        unitCost: { type: number, minimum: 0, maximum: 1000000 }
+        unit:
+          type: string
+          nullable: true
+          maxLength: 50
+        notes:
+          type: string
+          nullable: true
+          maxLength: 1000
+      required: [name, quantity, unitCost]
+
+    MaterialCableLine:
+      type: object
+      properties:
+        cableType: { type: string }
+        totalLengthFt: { type: number }
+        totalCables: { type: integer }
+        costPerFt: { type: number }
+        subtotal: { type: number }
+      required: [cableType, totalLengthFt, totalCables, costPerFt, subtotal]
+
+    MaterialTerminationLine:
+      type: object
+      properties:
+        cableType: { type: string }
+        totalEnds: { type: integer }
+        costPerEnd: { type: number }
+        subtotal: { type: number }
+      required: [cableType, totalEnds, costPerEnd, subtotal]
+
+    MaterialBreakdown:
+      type: object
+      description: |
+        Material cost breakdown for an estimate. For Cabling estimates, cable + termination
+        subtotals are auto-computed from runs. For Pathway estimates, pathwaySubtotal is
+        the sum of segment material (already includes pathway, fasteners, bends, penetrations).
+        Hardware items are user-added line items. Waste is applied to cableSubtotal only.
+        Markup is applied to the full subtotal.
+      properties:
+        cableSubtotal: { type: number }
+        cableWasteAmount: { type: number }
+        terminationSubtotal: { type: number }
+        pathwaySubtotal: { type: number }
+        hardwareSubtotal: { type: number }
+        subtotal: { type: number, description: "Sum of (cable + waste) + termination + pathway + hardware" }
+        wastePercent: { type: number }
+        markupPercent: { type: number }
+        markupAmount: { type: number }
+        total: { type: number, description: "subtotal + markupAmount" }
+        cableLines:
+          type: array
+          items: { $ref: "#/components/schemas/MaterialCableLine" }
+        terminationLines:
+          type: array
+          items: { $ref: "#/components/schemas/MaterialTerminationLine" }
+      required:
+        [
+          cableSubtotal,
+          cableWasteAmount,
+          terminationSubtotal,
+          pathwaySubtotal,
+          hardwareSubtotal,
+          subtotal,
+          wastePercent,
+          markupPercent,
+          markupAmount,
+          total,
+          cableLines,
+          terminationLines,
         ]
 
     CalculationInput:
@@ -1212,7 +1526,16 @@ components:
             $ref: "#/components/schemas/PathwaySegmentCalculation"
         totals:
           $ref: "#/components/schemas/PathwayEstimateTotals"
-      required: [estimate, segments, totals]
+        hardwareItems:
+          type: array
+          items:
+            $ref: "#/components/schemas/HardwareItem"
+        materials:
+          $ref: "#/components/schemas/MaterialBreakdown"
+        projectTotal:
+          type: number
+          description: totals.totalCost + materials.hardwareSubtotal + markup (segment material is already in totals.totalCost)
+      required: [estimate, segments, totals, hardwareItems, materials, projectTotal]
 
     CreatePathwayEstimateBody:
       type: object

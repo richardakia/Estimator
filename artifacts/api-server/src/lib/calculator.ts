@@ -52,6 +52,18 @@ export interface RatesConfigShape {
   pathwayBendMaterialCost?: number;
   pathwayPenetrationLaborHrs?: number;
   pathwayPenetrationMaterialCost?: number;
+  cableMaterialCostPerFt?: Record<string, number>;
+  terminationHardwareCostPerEnd?: Record<string, number>;
+  hardwareCatalog?: HardwareCatalogItem[];
+  materialWastePercent?: number;
+  materialMarkupPercent?: number;
+}
+
+export interface HardwareCatalogItem {
+  value: string;
+  label: string;
+  unitCost: number;
+  unit?: string | null;
 }
 
 export const DEFAULT_RATES: RatesConfigShape = {
@@ -134,6 +146,28 @@ export const DEFAULT_RATES: RatesConfigShape = {
   pathwayBendMaterialCost: 35,
   pathwayPenetrationLaborHrs: 0.75,
   pathwayPenetrationMaterialCost: 50,
+  cableMaterialCostPerFt: {
+    category: 0.35,
+    fiber: 1.85,
+    coax: 0.55,
+    speaker_cable: 0.45,
+  },
+  terminationHardwareCostPerEnd: {
+    category: 4.5,
+    fiber: 18,
+    coax: 3,
+    speaker_cable: 1.5,
+  },
+  hardwareCatalog: [
+    { value: "patch_panel_24", label: "24-Port Patch Panel", unitCost: 95, unit: "ea" },
+    { value: "patch_panel_48", label: "48-Port Patch Panel", unitCost: 165, unit: "ea" },
+    { value: "faceplate_2port", label: "2-Port Faceplate", unitCost: 4.5, unit: "ea" },
+    { value: "single_gang_box", label: "Single-Gang Mud Ring", unitCost: 3.25, unit: "ea" },
+    { value: "rack_42u", label: "42U 4-Post Rack", unitCost: 850, unit: "ea" },
+    { value: "vertical_cable_mgr", label: "Vertical Cable Manager (7ft)", unitCost: 145, unit: "ea" },
+  ],
+  materialWastePercent: 10,
+  materialMarkupPercent: 0,
 };
 
 export const DEFAULT_BULK_FACTOR_ALPHA = 0.15;

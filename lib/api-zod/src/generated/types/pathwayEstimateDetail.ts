@@ -5,6 +5,8 @@
  * Structured Cabling Labor Estimator API
  * OpenAPI spec version: 0.1.0
  */
+import type { HardwareItem } from "./hardwareItem";
+import type { MaterialBreakdown } from "./materialBreakdown";
 import type { PathwayEstimate } from "./pathwayEstimate";
 import type { PathwayEstimateTotals } from "./pathwayEstimateTotals";
 import type { PathwaySegmentCalculation } from "./pathwaySegmentCalculation";
@@ -13,4 +15,8 @@ export interface PathwayEstimateDetail {
   estimate: PathwayEstimate;
   segments: PathwaySegmentCalculation[];
   totals: PathwayEstimateTotals;
+  hardwareItems: HardwareItem[];
+  materials: MaterialBreakdown;
+  /** totals.totalCost + materials.hardwareSubtotal + markup (segment material is already in totals.totalCost) */
+  projectTotal: number;
 }

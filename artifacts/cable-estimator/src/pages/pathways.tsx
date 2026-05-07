@@ -78,6 +78,8 @@ import {
   type PathwaySegmentInput,
 } from "@/lib/pathwayConfig";
 import { usePathwayEstimates } from "@/lib/pathway-estimates-context";
+import { MaterialsCard } from "@/components/MaterialsCard";
+import type { HardwareCatalogItem } from "@workspace/api-client-react";
 
 const fmtMoney = (n: number) =>
   n.toLocaleString("en-US", {
@@ -549,7 +551,9 @@ function PathwayEstimateView({
   onDelete: () => void;
 }) {
   const queryClient = useQueryClient();
-  const { estimate, segments, totals } = detail;
+  const { estimate, segments, totals, hardwareItems, materials, projectTotal } = detail;
+  const { data: ratesDataForCatalog } = useGetRates();
+  const catalog = ((ratesDataForCatalog as { hardwareCatalog?: HardwareCatalogItem[] } | undefined)?.hardwareCatalog) ?? [];
 
   const [editingEstimate, setEditingEstimate] = useState(false);
   const [estimateForm, setEstimateForm] = useState<CreatePathwayEstimateBody>({
@@ -928,6 +932,17 @@ function PathwayEstimateView({
           )}
         </CardContent>
       </Card>
+
+      <MaterialsCard
+        scope="pathway"
+        estimateId={estimate.id}
+        hardwareItems={hardwareItems}
+        materials={materials}
+        projectTotal={projectTotal}
+        laborTotalLabel="Labor + segment material"
+        laborTotalValue={totals.totalCost}
+        catalog={catalog}
+      />
 
       <FormulaExplainer rates={pathwayRates} />
 

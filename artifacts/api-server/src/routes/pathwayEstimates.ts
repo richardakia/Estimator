@@ -4,6 +4,7 @@ import {
   db,
   pathwayEstimatesTable,
   pathwaySegmentsTable,
+  pathwayHardwareItemsTable,
 } from "@workspace/db";
 import { apiSchemas } from "@workspace/api-zod";
 import { getRates } from "../lib/ratesStore";
@@ -12,6 +13,7 @@ import {
   resolvePathwayRatesFromConfig,
   resolvePathwayContextMultipliers,
 } from "../lib/pathwayCalculator";
+import { computeMaterials } from "../lib/materialCalculator";
 
 const router: IRouter = Router();
 
@@ -197,6 +199,46 @@ router.get("/pathway-estimates/:id", async (req, res): Promise<void> => {
     };
   });
 
+  const hardwareRows = await db
+    .select()
+    .from(pathwayHardwareItemsTable)
+    .where(eq(pathwayHardwareItemsTable.estimateId, estimate.id))
+    .orderBy(
+      asc(pathwayHardwareItemsTable.sortOrder),
+      asc(pathwayHardwareItemsTable.id),
+    );
+
+  // Pathway materials: pathwaySubtotal = segment-derived material (already in totalCost).
+  // Hardware adds on top, plus markup.
+  const materials = computeMaterials({
+    runs: [],
+    hardware: hardwareRows.map((h) => ({ quantity: h.quantity, unitCost: h.unitCost })),
+    pathwaySubtotal: totalMaterialCost,
+    rates,
+  });
+
+  const round2 = (n: number) => Math.round(n * 100) / 100;
+  const hardwareItems = hardwareRows.map((h) => ({
+    id: h.id,
+    estimateId: h.estimateId,
+    catalogKey: h.catalogKey,
+    name: h.name,
+    quantity: h.quantity,
+    unitCost: h.unitCost,
+    unit: h.unit,
+    notes: h.notes,
+    sortOrder: h.sortOrder,
+    lineTotal: round2(h.quantity * h.unitCost),
+    createdAt: h.createdAt.toISOString(),
+  }));
+
+  // totals.totalCost already includes pathway material; we don't want to double-count.
+  // projectTotal = labor + (segment material) + hardware + markup
+  // = totalCost + hardwareSubtotal + markupAmount
+  const projectTotal = round2(
+    totalCost + materials.hardwareSubtotal + materials.markupAmount,
+  );
+
   res.json({
     estimate: {
       id: estimate.id,
@@ -220,6 +262,9 @@ router.get("/pathway-estimates/:id", async (req, res): Promise<void> => {
       totalFasteners,
       totalCost,
     },
+    hardwareItems,
+    materials,
+    projectTotal,
   });
 });
 
