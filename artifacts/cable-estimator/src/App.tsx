@@ -8,6 +8,7 @@ import { PathwayEstimatesProvider } from "@/lib/pathway-estimates-context";
 import Estimator from "@/pages/estimator";
 import RatesEditor from "@/pages/rates";
 import Guide from "@/pages/guide";
+import LocalDeploy from "@/pages/local-deploy";
 import Pathways from "@/pages/pathways";
 import NotFound from "@/pages/not-found";
 
@@ -21,6 +22,7 @@ function Router() {
         <Route path="/pathways" component={Pathways} />
         <Route path="/rates" component={RatesEditor} />
         <Route path="/guide" component={Guide} />
+        <Route path="/local-deploy" component={LocalDeploy} />
         <Route component={NotFound} />
       </Switch>
     </Layout>

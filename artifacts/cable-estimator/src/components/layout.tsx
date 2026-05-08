@@ -7,6 +7,7 @@ import {
   Plus,
   ChevronDown,
   Route as RouteIcon,
+  Server,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -44,6 +45,7 @@ export function Layout({ children }: LayoutProps) {
     { href: "/pathways", label: "Pathways", icon: RouteIcon },
     { href: "/rates", label: "Rate Editor", icon: Settings },
     { href: "/guide", label: "Platform Guide", icon: BookOpen },
+    { href: "/local-deploy", label: "Local Deploy", icon: Server },
   ];
 
   const selectedEstimate = estimates.find((e) => e.id === selectedId);
