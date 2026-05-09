@@ -9,6 +9,8 @@ import {
   Wrench,
   Rocket,
   Package,
+  RefreshCw,
+  GitBranch,
 } from "lucide-react";
 import {
   Card,
@@ -290,6 +292,166 @@ PORT=8080`}</Block>
           <li>Add a hardware item and confirm the Project Total updates.</li>
         </ul>
       </Step>
+
+      {/* Updating */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base flex items-center gap-2">
+            <RefreshCw className="w-5 h-5 text-primary" />
+            Updating Your Local Copy After Replit Changes
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-5 text-sm">
+          <p>
+            When new features, fixes, or rate changes are pushed to the Replit
+            project, follow these steps on your local machine to pull and apply
+            the updates safely. Always do this with the API server and web app
+            <strong> stopped</strong> (press <Code>Ctrl+C</Code> in each
+            terminal first).
+          </p>
+
+          <div>
+            <p className="font-semibold flex items-center gap-2">
+              <GitBranch className="w-4 h-4 text-primary" />
+              Step 1 — Back up your local data (optional but recommended)
+            </p>
+            <p className="text-muted-foreground mt-1">
+              Your saved estimates live in your local Postgres database, not in
+              the code. They are safe across updates, but a quick backup
+              protects you if a schema change goes wrong:
+            </p>
+            <Block>{`pg_dump -U estimator -d cable_estimator > backup_$(date +%Y%m%d).sql`}</Block>
+            <p className="text-xs text-muted-foreground">
+              On Windows PowerShell, replace <Code>$(date +%Y%m%d)</Code> with
+              today's date manually, e.g. <Code>backup_20260509.sql</Code>.
+            </p>
+          </div>
+
+          <div>
+            <p className="font-semibold flex items-center gap-2">
+              <GitBranch className="w-4 h-4 text-primary" />
+              Step 2 — Open a terminal in your install folder
+            </p>
+            <Block>{`# cd into the same folder you cloned into originally
+# Windows:
+cd %USERPROFILE%\\Documents\\Apps\\cable-estimator
+
+# macOS / Linux:
+cd ~/Documents/Apps/cable-estimator`}</Block>
+          </div>
+
+          <div>
+            <p className="font-semibold flex items-center gap-2">
+              <GitBranch className="w-4 h-4 text-primary" />
+              Step 3 — Pull the latest code from Replit
+            </p>
+            <Block>{`# Save any local edits you may have made (rare):
+git stash
+
+# Pull the newest version from the repo Replit pushes to:
+git pull
+
+# (Optional) re-apply your stashed edits:
+git stash pop`}</Block>
+            <p className="text-xs text-muted-foreground">
+              If <Code>git pull</Code> reports merge conflicts, it usually
+              means you edited the same files locally. Run{" "}
+              <Code>git status</Code> to see them and resolve, or run{" "}
+              <Code>git reset --hard origin/main</Code> to discard your local
+              edits and take the Replit version exactly (this only affects
+              code, not your database).
+            </p>
+          </div>
+
+          <div>
+            <p className="font-semibold flex items-center gap-2">
+              <GitBranch className="w-4 h-4 text-primary" />
+              Step 4 — Reinstall dependencies
+            </p>
+            <p className="text-muted-foreground mt-1">
+              New features may add new packages. Always run this after a pull:
+            </p>
+            <Block>{`pnpm install`}</Block>
+          </div>
+
+          <div>
+            <p className="font-semibold flex items-center gap-2">
+              <GitBranch className="w-4 h-4 text-primary" />
+              Step 5 — Apply database schema changes
+            </p>
+            <p className="text-muted-foreground mt-1">
+              If new tables or columns were added (the changelog or commit
+              message will usually say so), push the updated schema. This is
+              additive and will <strong>not</strong> erase your saved
+              estimates:
+            </p>
+            <Block>{`pnpm --filter @workspace/db run push`}</Block>
+            <p className="text-xs text-muted-foreground">
+              When prompted about renames or destructive changes, read carefully
+              before confirming. If unsure, choose "create new" instead of
+              "rename" to keep old data.
+            </p>
+          </div>
+
+          <div>
+            <p className="font-semibold flex items-center gap-2">
+              <GitBranch className="w-4 h-4 text-primary" />
+              Step 6 — Restart both services
+            </p>
+            <p className="text-muted-foreground mt-1">
+              In one terminal:
+            </p>
+            <Block>{`pnpm --filter @workspace/api-server run dev`}</Block>
+            <p className="text-muted-foreground">
+              In a second terminal:
+            </p>
+            <Block>{`pnpm --filter @workspace/cable-estimator run dev`}</Block>
+            <p className="text-xs text-muted-foreground">
+              Open the app in your browser and do a hard refresh
+              (<Code>Ctrl+Shift+R</Code> on Windows/Linux,{" "}
+              <Code>Cmd+Shift+R</Code> on macOS) so the browser loads the new
+              frontend bundle instead of a cached version.
+            </p>
+          </div>
+
+          <div>
+            <p className="font-semibold flex items-center gap-2">
+              <Rocket className="w-4 h-4 text-primary" />
+              Quick "all-in-one" update (when there are no schema changes)
+            </p>
+            <Block>{`git pull && pnpm install`}</Block>
+            <p className="text-xs text-muted-foreground">
+              Then restart both terminals. Use this shortcut only when you're
+              confident the update is code-only (bug fixes, UI tweaks, rate
+              tuning).
+            </p>
+          </div>
+
+          <div className="rounded-md border border-amber-500/40 bg-amber-500/10 p-3">
+            <p className="font-semibold text-amber-700 dark:text-amber-300 flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4" />
+              If something breaks after an update
+            </p>
+            <ul className="list-disc list-inside text-muted-foreground mt-1 space-y-1">
+              <li>
+                Stop both services (<Code>Ctrl+C</Code>) and re-run{" "}
+                <Code>pnpm install</Code> followed by{" "}
+                <Code>pnpm --filter @workspace/db run push</Code>.
+              </li>
+              <li>
+                Check the API terminal for red error text — most issues say
+                exactly which table or column is missing.
+              </li>
+              <li>
+                As a last resort, restore your database backup with{" "}
+                <Code>psql -U estimator -d cable_estimator &lt; backup_YYYYMMDD.sql</Code>{" "}
+                and roll the code back with{" "}
+                <Code>git reset --hard HEAD~1</Code>.
+              </li>
+            </ul>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Production build */}
       <Card>
