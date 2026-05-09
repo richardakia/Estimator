@@ -11,6 +11,9 @@ import {
   Package,
   RefreshCw,
   GitBranch,
+  Monitor,
+  Laptop,
+  Apple,
 } from "lucide-react";
 import {
   Card,
@@ -131,6 +134,47 @@ corepack prepare pnpm@latest --activate
 # Verify
 node --version    # → v24.x.x
 pnpm --version    # → 9.x or 10.x`}</Block>
+        <p className="font-semibold">Install Git for your OS:</p>
+        <div className="space-y-3">
+          <div>
+            <p className="flex items-center gap-2 font-medium">
+              <Monitor className="w-4 h-4 text-primary" />
+              Windows
+            </p>
+            <Block>{`# Option 1: use winget (Windows 11 / Windows 10 with App Installer)
+winget install --id Git.Git -e --source winget
+
+# Option 2: download the installer
+# Go to https://git-scm.com/download/win and run the installer
+# Leave the default options selected unless you know you need something different`}</Block>
+          </div>
+          <div>
+            <p className="flex items-center gap-2 font-medium">
+              <Apple className="w-4 h-4 text-primary" />
+              macOS
+            </p>
+            <Block>{`# If you use Homebrew
+brew install git
+
+# Or install Apple's command line tools (includes Git)
+xcode-select --install`}</Block>
+          </div>
+          <div>
+            <p className="flex items-center gap-2 font-medium">
+              <Laptop className="w-4 h-4 text-primary" />
+              Linux
+            </p>
+            <Block>{`# Ubuntu / Debian
+sudo apt update
+sudo apt install git
+
+# Fedora
+sudo dnf install git
+
+# Arch
+sudo pacman -S git`}</Block>
+          </div>
+        </div>
         <p>
           Install <strong>PostgreSQL</strong>:
         </p>
