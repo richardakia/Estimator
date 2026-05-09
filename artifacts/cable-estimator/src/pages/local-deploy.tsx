@@ -339,6 +339,11 @@ pnpm --filter @workspace/db run push
 # Git Bash
 export DATABASE_URL=postgres://estimator:changeme@localhost:5432/cable_estimator
 pnpm --filter @workspace/db run push`}</Block>
+          <p className="text-xs text-muted-foreground">
+            If you still get a permissions error for the public schema, run the
+            push again after confirming the estimator user owns the database and
+            has privileges on the <Code>public</Code> schema.
+          </p>
         </div>
       </Step>
 
