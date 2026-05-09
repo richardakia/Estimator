@@ -280,7 +280,10 @@ GRANT ALL PRIVILEGES ON DATABASE cable_estimator TO estimator;
 
       <Step n={5} title="Configure Environment Variables" icon={Wrench}>
         <p>
-          Create a <Code>.env</Code> file in the project root:
+          Create a <Code>.env</Code> file in the project root. On Windows, open
+          the folder in File Explorer, right-click inside the folder, choose{" "}
+          <strong>Open in Terminal</strong>, then run <Code>notepad .env</Code>.
+          If Notepad asks whether to create a new file, click <strong>Yes</strong>:
         </p>
         <Block>{`# .env
 DATABASE_URL=postgres://estimator:changeme@localhost:5432/cable_estimator
