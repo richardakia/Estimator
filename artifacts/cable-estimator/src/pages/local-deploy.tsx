@@ -250,7 +250,10 @@ cd Apps
         </p>
         <Block>{`git clone https://github.com/richardakia/Estimator cable-estimator
 cd cable-estimator
-pnpm install`}</Block>
+pnpm install
+
+# If pnpm install gives an error on Windows, use this instead:
+pnpm install --ignore-scripts`}</Block>
         <p className="text-xs text-muted-foreground">
           The first install pulls down all workspace packages and may take 1–2
           minutes.
