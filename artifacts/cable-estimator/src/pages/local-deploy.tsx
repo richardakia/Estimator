@@ -328,6 +328,17 @@ pnpm --filter @workspace/db run push`}</Block>
             Git Bash or use <Code>pnpm install --ignore-scripts</Code> to skip
             the failing script.
           </p>
+          <p className="text-xs text-muted-foreground">
+            If you see <Code>DATABASE_URL, ensure the database is provisioned</Code>,
+            set the variable in the same terminal before retrying:
+          </p>
+          <Block>{`# Command Prompt
+set DATABASE_URL=postgres://estimator:changeme@localhost:5432/cable_estimator
+pnpm --filter @workspace/db run push
+
+# Git Bash
+export DATABASE_URL=postgres://estimator:changeme@localhost:5432/cable_estimator
+pnpm --filter @workspace/db run push`}</Block>
         </div>
       </Step>
 
