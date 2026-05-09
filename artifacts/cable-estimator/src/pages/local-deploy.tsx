@@ -156,8 +156,52 @@ pnpm --version    # → 9.x or 10.x`}</Block>
         </ul>
       </Step>
 
-      <Step n={2} title="Get the Code" icon={Terminal}>
-        <p>Clone the repository and install dependencies:</p>
+      <Step n={2} title="Choose an Install Folder" icon={Wrench}>
+        <div className="rounded-md border border-amber-500/40 bg-amber-500/10 p-3 text-sm">
+          <p className="font-semibold text-amber-700 dark:text-amber-300 flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4" />
+            Important — do NOT install into a system folder.
+          </p>
+          <p className="text-muted-foreground mt-1">
+            Avoid locations like <Code>C:\Windows</Code>,{" "}
+            <Code>C:\Program Files</Code>, <Code>/usr</Code>,{" "}
+            <Code>/opt</Code>, <Code>/etc</Code>, or the root of your drive.
+            Pick a folder you own (your user profile or Documents) so the app
+            can read and write files without administrator/root permissions.
+          </p>
+        </div>
+        <p>
+          Open a terminal and change into the folder where you want the app
+          installed. A new <Code>cable-estimator</Code> subfolder will be
+          created inside it in the next step.
+        </p>
+        <p className="font-semibold">Recommended locations:</p>
+        <Block>{`# Windows (PowerShell or Command Prompt)
+cd %USERPROFILE%\\Documents
+mkdir Apps
+cd Apps
+
+# macOS / Linux
+cd ~/Documents
+mkdir -p Apps
+cd Apps
+
+# Confirm where you are before cloning:
+#   Windows:  cd
+#   macOS/Linux:  pwd`}</Block>
+        <p className="text-xs text-muted-foreground">
+          You can use any folder you like — just make sure it's inside your
+          user profile (e.g. <Code>C:\Users\YourName\…</Code> on Windows or{" "}
+          <Code>/home/yourname/…</Code> / <Code>/Users/yourname/…</Code> on
+          macOS/Linux), and never inside a protected system directory.
+        </p>
+      </Step>
+
+      <Step n={3} title="Get the Code" icon={Terminal}>
+        <p>
+          From the folder you chose in the previous step, clone the
+          repository and install dependencies:
+        </p>
         <Block>{`git clone <your-repo-url> cable-estimator
 cd cable-estimator
 pnpm install`}</Block>
@@ -167,7 +211,7 @@ pnpm install`}</Block>
         </p>
       </Step>
 
-      <Step n={3} title="Create the Database" icon={Database}>
+      <Step n={4} title="Create the Database" icon={Database}>
         <p>
           Open a terminal and create an empty Postgres database for the app:
         </p>
@@ -185,7 +229,7 @@ GRANT ALL PRIVILEGES ON DATABASE cable_estimator TO estimator;
         </p>
       </Step>
 
-      <Step n={4} title="Configure Environment Variables" icon={Wrench}>
+      <Step n={5} title="Configure Environment Variables" icon={Wrench}>
         <p>
           Create a <Code>.env</Code> file in the project root:
         </p>
@@ -200,7 +244,7 @@ PORT=8080`}</Block>
         <Block>{`node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`}</Block>
       </Step>
 
-      <Step n={5} title="Push the Database Schema" icon={Database}>
+      <Step n={6} title="Push the Database Schema" icon={Database}>
         <p>
           Apply the Drizzle schema to create all tables (estimates, runs,
           rates, pathway estimates, hardware items, etc.):
@@ -212,7 +256,7 @@ PORT=8080`}</Block>
         </p>
       </Step>
 
-      <Step n={6} title="Start the API Server" icon={Server}>
+      <Step n={7} title="Start the API Server" icon={Server}>
         <p>In one terminal window:</p>
         <Block>{`pnpm --filter @workspace/api-server run dev`}</Block>
         <p>
@@ -221,7 +265,7 @@ PORT=8080`}</Block>
         </p>
       </Step>
 
-      <Step n={7} title="Start the Web App" icon={Globe}>
+      <Step n={8} title="Start the Web App" icon={Globe}>
         <p>In a second terminal window (leave the API running):</p>
         <Block>{`pnpm --filter @workspace/cable-estimator run dev`}</Block>
         <p>
@@ -231,7 +275,7 @@ PORT=8080`}</Block>
         </p>
       </Step>
 
-      <Step n={8} title="Verify It Works" icon={Rocket}>
+      <Step n={9} title="Verify It Works" icon={Rocket}>
         <ul className="list-disc list-inside space-y-1.5">
           <li>
             Navigate to <Code>/rates</Code> and confirm the default rate values
