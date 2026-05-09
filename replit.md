@@ -58,6 +58,13 @@ The Cabling and Pathway estimators both attach materials to each saved estimate 
 - **Rate Editor adds**: `Cable Material Cost ($/ft)` and `Termination Hardware ($/end)` per cable type (Cabling section); `Waste %`, `Markup %`, and the **Hardware Catalog** table (Materials section, shared by both estimators).
 - **PDF export**: includes a Materials section listing all cable/termination/pathway/hardware lines plus a final "Labor / Materials / Project Total" panel.
 
+## Local Install (cross-platform)
+
+- **Root `preinstall`**: rewritten in Node (no `sh -c`) so it runs identically on Windows CMD, PowerShell, Git Bash, macOS, and Linux. Still removes `package-lock.json` / `yarn.lock` and enforces pnpm via `npm_config_user_agent`.
+- **API server `start`**: uses Node's built-in `--env-file-if-exists=.env --env-file-if-exists=../../.env` so `DATABASE_URL`, `PORT`, etc. are auto-loaded from a `.env` in either the api-server folder or the project root. No `dotenv` dependency, no manual `export`/`set` required.
+- **API server `dev`**: uses `cross-env` (devDependency, in lockfile) so `NODE_ENV=development` works in Windows CMD.
+- The Local Deploy page (`/local-deploy`) documents fallbacks for older clones (preinstall failure → `pnpm install --ignore-scripts`; missing `.env` → `set`/`export` variables manually; Notepad saving as `.env.txt`).
+
 ## Stack
 
 - **Monorepo tool**: pnpm workspaces

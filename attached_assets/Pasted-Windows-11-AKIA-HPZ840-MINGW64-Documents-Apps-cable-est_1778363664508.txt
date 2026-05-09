@@ -1,0 +1,189 @@
+Windows 11@AKIA-HPZ840 MINGW64 ~/Documents/Apps/cable-estimator (main)
+$ pnpm --filter @workspace/api-server run dev
+Scope: all 9 workspace projects
+Lockfile is up to date, resolution step is skipped
+Already up to date
+. preinstall$ sh -c 'rm -f package-lock.json yarn.lock; case "$npm_config_use…
+│ Use pnpm instead
+└─ Failed in 85ms at C:\Users\Windows 11\Documents\Apps\cable-estimator
+[ELIFECYCLE] Command failed with exit code 1.
+[ERROR] Command failed with exit code 1: "C:\Program Files\nodejs\node.exe" "C:\
+Users\Windows 11\AppData\Local\node\corepack\v1\pnpm\11.0.9\bin\pnpm.mjs" install
+
+pnpm: Command failed with exit code 1: "C:\Program Files\nodejs\node.exe" "C:\Users\Windows 11\AppData\Local\node\corepack\v1\pnpm\11.0.9\bin\pnpm.mjs" install
+    at getFinalError (file:///C:/Users/Windows%2011/AppData/Local/node/corepack/v1/pnpm/11.0.9/dist/pnpm.mjs:28547:14)
+    at makeError (file:///C:/Users/Windows%2011/AppData/Local/node/corepack/v1/pnpm/11.0.9/dist/pnpm.mjs:30854:21)
+    at getSyncResult (file:///C:/Users/Windows%2011/AppData/Local/node/corepack/v1/pnpm/11.0.9/dist/pnpm.mjs:32698:10)
+    at spawnSubprocessSync (file:///C:/Users/Windows%2011/AppData/Local/node/corepack/v1/pnpm/11.0.9/dist/pnpm.mjs:32658:14)
+    at execaCoreSync (file:///C:/Users/Windows%2011/AppData/Local/node/corepack/v1/pnpm/11.0.9/dist/pnpm.mjs:32588:23)
+    at callBoundExeca (file:///C:/Users/Windows%2011/AppData/Local/node/corepack/v1/pnpm/11.0.9/dist/pnpm.mjs:35116:23)
+    at boundExeca (file:///C:/Users/Windows%2011/AppData/Local/node/corepack/v1/pnpm/11.0.9/dist/pnpm.mjs:35093:49)
+    at sync (file:///C:/Users/Windows%2011/AppData/Local/node/corepack/v1/pnpm/11.0.9/dist/pnpm.mjs:35252:10)
+    at runPnpmCli (file:///C:/Users/Windows%2011/AppData/Local/node/corepack/v1/pnpm/11.0.9/dist/pnpm.mjs:210243:5)
+    at runDepsStatusCheck (file:///C:/Users/Windows%2011/AppData/Local/node/corepack/v1/pnpm/11.0.9/dist/pnpm.mjs:211947:7)
+
+Windows 11@AKIA-HPZ840 MINGW64 ~/Documents/Apps/cable-estimator (main)
+$ echo "ignore-scripts=true" > .npmrc
+
+Windows 11@AKIA-HPZ840 MINGW64 ~/Documents/Apps/cable-estimator (main)
+$ pnpm --filter @workspace/api-server run dev
+Scope: all 9 workspace projects
+Lockfile is up to date, resolution step is skipped
+Already up to date
+. preinstall$ sh -c 'rm -f package-lock.json yarn.lock; case "$npm_config_user_agent" in pnpm/*) ;; *) echo "Use pnpm ins…
+│ Use pnpm instead
+└─ Failed in 98ms at C:\Users\Windows 11\Documents\Apps\cable-estimator
+[ELIFECYCLE] Command failed with exit code 1.
+[ERROR] Command failed with exit code 1: "C:\Program Files\nodejs\node.exe" "C:\Users\Windows 11\AppData\Local\node\corepack\v1\pnpm\11.0.9\bin\pnpm.mjs" install
+
+pnpm: Command failed with exit code 1: "C:\Program Files\nodejs\node.exe" "C:\Users\Windows 11\AppData\Local\node\corepack\v1\pnpm\11.0.9\bin\pnpm.mjs" install
+    at getFinalError (file:///C:/Users/Windows%2011/AppData/Local/node/corepack/v1/pnpm/11.0.9/dist/pnpm.mjs:28547:14)
+    at makeError (file:///C:/Users/Windows%2011/AppData/Local/node/corepack/v1/pnpm/11.0.9/dist/pnpm.mjs:30854:21)
+    at getSyncResult (file:///C:/Users/Windows%2011/AppData/Local/node/corepack/v1/pnpm/11.0.9/dist/pnpm.mjs:32698:10)
+    at spawnSubprocessSync (file:///C:/Users/Windows%2011/AppData/Local/node/corepack/v1/pnpm/11.0.9/dist/pnpm.mjs:32658:14)
+    at execaCoreSync (file:///C:/Users/Windows%2011/AppData/Local/node/corepack/v1/pnpm/11.0.9/dist/pnpm.mjs:32588:23)
+    at callBoundExeca (file:///C:/Users/Windows%2011/AppData/Local/node/corepack/v1/pnpm/11.0.9/dist/pnpm.mjs:35116:23)
+    at boundExeca (file:///C:/Users/Windows%2011/AppData/Local/node/corepack/v1/pnpm/11.0.9/dist/pnpm.mjs:35093:49)
+    at sync (file:///C:/Users/Windows%2011/AppData/Local/node/corepack/v1/pnpm/11.0.9/dist/pnpm.mjs:35252:10)
+    at runPnpmCli (file:///C:/Users/Windows%2011/AppData/Local/node/corepack/v1/pnpm/11.0.9/dist/pnpm.mjs:210243:5)
+    at runDepsStatusCheck (file:///C:/Users/Windows%2011/AppData/Local/node/corepack/v1/pnpm/11.0.9/dist/pnpm.mjs:211947:7)
+
+Windows 11@AKIA-HPZ840 MINGW64 ~/Documents/Apps/cable-estimator (main)
+$ notepad package.json
+
+Windows 11@AKIA-HPZ840 MINGW64 ~/Documents/Apps/cable-estimator (main)
+$ pnpm --filter @workspace/api-server run dev
+Scope: all 9 workspace projects
+Lockfile is up to date, resolution step is skipped
+Already up to date
+Done in 572ms using pnpm v11.0.9
+$ cross-env NODE_ENV=development && pnpm run build && pnpm run start
+'cross-env' is not recognized as an internal or external command,
+operable program or batch file.
+C:\Users\Windows 11\Documents\Apps\cable-estimator\artifacts\api-server:
+[ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL] @workspace/api-server@0.0.0 dev: `cross-env NODE_ENV=development && pnpm run build && pnpm run start`
+Exit status 1
+
+Windows 11@AKIA-HPZ840 MINGW64 ~/Documents/Apps/cable-estimator (main)
+$ cd artifacts/api-server
+pnpm add -D cross-env
+cd ../..
+../..                                    | Progress: resolved 514, reused 0, downloaded 0, added 0, done
+
+devDependencies:
++ cross-env ^10.1.0
+
+../..                                    |   +2 +
+Done in 1.1s using pnpm v11.0.9
+
+Windows 11@AKIA-HPZ840 MINGW64 ~/Documents/Apps/cable-estimator (main)
+$ pnpm --filter @workspace/api-server run dev
+$ cross-env NODE_ENV=development && pnpm run build && pnpm run start
+$ node ./build.mjs
+
+  dist\index.mjs                       1.9mb
+  dist\pino-worker.mjs               153.5kb
+  dist\pino-file.mjs                 142.1kb
+  dist\pino-pretty.mjs               114.6kb
+  dist\thread-stream-worker.mjs        7.3kb
+  dist\index.mjs.map                   3.2mb
+  dist\pino-worker.mjs.map           256.9kb
+  dist\pino-file.mjs.map             229.1kb
+  dist\pino-pretty.mjs.map           203.9kb
+  dist\thread-stream-worker.mjs.map   12.0kb
+
+Done in 947ms
+$ node --enable-source-maps ./dist/index.mjs
+C:\Users\Windows 11\Documents\Apps\cable-estimator\lib\db\src\index.ts:8
+  throw new Error(
+        ^
+
+Error: DATABASE_URL must be set. Did you forget to provision a database?
+    at <anonymous> (C:\Users\Windows 11\Documents\Apps\cable-estimator\lib\db\src\index.ts:8:9)
+    at ModuleJob.run (node:internal/modules/esm/module_job:437:25)
+    at async node:internal/modules/esm/loader:639:26
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)
+
+Node.js v24.15.0
+[ELIFECYCLE] Command failed with exit code 1.
+C:\Users\Windows 11\Documents\Apps\cable-estimator\artifacts\api-server:
+[ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL] @workspace/api-server@0.0.0 dev: `cross-env NODE_ENV=development && pnpm run build && pnpm run start`
+Exit status 1
+
+Windows 11@AKIA-HPZ840 MINGW64 ~/Documents/Apps/cable-estimator (main)
+$ ^C
+
+Windows 11@AKIA-HPZ840 MINGW64 ~/Documents/Apps/cable-estimator (main)
+$ export DATABASE_URL="postgres://estimator:changeme@localhost:5432/cable_estimator"
+
+Windows 11@AKIA-HPZ840 MINGW64 ~/Documents/Apps/cable-estimator (main)
+$ pnpm --filter @workspace/api-server run dev
+$ cross-env NODE_ENV=development && pnpm run build && pnpm run start
+$ node ./build.mjs
+
+  dist\index.mjs                       1.9mb
+  dist\pino-worker.mjs               153.5kb
+  dist\pino-file.mjs                 142.1kb
+  dist\pino-pretty.mjs               114.6kb
+  dist\thread-stream-worker.mjs        7.3kb
+  dist\index.mjs.map                   3.2mb
+  dist\pino-worker.mjs.map           256.9kb
+  dist\pino-file.mjs.map             229.1kb
+  dist\pino-pretty.mjs.map           203.9kb
+  dist\thread-stream-worker.mjs.map   12.0kb
+
+Done in 135ms
+$ node --enable-source-maps ./dist/index.mjs
+C:\Users\Windows 11\Documents\Apps\cable-estimator\artifacts\api-server\src\index.ts:7
+  throw new Error(
+        ^
+
+Error: PORT environment variable is required but was not provided.
+    at <anonymous> (C:\Users\Windows 11\Documents\Apps\cable-estimator\artifacts\api-server\src\index.ts:7:9)
+    at ModuleJob.run (node:internal/modules/esm/module_job:437:25)
+    at async node:internal/modules/esm/loader:639:26
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)
+
+Node.js v24.15.0
+[ELIFECYCLE] Command failed with exit code 1.
+C:\Users\Windows 11\Documents\Apps\cable-estimator\artifacts\api-server:
+[ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL] @workspace/api-server@0.0.0 dev: `cross-env NODE_ENV=development && pnpm run build && pnpm run start`
+Exit status 1
+
+Windows 11@AKIA-HPZ840 MINGW64 ~/Documents/Apps/cable-estimator (main)
+$ ^C
+
+Windows 11@AKIA-HPZ840 MINGW64 ~/Documents/Apps/cable-estimator (main)
+$ export PORT=8080
+
+Windows 11@AKIA-HPZ840 MINGW64 ~/Documents/Apps/cable-estimator (main)
+$ pnpm --filter @workspace/api-server run dev
+$ cross-env NODE_ENV=development && pnpm run build && pnpm run start
+$ node ./build.mjs
+
+  dist\index.mjs                       1.9mb
+  dist\pino-worker.mjs               153.5kb
+  dist\pino-file.mjs                 142.1kb
+  dist\pino-pretty.mjs               114.6kb
+  dist\thread-stream-worker.mjs        7.3kb
+  dist\index.mjs.map                   3.2mb
+  dist\pino-worker.mjs.map           256.9kb
+  dist\pino-file.mjs.map             229.1kb
+  dist\pino-pretty.mjs.map           203.9kb
+  dist\thread-stream-worker.mjs.map   12.0kb
+
+Done in 136ms
+$ node --enable-source-maps ./dist/index.mjs
+[17:51:23.167] INFO (28344): Server listening
+    port: 8080
+[17:53:03.745] INFO (28344): request completed
+    req: {
+      "id": 1,
+      "method": "GET",
+      "url": "/"
+    }
+    res: {
+      "statusCode": 404
+    }
+    responseTime: 2
+

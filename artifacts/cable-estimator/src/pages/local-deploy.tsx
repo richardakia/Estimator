@@ -250,14 +250,27 @@ cd Apps
         </p>
         <Block>{`git clone https://github.com/richardakia/Estimator cable-estimator
 cd cable-estimator
-pnpm install
-
-# If pnpm install gives an error on Windows, use this instead:
-pnpm install --ignore-scripts`}</Block>
+pnpm install`}</Block>
         <p className="text-xs text-muted-foreground">
           The first install pulls down all workspace packages and may take 1–2
           minutes.
         </p>
+        <div className="space-y-2 rounded-md border border-amber-500/40 bg-amber-500/10 p-3 text-xs text-muted-foreground">
+          <p className="font-semibold text-amber-700 dark:text-amber-300">
+            If pnpm install fails on Windows
+          </p>
+          <p>
+            If you see <Code>'sh' is not recognized</Code> or{" "}
+            <Code>Use pnpm instead</Code>, your local copy is older than the
+            cross-platform fix. Pull the latest code and try again, or use the
+            skip-scripts fallback:
+          </p>
+          <Block>{`git pull
+pnpm install
+
+# Fallback if it still fails:
+pnpm install --ignore-scripts`}</Block>
+        </div>
       </Step>
 
       <Step n={4} title="Create the Database" icon={Database}>
@@ -294,6 +307,12 @@ PORT=8080`}</Block>
           Generate a random <Code>SESSION_SECRET</Code> with:
         </p>
         <Block>{`node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`}</Block>
+        <p className="text-xs text-muted-foreground">
+          <strong>Windows tip:</strong> when saving in Notepad, set{" "}
+          <Code>Save as type</Code> to <Code>All Files</Code> so the file is
+          saved as <Code>.env</Code> and not <Code>.env.txt</Code>. The API
+          server reads this file automatically on every start.
+        </p>
       </Step>
 
       <Step n={6} title="Push the Database Schema" icon={Database}>
@@ -352,8 +371,38 @@ pnpm --filter @workspace/db run push`}</Block>
         <Block>{`pnpm --filter @workspace/api-server run dev`}</Block>
         <p>
           You should see{" "}
-          <Code>Server listening port: 8080</Code> in the output.
+          <Code>Server listening port: 8080</Code> in the output. The server
+          automatically loads <Code>DATABASE_URL</Code> and <Code>PORT</Code>
+          {" "}from the <Code>.env</Code> file in the project root — you do not
+          need to set them manually each time.
         </p>
+        <div className="space-y-3 rounded-md border border-amber-500/40 bg-amber-500/10 p-3 text-sm">
+          <p className="font-semibold text-amber-700 dark:text-amber-300">
+            If the API server still complains about missing variables
+          </p>
+          <p className="text-muted-foreground">
+            This means <Code>.env</Code> wasn't found in the project root.
+            Confirm it lives next to <Code>package.json</Code> (not inside
+            <Code> artifacts/api-server</Code>) and is named exactly{" "}
+            <Code>.env</Code> — Notepad sometimes saves it as{" "}
+            <Code>.env.txt</Code>. As a fallback, set the variables in the same
+            terminal before running the dev script:
+          </p>
+          <Block>{`# Command Prompt (Windows)
+set DATABASE_URL=postgres://estimator:changeme@localhost:5432/cable_estimator
+set PORT=8080
+pnpm --filter @workspace/api-server run dev
+
+# Git Bash / macOS / Linux
+export DATABASE_URL=postgres://estimator:changeme@localhost:5432/cable_estimator
+export PORT=8080
+pnpm --filter @workspace/api-server run dev`}</Block>
+          <p className="text-xs text-muted-foreground">
+            If you see <Code>'cross-env' is not recognized</Code>, run{" "}
+            <Code>pnpm install</Code> from the project root once more — it
+            installs the cross-platform helper used by the dev script.
+          </p>
+        </div>
       </Step>
 
       <Step n={8} title="Start the Web App" icon={Globe}>
