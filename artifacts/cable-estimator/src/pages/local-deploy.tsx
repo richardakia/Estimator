@@ -306,6 +306,29 @@ PORT=8080`}</Block>
           On first run, default rates are seeded automatically when the API
           server starts.
         </p>
+        <div className="space-y-3 rounded-md border border-amber-500/40 bg-amber-500/10 p-3 text-sm">
+          <p className="font-semibold text-amber-700 dark:text-amber-300">
+            If push fails on Windows
+          </p>
+          <p className="text-muted-foreground">
+            Some Windows setups need a full dependency refresh before the schema
+            push will work. Try these steps in order:
+          </p>
+          <Block>{`# 1) Reinstall dependencies without scripts
+pnpm install --ignore-scripts
+
+# 2) If the esbuild binary is mismatched, install the Windows build that
+#    matches the project version
+pnpm add -D -w @esbuild/win32-x64@0.27.3
+
+# 3) Try the schema push again
+pnpm --filter @workspace/db run push`}</Block>
+          <p className="text-xs text-muted-foreground">
+            If you see <Code>sh is not recognized</Code>, run the commands in
+            Git Bash or use <Code>pnpm install --ignore-scripts</Code> to skip
+            the failing script.
+          </p>
+        </div>
       </Step>
 
       <Step n={7} title="Start the API Server" icon={Server}>
