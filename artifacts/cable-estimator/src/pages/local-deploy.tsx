@@ -204,7 +204,7 @@ cd Apps
           From the folder you chose in the previous step, clone the
           repository and install dependencies:
         </p>
-        <Block>{`git clone <your-repo-url> cable-estimator
+        <Block>{`git clone https://github.com/richardakia/Estimator cable-estimator
 cd cable-estimator
 pnpm install`}</Block>
         <p className="text-xs text-muted-foreground">
