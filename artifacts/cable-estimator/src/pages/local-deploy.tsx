@@ -260,7 +260,9 @@ pnpm install`}</Block>
             If pnpm install fails on Windows
           </p>
           <p>
-            If you see <Code>'sh' is not recognized</Code> or{" "}
+            If you see <Code>No package.json found</Code>, you are still in the
+            parent folder. Run <Code>cd cable-estimator</Code> first, then try
+            again. If you see <Code>'sh' is not recognized</Code> or{" "}
             <Code>Use pnpm instead</Code>, your local copy is older than the
             cross-platform fix. Pull the latest code and try again, or use the
             skip-scripts fallback:
