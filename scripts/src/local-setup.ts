@@ -73,7 +73,7 @@ log("STEP 2/4", "Creating .env if missing");
 ensureEnv();
 
 log("STEP 3/4", "Installing dependencies (this may take 1-2 minutes)");
-run("pnpm", ["install"]);
+run("pnpm", ["install", "--ignore-scripts"]);
 
 log("STEP 4/4", "Pushing database schema");
 run("pnpm", ["--filter", "@workspace/db", "run", "push"]);

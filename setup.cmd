@@ -1,7 +1,6 @@
 @echo off
 setlocal
 cd /d "%~dp0"
-set "EXITCODE=0"
 echo Cable Estimator - Local Setup
 echo.
 where pnpm >nul 2>nul
@@ -13,12 +12,13 @@ if errorlevel 1 (
   exit /b 1
 )
 call pnpm setup:local
-if errorlevel 1 (
+set "EXITCODE=%ERRORLEVEL%"
+if not "%EXITCODE%"=="0" (
   echo.
-  echo Setup failed. Scroll up for the error.
+  echo Setup failed with exit code %EXITCODE%. Scroll up for the error.
   pause
-  exit /b 1
+  exit /b %EXITCODE%
 )
 echo.
 pause
-exit /b %EXITCODE%
+exit /b 0
