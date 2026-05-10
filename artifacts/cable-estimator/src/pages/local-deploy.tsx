@@ -426,6 +426,19 @@ pnpm --filter @workspace/api-server run dev`}</Block>
           <Code>http://localhost:5173/</Code>. Open it in your browser — you
           should see the Cabling Estimator home page.
         </p>
+        <div className="space-y-2 rounded-md border border-amber-500/40 bg-amber-500/10 p-3 text-xs text-muted-foreground">
+          <p className="font-semibold text-amber-700 dark:text-amber-300">
+            If Vite fails with a Rollup Windows module error
+          </p>
+          <p>
+            If you see <Code>@rollup/rollup-win32-x64-msvc</Code> or{" "}
+            <Code>Cannot find module</Code>, reinstall the Windows Rollup
+            package, then try again:
+          </p>
+          <Block>{`pnpm install --ignore-scripts
+pnpm add -D -w @rollup/rollup-win32-x64-msvc --ignore-scripts
+pnpm --filter @workspace/cable-estimator run dev`}</Block>
+        </div>
       </Step>
 
       <Step n={9} title="Verify It Works" icon={Rocket}>
