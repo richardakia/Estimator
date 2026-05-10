@@ -1,0 +1,26 @@
+Cable Estimator - Local Setup
+
+Scope: all 9 workspace projects
+Lockfile is up to date, resolution step is skipped
+Already up to date
+. preinstall$ node -e "const fs=require('fs');for(const f of ['package-lock.json','yarn.lock']){try{fs.unlinkSync(f)}…
+└─ Done in 51ms
+[ERR_PNPM_IGNORED_BUILDS] Ignored build scripts: core-js@3.49.0, esbuild@0.27.3
+
+Run "pnpm approve-builds" to pick which dependencies should be allowed to run scripts.
+[ERROR] Command failed with exit code 1: "C:\Program Files\nodejs\node.exe" "C:\Users\Windows 11\AppData\Local\node\corepack\v1\pnpm\11.0.9\bin\pnpm.mjs" install
+
+pnpm: Command failed with exit code 1: "C:\Program Files\nodejs\node.exe" "C:\Users\Windows 11\AppData\Local\node\corepack\v1\pnpm\11.0.9\bin\pnpm.mjs" install
+    at getFinalError (file:///C:/Users/Windows%2011/AppData/Local/node/corepack/v1/pnpm/11.0.9/dist/pnpm.mjs:28547:14)
+    at makeError (file:///C:/Users/Windows%2011/AppData/Local/node/corepack/v1/pnpm/11.0.9/dist/pnpm.mjs:30854:21)
+    at getSyncResult (file:///C:/Users/Windows%2011/AppData/Local/node/corepack/v1/pnpm/11.0.9/dist/pnpm.mjs:32698:10)
+    at spawnSubprocessSync (file:///C:/Users/Windows%2011/AppData/Local/node/corepack/v1/pnpm/11.0.9/dist/pnpm.mjs:32658:14)
+    at execaCoreSync (file:///C:/Users/Windows%2011/AppData/Local/node/corepack/v1/pnpm/11.0.9/dist/pnpm.mjs:32588:23)
+    at callBoundExeca (file:///C:/Users/Windows%2011/AppData/Local/node/corepack/v1/pnpm/11.0.9/dist/pnpm.mjs:35116:23)
+    at boundExeca (file:///C:/Users/Windows%2011/AppData/Local/node/corepack/v1/pnpm/11.0.9/dist/pnpm.mjs:35093:49)
+    at sync (file:///C:/Users/Windows%2011/AppData/Local/node/corepack/v1/pnpm/11.0.9/dist/pnpm.mjs:35252:10)
+    at runPnpmCli (file:///C:/Users/Windows%2011/AppData/Local/node/corepack/v1/pnpm/11.0.9/dist/pnpm.mjs:210243:5)
+    at runDepsStatusCheck (file:///C:/Users/Windows%2011/AppData/Local/node/corepack/v1/pnpm/11.0.9/dist/pnpm.mjs:211947:7)
+
+Setup failed with exit code 1. Scroll up for the error.
+Press any key to continue . . .

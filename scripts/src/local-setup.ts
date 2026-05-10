@@ -73,22 +73,12 @@ log("STEP 2/4", "Creating .env if missing");
 ensureEnv();
 
 log("STEP 3/4", "Installing dependencies (this may take 1-2 minutes)");
-// --config.confirmModulesPurge=false avoids interactive prompts.
-// We auto-approve build scripts via the `pnpm.onlyBuiltDependencies` field
-// in the root package.json, but if anything else trips the builds gate we
-// fall back to --ignore-scripts so the user's install still completes.
-const installResult = spawnSync("pnpm", ["install", "--config.confirmModulesPurge=false"], {
-  cwd: ROOT,
-  stdio: "inherit",
-  shell: process.platform === "win32",
-});
-if (installResult.status !== 0) {
-  log(
-    "RETRY",
-    "pnpm install failed; retrying with --ignore-scripts as a fallback",
-  );
-  run("pnpm", ["install", "--ignore-scripts"]);
-}
+// We pass --ignore-scripts to sidestep pnpm 11's ERR_PNPM_IGNORED_BUILDS gate,
+// which on Windows rejects unapproved package postinstalls (core-js, esbuild)
+// even when they're allow-listed in package.json's pnpm.onlyBuiltDependencies.
+// This is safe here: esbuild ships per-platform binaries via optionalDependencies
+// (no postinstall needed) and core-js's postinstall only prints a donation banner.
+run("pnpm", ["install", "--ignore-scripts"]);
 
 log("STEP 4/4", "Pushing database schema");
 run("pnpm", ["--filter", "@workspace/db", "run", "push"]);
