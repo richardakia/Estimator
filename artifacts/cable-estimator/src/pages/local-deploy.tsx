@@ -465,6 +465,19 @@ pnpm --filter @workspace/cable-estimator run dev`}</Block>
 pnpm add -D -w lightningcss-win32-x64-msvc --ignore-scripts
 pnpm --filter @workspace/cable-estimator run dev`}</Block>
         </div>
+        <div className="space-y-2 rounded-md border border-amber-500/40 bg-amber-500/10 p-3 text-xs text-muted-foreground">
+          <p className="font-semibold text-amber-700 dark:text-amber-300">
+            If Vite fails with a Tailwind Oxide native binding error
+          </p>
+          <p>
+            If you see <Code>@tailwindcss/oxide</Code> or{" "}
+            <Code>Cannot find native binding</Code>, reinstall the Windows
+            package and try again:
+          </p>
+          <Block>{`pnpm install --ignore-scripts
+pnpm add -D -w @tailwindcss/oxide --ignore-scripts
+pnpm --filter @workspace/cable-estimator run dev`}</Block>
+        </div>
       </Step>
 
       <Step n={9} title="Verify It Works" icon={Rocket}>

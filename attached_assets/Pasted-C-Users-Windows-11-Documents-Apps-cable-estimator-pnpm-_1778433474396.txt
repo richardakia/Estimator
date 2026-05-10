@@ -1,0 +1,57 @@
+C:\Users\Windows 11\Documents\Apps\cable-estimator>pnpm --filter @workspace/cable-estimator run dev
+$ vite --config vite.config.ts --host 0.0.0.0
+failed to load config from C:\Users\Windows 11\Documents\Apps\cable-estimator\artifacts\cable-estimator\vite.config.ts
+error when starting dev server:
+Error: Cannot find module '../lightningcss.win32-x64-msvc.node'
+Require stack:
+- C:\Users\Windows 11\Documents\Apps\cable-estimator\node_modules\.pnpm\lightningcss@1.31.1\node_modules\lightningcss\node\index.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1476:15)
+    at wrapResolveFilename (node:internal/modules/cjs/loader:1049:27)
+    at defaultResolveImplForCJSLoading (node:internal/modules/cjs/loader:1073:10)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1094:12)
+    at Module._load (node:internal/modules/cjs/loader:1262:25)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+    at Module.require (node:internal/modules/cjs/loader:1576:12)
+    at require (node:internal/modules/helpers:153:16)
+    at Object.<anonymous> (C:\Users\Windows 11\Documents\Apps\cable-estimator\node_modules\.pnpm\lightningcss@1.31.1\node_modules\lightningcss\node\index.js:22:22)
+    at Module._compile (node:internal/modules/cjs/loader:1830:14)
+C:\Users\Windows 11\Documents\Apps\cable-estimator\artifacts\cable-estimator:
+[ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL] @workspace/cable-estimator@0.0.0 dev: `vite --config vite.config.ts --host 0.0.0.0`
+Exit status 1
+
+C:\Users\Windows 11\Documents\Apps\cable-estimator>pnpm install --ignore-scripts
+Scope: all 9 workspace projects
+Lockfile is up to date, resolution step is skipped
+Already up to date
+Done in 517ms using pnpm v11.0.9
+
+C:\Users\Windows 11\Documents\Apps\cable-estimator>pnpm add -D -w lightningcss-win32-x64-msvc --ignore-scripts
+Progress: resolved 515, reused 0, downloaded 0, added 0, done
+
+devDependencies:
++ lightningcss-win32-x64-msvc ^1.32.0
+
+Packages: +1
++
+Done in 1.1s using pnpm v11.0.9
+
+C:\Users\Windows 11\Documents\Apps\cable-estimator>pnpm --filter @workspace/cable-estimator run dev
+$ vite --config vite.config.ts --host 0.0.0.0
+failed to load config from C:\Users\Windows 11\Documents\Apps\cable-estimator\artifacts\cable-estimator\vite.config.ts
+error when starting dev server:
+Error: Cannot find native binding. npm has a bug related to optional dependencies (https://github.com/npm/cli/issues/4828). Please try `npm i` again after removing both package-lock.json and node_modules directory.
+    at Object.<anonymous> (C:\Users\Windows 11\Documents\Apps\cable-estimator\node_modules\.pnpm\@tailwindcss+oxide@4.2.1\node_modules\@tailwindcss\oxide\index.js:559:11)
+    at Module._compile (node:internal/modules/cjs/loader:1830:14)
+    at Object..js (node:internal/modules/cjs/loader:1961:10)
+    at Module.load (node:internal/modules/cjs/loader:1553:32)
+    at Module._load (node:internal/modules/cjs/loader:1355:12)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:255:19)
+    at loadCJSModuleWithModuleLoad (node:internal/modules/esm/translators:326:3)
+    at ModuleWrap.<anonymous> (node:internal/modules/esm/translators:231:7)
+    at ModuleJob.run (node:internal/modules/esm/module_job:437:25)
+    at async node:internal/modules/esm/loader:639:26
+C:\Users\Windows 11\Documents\Apps\cable-estimator\artifacts\cable-estimator:
+[ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL] @workspace/cable-estimator@0.0.0 dev: `vite --config vite.config.ts --host 0.0.0.0`
+Exit status 1
+
+C:\Users\Windows 11\Documents\Apps\cable-estimator>
