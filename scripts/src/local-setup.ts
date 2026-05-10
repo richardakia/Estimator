@@ -4,6 +4,7 @@ import { resolve } from "node:path";
 import { randomBytes } from "node:crypto";
 
 const ROOT = resolve(import.meta.dirname, "..", "..");
+const PACKAGE_JSON = resolve(ROOT, "package.json");
 
 function log(step: string, msg: string) {
   console.log(`\n[${step}] ${msg}`);
@@ -63,6 +64,19 @@ function ensureEnv() {
   );
 }
 
+function disablePreinstallTemporarily() {
+  const original = readFileSync(PACKAGE_JSON, "utf8");
+  const patched = original.replace(
+    /"preinstall"\s*:\s*"[^"]*"/,
+    '"preinstall": "node -e \"process.exit(0)\""',
+  );
+  if (patched === original) {
+    throw new Error("Could not find root preinstall script to patch.");
+  }
+  writeFileSync(PACKAGE_JSON, patched);
+  return () => writeFileSync(PACKAGE_JSON, original);
+}
+
 console.log("Cable Estimator — Local Setup");
 console.log("==============================");
 
@@ -73,7 +87,12 @@ log("STEP 2/4", "Creating .env if missing");
 ensureEnv();
 
 log("STEP 3/4", "Installing dependencies (this may take 1-2 minutes)");
-run("pnpm", ["install", "--ignore-scripts"]);
+const restorePackageJson = disablePreinstallTemporarily();
+try {
+  run("pnpm", ["install"]);
+} finally {
+  restorePackageJson();
+}
 
 log("STEP 4/4", "Pushing database schema");
 run("pnpm", ["--filter", "@workspace/db", "run", "push"]);
