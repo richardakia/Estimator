@@ -416,7 +416,10 @@ pnpm --filter @workspace/api-server run dev`}</Block>
       </Step>
 
       <Step n={8} title="Start the Web App" icon={Globe}>
-        <p>In a second terminal window (leave the API running):</p>
+        <p>
+          In a second terminal window, make sure you are in the project folder
+          first (the same folder that contains <Code>package.json</Code>).
+        </p>
         <Block>{`pnpm --filter @workspace/cable-estimator run dev`}</Block>
         <p>
           Vite will print a local URL such as{" "}
