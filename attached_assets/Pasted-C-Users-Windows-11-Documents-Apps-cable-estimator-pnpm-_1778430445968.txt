@@ -1,0 +1,38 @@
+C:\Users\Windows 11\Documents\Apps\cable-estimator>pnpm install --ignore-scripts
+Scope: all 9 workspace projects
+Already up to date
+Done in 211ms using pnpm v11.0.9
+
+C:\Users\Windows 11\Documents\Apps\cable-estimator>pnpm add -D -w @rollup/rollup-win32-x64-msvc --ignore-scripts
+Progress: resolved 513, reused 0, downloaded 0, added 0, done
+
+devDependencies:
++ @rollup/rollup-win32-x64-msvc ^4.60.3
+
+Packages: +1 -1
++-
+Done in 1s using pnpm v11.0.9
+
+C:\Users\Windows 11\Documents\Apps\cable-estimator>pnpm --filter @workspace/cable-estimator run dev
+$ vite --config vite.config.ts --host 0.0.0.0
+failed to load config from C:\Users\Windows 11\Documents\Apps\cable-estimator\artifacts\cable-estimator\vite.config.ts
+error when starting dev server:
+Error: The package "@esbuild/win32-x64" could not be found, and is needed by esbuild.
+
+If you are installing esbuild with npm, make sure that you don't specify the
+"--no-optional" or "--omit=optional" flags. The "optionalDependencies" feature
+of "package.json" is used by esbuild to install the correct binary executable
+for your current platform.
+    at generateBinPath (C:\Users\Windows 11\Documents\Apps\cable-estimator\node_modules\.pnpm\esbuild@0.27.3\node_modules\esbuild\lib\main.js:1750:15)
+    at esbuildCommandAndArgs (C:\Users\Windows 11\Documents\Apps\cable-estimator\node_modules\.pnpm\esbuild@0.27.3\node_modules\esbuild\lib\main.js:1820:33)
+    at ensureServiceIsRunning (C:\Users\Windows 11\Documents\Apps\cable-estimator\node_modules\.pnpm\esbuild@0.27.3\node_modules\esbuild\lib\main.js:1977:25)
+    at build (C:\Users\Windows 11\Documents\Apps\cable-estimator\node_modules\.pnpm\esbuild@0.27.3\node_modules\esbuild\lib\main.js:1876:26)
+    at bundleConfigFile (file:///C:/Users/Windows%2011/Documents/Apps/cable-estimator/node_modules/.pnpm/vite@7.3.2_@types+node@25.3_d5269a53d302b42e602832b0eaecec0c/node_modules/vite/dist/node/chunks/config.js:35819:23)
+    at bundleAndLoadConfigFile (file:///C:/Users/Windows%2011/Documents/Apps/cable-estimator/node_modules/.pnpm/vite@7.3.2_@types+node@25.3_d5269a53d302b42e602832b0eaecec0c/node_modules/vite/dist/node/chunks/config.js:35806:24)
+    at loadConfigFromFile (file:///C:/Users/Windows%2011/Documents/Apps/cable-estimator/node_modules/.pnpm/vite@7.3.2_@types+node@25.3_d5269a53d302b42e602832b0eaecec0c/node_modules/vite/dist/node/chunks/config.js:35775:179)
+    at resolveConfig (file:///C:/Users/Windows%2011/Documents/Apps/cable-estimator/node_modules/.pnpm/vite@7.3.2_@types+node@25.3_d5269a53d302b42e602832b0eaecec0c/node_modules/vite/dist/node/chunks/config.js:35424:28)
+    at _createServer (file:///C:/Users/Windows%2011/Documents/Apps/cable-estimator/node_modules/.pnpm/vite@7.3.2_@types+node@25.3_d5269a53d302b42e602832b0eaecec0c/node_modules/vite/dist/node/chunks/config.js:25365:73)
+    at createServer$2 (file:///C:/Users/Windows%2011/Documents/Apps/cable-estimator/node_modules/.pnpm/vite@7.3.2_@types+node@25.3_d5269a53d302b42e602832b0eaecec0c/node_modules/vite/dist/node/chunks/config.js:25362:9)
+C:\Users\Windows 11\Documents\Apps\cable-estimator\artifacts\cable-estimator:
+[ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL] @workspace/cable-estimator@0.0.0 dev: `vite --config vite.config.ts --host 0.0.0.0`
+Exit status 1
