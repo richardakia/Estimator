@@ -338,9 +338,9 @@ PORT=8080`}</Block>
           <Block>{`# 1) Reinstall dependencies without scripts
 pnpm install --ignore-scripts
 
-# 2) If the esbuild binary is mismatched, install the Windows build that
-#    matches the project version
-pnpm add -D -w @esbuild/win32-x64@0.27.3
+# 2) If you get the esbuild Windows binary error, install the matching
+#    Windows package without running scripts
+pnpm add -D -w @esbuild/win32-x64@0.27.3 --ignore-scripts
 
 # 3) Try the schema push again
 pnpm --filter @workspace/db run push`}</Block>
