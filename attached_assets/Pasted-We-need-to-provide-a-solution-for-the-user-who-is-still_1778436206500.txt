@@ -1,0 +1,65 @@
+We need to provide a solution for the user who is still getting the error even after we suggested pnpm approve-builds? The error shows that the preinstall script succeeded but then pnpm reports ignored build scripts and exits with code 1. The user likely hasn't run approve-builds yet, or if they did, maybe it didn't work. The message says "Run 'pnpm approve-builds' to pick which dependencies should be allowed to run scripts." So the solution is to run that command. But the user might have tried it? The conversation so far: first error about preinstall failing; we suggested --ignore-scripts or modify script. Then user showed new error with preinstall working but ignored builds; we suggested approve-builds. Now user pasted same error again, meaning they haven't resolved it. So we need to emphasize running approve-builds, or alternatively using --ignore-scripts if they don't want to approve. Also note that the install command itself is failing because the ignored builds cause exit code 1; they need to approve builds first. Possibly the user is running a setup script that calls pnpm install automatically. We can advise to manually run pnpm approve-builds then pnpm install. Also check if there's a .npmrc setting that prevents auto-approval.
+
+Let's provide clear steps:
+
+Run pnpm approve-builds in the root directory.
+
+When prompted, select core-js and esbuild to allow scripts (usually press a to allow all, or manually select).
+
+Then run pnpm install again.
+
+If they want to skip build scripts entirely: pnpm install --ignore-scripts (but this may break dependencies that need postinstall). Also could set environment variable PNPM_IGNORE_SCRIPTS=true or add to .npmrc.
+
+But the error is clear: pnpm is configured to treat ignored scripts as error. The default behavior in pnpm v8+ is to warn but not fail? Actually pnpm v9+? The error says [ERR_PNPM_IGNORED_BUILDS] which is a pnpm error code. This likely happens because the user has ignore-scripts=false but also allow-build-scripts not set? By default, pnpm runs build scripts only for dependencies that have been approved or if pnpm.allowNonAppliedBuildScripts=true is set. But here it's failing because the install command is probably called with --frozen-lockfile or something? No, the error is from the install command itself. Actually reading the output: "Lockfile is up to date, resolution step is skipped" then it adds packages and devDependencies, then preinstall runs, then "[ERR_PNPM_IGNORED_BUILDS] Ignored build scripts: ... Run 'pnpm approve-builds' ... [ERROR] Command failed with exit code 1". So pnpm install itself is exiting with code 1 because there are unapproved build scripts. The solution is indeed to approve them.
+
+So answer: Run pnpm approve-builds and select yes for those packages. Then re-run pnpm install. Provide additional context for monorepo.
+
+Also mention that this is a one-time approval.
+
+The error persists because pnpm found unapproved build scripts (core-js and esbuild) and terminated the installation with exit code 1. Running pnpm approve-builds is required before pnpm install can complete successfully.
+
+Fix: approve the build scripts (one-time)
+In your project root (where pnpm-workspace.yaml is located), run:
+
+bash
+pnpm approve-builds
+You’ll see an interactive prompt listing the packages that need approval (core-js@3.49.0 and esbuild@0.27.3).
+
+Type a to approve all, or
+
+Use arrow keys to select each and press Space to mark, then Enter to confirm.
+
+After approval, run the install again:
+
+bash
+pnpm install
+It should now complete without errors.
+
+Why this happens
+pnpm blocks build scripts (like postinstall) from running unless explicitly approved – a security feature.
+
+The install command fails instead of warning when unapproved scripts are present, because the default behavior in recent pnpm versions is to treat this as an error to enforce explicit approval.
+
+core-js and esbuild need to run their scripts to work correctly (e.g., esbuild downloads platform‑specific binaries).
+
+Alternative (skip all build scripts, less safe)
+If you don’t want to approve scripts (not recommended), you can bypass them entirely:
+
+bash
+pnpm install --ignore-scripts
+But this may break functionality that depends on those build steps (like esbuild binary resolution). Use only if you’re sure it’s safe.
+
+Permanent solution for a team / CI
+To avoid the approval step on every fresh clone, you can pre‑approve scripts by adding this to your .npmrc (commit it to the repo):
+
+text
+# Allow core-js and esbuild to run build scripts automatically
+pnpm.onlyBuiltDependenciesFile=only-built-dependencies.json
+Then create only-built-dependencies.json in the root:
+
+json
+["core-js", "esbuild"]
+Now pnpm install will run these scripts without asking.
+
+Verify the workspace setup
+Since you have 9 workspace projects, ensure that pnpm-workspace.yaml correctly lists all packages (e.g., 'packages/*'). The approval applies globally across all workspaces.
