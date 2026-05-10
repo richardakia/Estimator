@@ -8,6 +8,7 @@ type ServiceSpec = {
   label: string;
   color: string;
   args: string[];
+  env?: NodeJS.ProcessEnv;
 };
 
 const services: ServiceSpec[] = [
@@ -20,6 +21,11 @@ const services: ServiceSpec[] = [
     label: "WEB",
     color: "\x1b[35m",
     args: ["--filter", "@workspace/cable-estimator", "run", "dev"],
+    env: {
+      ...process.env,
+      PORT: process.env.PORT ?? "3000",
+      BASE_PATH: process.env.BASE_PATH ?? "/",
+    },
   },
 ];
 const RESET = "\x1b[0m";
@@ -38,7 +44,7 @@ function startService(spec: ServiceSpec) {
   const child = spawn("pnpm", spec.args, {
     cwd: ROOT,
     shell: isWin,
-    env: process.env,
+    env: spec.env ?? process.env,
   });
   child.stdout?.on("data", (c) => prefixWrite(spec.label, spec.color, c));
   child.stderr?.on("data", (c) => prefixWrite(spec.label, spec.color, c));
