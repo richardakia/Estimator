@@ -80,6 +80,54 @@ export default function LocalDeploy() {
         </p>
       </div>
 
+      {/* Quick Setup (Recommended) */}
+      <Card className="border-primary/40 bg-primary/5">
+        <CardHeader>
+          <CardTitle className="text-base flex items-center gap-2">
+            <Rocket className="w-5 h-5 text-primary" />
+            Quick Setup (Recommended)
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3 text-sm">
+          <p>
+            Two scripts in the project root do everything for you. After
+            installing Node.js, pnpm, Git, and PostgreSQL (Step 1) and cloning
+            the repo (Steps 2–3), just run:
+          </p>
+          <div className="grid sm:grid-cols-2 gap-3">
+            <div className="rounded-md border bg-background p-3">
+              <p className="font-semibold flex items-center gap-2 mb-1">
+                <Monitor className="w-4 h-4 text-primary" /> Windows
+              </p>
+              <p className="text-xs text-muted-foreground mb-2">
+                Double-click these files in File Explorer (or run from CMD):
+              </p>
+              <Block>{`setup.cmd     :: first time only
+start.cmd     :: every time you want to run the app`}</Block>
+            </div>
+            <div className="rounded-md border bg-background p-3">
+              <p className="font-semibold flex items-center gap-2 mb-1">
+                <Apple className="w-4 h-4 text-primary" /> macOS / Linux
+              </p>
+              <p className="text-xs text-muted-foreground mb-2">
+                From Terminal, in the project folder:
+              </p>
+              <Block>{`./setup.sh    # first time only
+./start.sh    # every time you want to run the app`}</Block>
+            </div>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            <strong>setup</strong> installs all packages (including Windows
+            native binaries for Rollup, esbuild, Lightning CSS, and Tailwind
+            Oxide), creates a default <Code>.env</Code>, and pushes the
+            database schema. <strong>start</strong> launches the API server and
+            the web app together; press Ctrl+C to stop both. The detailed
+            steps below are only needed if a script fails or you want to do it
+            manually.
+          </p>
+        </CardContent>
+      </Card>
+
       {/* Requirements */}
       <Card>
         <CardHeader>
