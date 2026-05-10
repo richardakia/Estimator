@@ -1,0 +1,19 @@
+C:\Users\Windows 11\Documents\Apps\cable-estimator>pnpm --filter @workspace/cable-estimator run dev
+$ vite --config vite.config.ts --host 0.0.0.0
+failed to load config from C:\Users\Windows 11\Documents\Apps\cable-estimator\artifacts\cable-estimator\vite.config.ts
+error when starting dev server:
+Error: PORT environment variable is required but was not provided.
+    at file:///C:/Users/Windows%2011/Documents/Apps/cable-estimator/artifacts/cable-estimator/node_modules/.vite-temp/vite.config.ts.timestamp-1778438600647-4a6f42443473b8.mjs:10:9
+    at ModuleJob.run (node:internal/modules/esm/module_job:437:25)
+    at async node:internal/modules/esm/loader:639:26
+    at async loadConfigFromBundledFile (file:///C:/Users/Windows%2011/Documents/Apps/cable-estimator/node_modules/.pnpm/vite@7.3.2_@types+node@25.3_d5269a53d302b42e602832b0eaecec0c/node_modules/vite/dist/node/chunks/config.js:35920:12)
+    at async bundleAndLoadConfigFile (file:///C:/Users/Windows%2011/Documents/Apps/cable-estimator/node_modules/.pnpm/vite@7.3.2_@types+node@25.3_d5269a53d302b42e602832b0eaecec0c/node_modules/vite/dist/node/chunks/config.js:35808:17)
+    at async loadConfigFromFile (file:///C:/Users/Windows%2011/Documents/Apps/cable-estimator/node_modules/.pnpm/vite@7.3.2_@types+node@25.3_d5269a53d302b42e602832b0eaecec0c/node_modules/vite/dist/node/chunks/config.js:35775:42)
+    at async resolveConfig (file:///C:/Users/Windows%2011/Documents/Apps/cable-estimator/node_modules/.pnpm/vite@7.3.2_@types+node@25.3_d5269a53d302b42e602832b0eaecec0c/node_modules/vite/dist/node/chunks/config.js:35424:22)
+    at async _createServer (file:///C:/Users/Windows%2011/Documents/Apps/cable-estimator/node_modules/.pnpm/vite@7.3.2_@types+node@25.3_d5269a53d302b42e602832b0eaecec0c/node_modules/vite/dist/node/chunks/config.js:25365:67)
+    at async CAC.<anonymous> (file:///C:/Users/Windows%2011/Documents/Apps/cable-estimator/node_modules/.pnpm/vite@7.3.2_@types+node@25.3_d5269a53d302b42e602832b0eaecec0c/node_modules/vite/dist/node/cli.js:572:18)
+C:\Users\Windows 11\Documents\Apps\cable-estimator\artifacts\cable-estimator:
+[ERR_PNPM_RECURSIVE_RUN_FIRST_FAIL] @workspace/cable-estimator@0.0.0 dev: `vite --config vite.config.ts --host 0.0.0.0`
+Exit status 1
+
+C:\Users\Windows 11\Documents\Apps\cable-estimator>
