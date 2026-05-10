@@ -8,3 +8,13 @@ if errorlevel 1 (
   exit /b 1
 )
 call pnpm start:local
+set "EXITCODE=%ERRORLEVEL%"
+if not "%EXITCODE%"=="0" (
+  echo.
+  echo Start failed with exit code %EXITCODE%. Scroll up for the error.
+  pause
+  exit /b %EXITCODE%
+)
+echo.
+pause
+exit /b 0
