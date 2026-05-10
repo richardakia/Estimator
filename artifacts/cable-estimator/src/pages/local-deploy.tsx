@@ -405,8 +405,9 @@ pnpm --filter @workspace/api-server run dev`}</Block>
             installs the cross-platform helper used by the dev script.
           </p>
           <p className="text-xs text-muted-foreground">
-            If you see <Code>@esbuild/win32-x64</Code> or an esbuild binary
-            error, your install is missing the Windows optional package. Run:
+            If you see <Code>@esbuild/win32-x64</Code> or this exact error:{" "}
+            <Code>The package "@esbuild/win32-x64" could not be found</Code>,
+            the Windows esbuild binary is mismatched or missing. Run:
           </p>
           <Block>{`pnpm install --ignore-scripts
 pnpm add -D -w @esbuild/win32-x64@0.27.3 --ignore-scripts
