@@ -13,6 +13,11 @@ if (Number.isNaN(port) || port <= 0) {
 
 const basePath = process.env.BASE_PATH ?? "/";
 
+// When running locally (outside Replit), the shared reverse proxy isn't
+// present, so we need Vite to forward /api requests to the API server.
+const isReplit = process.env.REPL_ID !== undefined;
+const apiPort = Number(process.env.API_PORT ?? "8080");
+
 export default defineConfig({
   base: basePath,
   plugins: [
@@ -53,6 +58,16 @@ export default defineConfig({
     fs: {
       strict: true,
     },
+    // On Replit, the shared reverse proxy already routes /api to the API server.
+    // Locally, we proxy it ourselves.
+    ...(!isReplit && {
+      proxy: {
+        "/api": {
+          target: `http://localhost:${apiPort}`,
+          changeOrigin: true,
+        },
+      },
+    }),
   },
   preview: {
     port,
