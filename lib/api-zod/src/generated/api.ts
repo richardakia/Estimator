@@ -1685,6 +1685,206 @@ export const DeletePathwayHardwareItemParams = zod.object({
 });
 
 /**
+ * @summary List all materials
+ */
+export const listMaterialsResponseCostMin = 0;
+
+export const ListMaterialsResponseItem = zod
+  .object({
+    id: zod.number(),
+    name: zod.string(),
+    description: zod.string().nullish(),
+    cost: zod
+      .number()
+      .min(listMaterialsResponseCostMin)
+      .describe("Unit cost in dollars"),
+    classification: zod
+      .string()
+      .nullish()
+      .describe(
+        "Category e.g. Cable, Connector, Hardware, Patch Panel, Conduit",
+      ),
+    manufacturer: zod.string().nullish(),
+    partNumber: zod.string().nullish(),
+    unit: zod
+      .string()
+      .nullish()
+      .describe("Unit of measure e.g. ea, ft, box, roll, spool"),
+    supplier: zod.string().nullish(),
+    notes: zod.string().nullish(),
+    tags: zod.array(zod.string()).nullish(),
+    isActive: zod.boolean(),
+    createdAt: zod.coerce.date(),
+    updatedAt: zod.coerce.date(),
+  })
+  .describe("A material in the global materials database.");
+export const ListMaterialsResponse = zod.array(ListMaterialsResponseItem);
+
+/**
+ * @summary Create a new material
+ */
+export const createMaterialBodyNameMax = 200;
+
+export const createMaterialBodyDescriptionMax = 2000;
+
+export const createMaterialBodyCostMin = 0;
+
+export const createMaterialBodyClassificationMax = 100;
+
+export const createMaterialBodyManufacturerMax = 200;
+
+export const createMaterialBodyPartNumberMax = 100;
+
+export const createMaterialBodyUnitMax = 50;
+
+export const createMaterialBodySupplierMax = 200;
+
+export const createMaterialBodyNotesMax = 5000;
+
+export const createMaterialBodyTagsItemMax = 50;
+
+export const createMaterialBodyIsActiveDefault = true;
+
+export const CreateMaterialBody = zod.object({
+  name: zod.string().min(1).max(createMaterialBodyNameMax),
+  description: zod.string().max(createMaterialBodyDescriptionMax).nullish(),
+  cost: zod.number().min(createMaterialBodyCostMin),
+  classification: zod
+    .string()
+    .max(createMaterialBodyClassificationMax)
+    .nullish(),
+  manufacturer: zod.string().max(createMaterialBodyManufacturerMax).nullish(),
+  partNumber: zod.string().max(createMaterialBodyPartNumberMax).nullish(),
+  unit: zod.string().max(createMaterialBodyUnitMax).nullish(),
+  supplier: zod.string().max(createMaterialBodySupplierMax).nullish(),
+  notes: zod.string().max(createMaterialBodyNotesMax).nullish(),
+  tags: zod.array(zod.string().max(createMaterialBodyTagsItemMax)).nullish(),
+  isActive: zod.boolean().default(createMaterialBodyIsActiveDefault),
+});
+
+/**
+ * @summary Get a single material by id
+ */
+export const GetMaterialParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const getMaterialResponseCostMin = 0;
+
+export const GetMaterialResponse = zod
+  .object({
+    id: zod.number(),
+    name: zod.string(),
+    description: zod.string().nullish(),
+    cost: zod
+      .number()
+      .min(getMaterialResponseCostMin)
+      .describe("Unit cost in dollars"),
+    classification: zod
+      .string()
+      .nullish()
+      .describe(
+        "Category e.g. Cable, Connector, Hardware, Patch Panel, Conduit",
+      ),
+    manufacturer: zod.string().nullish(),
+    partNumber: zod.string().nullish(),
+    unit: zod
+      .string()
+      .nullish()
+      .describe("Unit of measure e.g. ea, ft, box, roll, spool"),
+    supplier: zod.string().nullish(),
+    notes: zod.string().nullish(),
+    tags: zod.array(zod.string()).nullish(),
+    isActive: zod.boolean(),
+    createdAt: zod.coerce.date(),
+    updatedAt: zod.coerce.date(),
+  })
+  .describe("A material in the global materials database.");
+
+/**
+ * @summary Update a material
+ */
+export const UpdateMaterialParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+export const updateMaterialBodyNameMax = 200;
+
+export const updateMaterialBodyDescriptionMax = 2000;
+
+export const updateMaterialBodyCostMin = 0;
+
+export const updateMaterialBodyClassificationMax = 100;
+
+export const updateMaterialBodyManufacturerMax = 200;
+
+export const updateMaterialBodyPartNumberMax = 100;
+
+export const updateMaterialBodyUnitMax = 50;
+
+export const updateMaterialBodySupplierMax = 200;
+
+export const updateMaterialBodyNotesMax = 5000;
+
+export const updateMaterialBodyTagsItemMax = 50;
+
+export const UpdateMaterialBody = zod.object({
+  name: zod.string().min(1).max(updateMaterialBodyNameMax),
+  description: zod.string().max(updateMaterialBodyDescriptionMax).nullish(),
+  cost: zod.number().min(updateMaterialBodyCostMin),
+  classification: zod
+    .string()
+    .max(updateMaterialBodyClassificationMax)
+    .nullish(),
+  manufacturer: zod.string().max(updateMaterialBodyManufacturerMax).nullish(),
+  partNumber: zod.string().max(updateMaterialBodyPartNumberMax).nullish(),
+  unit: zod.string().max(updateMaterialBodyUnitMax).nullish(),
+  supplier: zod.string().max(updateMaterialBodySupplierMax).nullish(),
+  notes: zod.string().max(updateMaterialBodyNotesMax).nullish(),
+  tags: zod.array(zod.string().max(updateMaterialBodyTagsItemMax)).nullish(),
+  isActive: zod.boolean(),
+});
+
+export const updateMaterialResponseCostMin = 0;
+
+export const UpdateMaterialResponse = zod
+  .object({
+    id: zod.number(),
+    name: zod.string(),
+    description: zod.string().nullish(),
+    cost: zod
+      .number()
+      .min(updateMaterialResponseCostMin)
+      .describe("Unit cost in dollars"),
+    classification: zod
+      .string()
+      .nullish()
+      .describe(
+        "Category e.g. Cable, Connector, Hardware, Patch Panel, Conduit",
+      ),
+    manufacturer: zod.string().nullish(),
+    partNumber: zod.string().nullish(),
+    unit: zod
+      .string()
+      .nullish()
+      .describe("Unit of measure e.g. ea, ft, box, roll, spool"),
+    supplier: zod.string().nullish(),
+    notes: zod.string().nullish(),
+    tags: zod.array(zod.string()).nullish(),
+    isActive: zod.boolean(),
+    createdAt: zod.coerce.date(),
+    updatedAt: zod.coerce.date(),
+  })
+  .describe("A material in the global materials database.");
+
+/**
+ * @summary Delete a material
+ */
+export const DeleteMaterialParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+/**
  * @summary Stateless calculation of an estimate (no persistence)
  */
 

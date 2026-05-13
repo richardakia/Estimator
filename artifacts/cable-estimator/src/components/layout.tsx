@@ -8,6 +8,7 @@ import {
   ChevronDown,
   Route as RouteIcon,
   Server,
+  Package,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -44,6 +45,7 @@ export function Layout({ children }: LayoutProps) {
     { href: "/", label: "Cabling", icon: Calculator },
     { href: "/pathways", label: "Pathways", icon: RouteIcon },
     { href: "/rates", label: "Rate Editor", icon: Settings },
+    { href: "/materials", label: "Materials Editor", icon: Package },
     { href: "/guide", label: "Platform Guide", icon: BookOpen },
     { href: "/local-deploy", label: "Local Deploy", icon: Server },
   ];

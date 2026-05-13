@@ -7,6 +7,7 @@ import { EstimatesProvider } from "@/lib/estimates-context";
 import { PathwayEstimatesProvider } from "@/lib/pathway-estimates-context";
 import Estimator from "@/pages/estimator";
 import RatesEditor from "@/pages/rates";
+import MaterialsEditor from "@/pages/materials";
 import Guide from "@/pages/guide";
 import LocalDeploy from "@/pages/local-deploy";
 import Pathways from "@/pages/pathways";
@@ -21,6 +22,7 @@ function Router() {
         <Route path="/" component={Estimator} />
         <Route path="/pathways" component={Pathways} />
         <Route path="/rates" component={RatesEditor} />
+        <Route path="/materials" component={MaterialsEditor} />
         <Route path="/guide" component={Guide} />
         <Route path="/local-deploy" component={LocalDeploy} />
         <Route component={NotFound} />

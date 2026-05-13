@@ -753,6 +753,84 @@ export interface CreatePathwaySegmentBody {
   notes?: string | null;
 }
 
+/**
+ * A material in the global materials database.
+ */
+export interface Material {
+  id: number;
+  name: string;
+  description?: string | null;
+  /**
+   * Unit cost in dollars
+   * @minimum 0
+   */
+  cost: number;
+  /** Category e.g. Cable, Connector, Hardware, Patch Panel, Conduit */
+  classification?: string | null;
+  manufacturer?: string | null;
+  partNumber?: string | null;
+  /** Unit of measure e.g. ea, ft, box, roll, spool */
+  unit?: string | null;
+  supplier?: string | null;
+  notes?: string | null;
+  tags?: string[] | null;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateMaterialBody {
+  /**
+   * @minLength 1
+   * @maxLength 200
+   */
+  name: string;
+  /** @maxLength 2000 */
+  description?: string | null;
+  /** @minimum 0 */
+  cost: number;
+  /** @maxLength 100 */
+  classification?: string | null;
+  /** @maxLength 200 */
+  manufacturer?: string | null;
+  /** @maxLength 100 */
+  partNumber?: string | null;
+  /** @maxLength 50 */
+  unit?: string | null;
+  /** @maxLength 200 */
+  supplier?: string | null;
+  /** @maxLength 5000 */
+  notes?: string | null;
+  tags?: string[] | null;
+  isActive?: boolean;
+}
+
+export interface UpdateMaterialBody {
+  /**
+   * @minLength 1
+   * @maxLength 200
+   */
+  name: string;
+  /** @maxLength 2000 */
+  description?: string | null;
+  /** @minimum 0 */
+  cost: number;
+  /** @maxLength 100 */
+  classification?: string | null;
+  /** @maxLength 200 */
+  manufacturer?: string | null;
+  /** @maxLength 100 */
+  partNumber?: string | null;
+  /** @maxLength 50 */
+  unit?: string | null;
+  /** @maxLength 200 */
+  supplier?: string | null;
+  /** @maxLength 5000 */
+  notes?: string | null;
+  tags?: string[] | null;
+  isActive: boolean;
+}
+
 export interface UpdatePathwaySegmentBody {
   /**
    * @minLength 1

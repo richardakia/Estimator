@@ -8,6 +8,7 @@ import pathwayEstimatesRouter from "./pathwayEstimates";
 import pathwaySegmentsRouter from "./pathwaySegments";
 import cablingHardwareItemsRouter from "./cablingHardwareItems";
 import pathwayHardwareItemsRouter from "./pathwayHardwareItems";
+import materialsRouter from "./materials";
 
 const router: IRouter = Router();
 
@@ -20,5 +21,6 @@ router.use(pathwayEstimatesRouter);
 router.use(pathwaySegmentsRouter);
 router.use(cablingHardwareItemsRouter);
 router.use(pathwayHardwareItemsRouter);
+router.use(materialsRouter);
 
 export default router;

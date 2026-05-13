@@ -24,6 +24,8 @@ tags:
     description: Pathway segments within a pathway estimate
   - name: hardwareItems
     description: Material/hardware line items attached to estimates
+  - name: materials
+    description: Global materials database shared by all estimators
 paths:
   /healthz:
     get:
@@ -494,6 +496,90 @@ paths:
       operationId: deletePathwayHardwareItem
       tags: [hardwareItems]
       summary: Delete a pathway hardware/material line item
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      responses:
+        "204":
+          description: Deleted
+
+  /materials:
+    get:
+      operationId: listMaterials
+      tags: [materials]
+      summary: List all materials
+      responses:
+        "200":
+          description: List of materials
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Material"
+    post:
+      operationId: createMaterial
+      tags: [materials]
+      summary: Create a new material
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateMaterialBody"
+      responses:
+        "201":
+          description: Created material
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Material"
+
+  /materials/{id}:
+    get:
+      operationId: getMaterial
+      tags: [materials]
+      summary: Get a single material by id
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      responses:
+        "200":
+          description: Material
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Material"
+    put:
+      operationId: updateMaterial
+      tags: [materials]
+      summary: Update a material
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateMaterialBody"
+      responses:
+        "200":
+          description: Updated material
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Material"
+    delete:
+      operationId: deleteMaterial
+      tags: [materials]
+      summary: Delete a material
       parameters:
         - in: path
           name: id
@@ -1609,6 +1695,134 @@ components:
           bends,
           penetrations,
         ]
+
+    Material:
+      type: object
+      description: A material in the global materials database.
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        description:
+          type: string
+          nullable: true
+        cost:
+          type: number
+          minimum: 0
+          description: Unit cost in dollars
+        classification:
+          type: string
+          nullable: true
+          description: "Category e.g. Cable, Connector, Hardware, Patch Panel, Conduit"
+        manufacturer:
+          type: string
+          nullable: true
+        partNumber:
+          type: string
+          nullable: true
+        unit:
+          type: string
+          nullable: true
+          description: "Unit of measure e.g. ea, ft, box, roll, spool"
+        supplier:
+          type: string
+          nullable: true
+        notes:
+          type: string
+          nullable: true
+        tags:
+          type: array
+          nullable: true
+          items: { type: string }
+        isActive: { type: boolean }
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required: [id, name, cost, isActive, createdAt, updatedAt]
+
+    CreateMaterialBody:
+      type: object
+      properties:
+        name: { type: string, minLength: 1, maxLength: 200 }
+        description:
+          type: string
+          nullable: true
+          maxLength: 2000
+        cost: { type: number, minimum: 0 }
+        classification:
+          type: string
+          nullable: true
+          maxLength: 100
+        manufacturer:
+          type: string
+          nullable: true
+          maxLength: 200
+        partNumber:
+          type: string
+          nullable: true
+          maxLength: 100
+        unit:
+          type: string
+          nullable: true
+          maxLength: 50
+        supplier:
+          type: string
+          nullable: true
+          maxLength: 200
+        notes:
+          type: string
+          nullable: true
+          maxLength: 5000
+        tags:
+          type: array
+          nullable: true
+          items: { type: string, maxLength: 50 }
+        isActive:
+          type: boolean
+          default: true
+      required: [name, cost]
+
+    UpdateMaterialBody:
+      type: object
+      properties:
+        name: { type: string, minLength: 1, maxLength: 200 }
+        description:
+          type: string
+          nullable: true
+          maxLength: 2000
+        cost: { type: number, minimum: 0 }
+        classification:
+          type: string
+          nullable: true
+          maxLength: 100
+        manufacturer:
+          type: string
+          nullable: true
+          maxLength: 200
+        partNumber:
+          type: string
+          nullable: true
+          maxLength: 100
+        unit:
+          type: string
+          nullable: true
+          maxLength: 50
+        supplier:
+          type: string
+          nullable: true
+          maxLength: 200
+        notes:
+          type: string
+          nullable: true
+          maxLength: 5000
+        tags:
+          type: array
+          nullable: true
+          items: { type: string, maxLength: 50 }
+        isActive: { type: boolean }
+      required: [name, cost, isActive]
 
     UpdatePathwaySegmentBody:
       type: object
