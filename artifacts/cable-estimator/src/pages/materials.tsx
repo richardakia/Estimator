@@ -149,7 +149,7 @@ export default function MaterialsEditor() {
         label: ct.label,
       }));
     // Merge, deduplicating by value
-    const seen = new Set(builtIn.map((t) => t.value));
+    const seen = new Set<string>(builtIn.map((t) => t.value));
     const extras = custom.filter((t) => !seen.has(t.value));
     return [...builtIn, ...extras];
   }, [rates]);
