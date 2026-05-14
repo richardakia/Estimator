@@ -160,28 +160,11 @@ export default function RatesEditor() {
   };
 
 
-  const builtInKeys = new Set(CABLE_TYPES.map((c) => c.value));
-  void builtInKeys;
   const customCables: CustomCableType[] = draft.customCableTypes ?? [];
   const allCableOptions = [
     ...CABLE_TYPES,
     ...customCables.map((c) => ({ value: c.value, label: c.label })),
   ];
-
-
-  const handleDeleteCable = (cableValue: string) => {
-    const updatedCustom = customCables.filter((c) => c.value !== cableValue);
-    const updatedPull = { ...draft.pullMinutesPer10Ft };
-    const updatedTerm = { ...draft.terminationMinutesPerEnd };
-    delete updatedPull[cableValue];
-    delete updatedTerm[cableValue];
-    setDraft({
-      ...draft,
-      customCableTypes: updatedCustom,
-      pullMinutesPer10Ft: updatedPull,
-      terminationMinutesPerEnd: updatedTerm,
-    });
-  };
 
   // Effective values (draft value, falling back to defaults) for pathway sections
   const effectiveTypeRate = (typeValue: string): PathwayTypeRateValues =>
@@ -323,8 +306,6 @@ export default function RatesEditor() {
             onChange={(k, v) => setNested("pullMinutesPer10Ft", k, v)}
             step={0.5}
             unit="min / 10 ft"
-            customKeys={customCables.map((c) => c.value)}
-            onDeleteCustom={handleDeleteCable}
           />
           <RateSection
             title="Termination Time (minutes per end)"
@@ -334,8 +315,6 @@ export default function RatesEditor() {
             onChange={(k, v) => setNested("terminationMinutesPerEnd", k, v)}
             step={0.5}
             unit="min / end"
-            customKeys={customCables.map((c) => c.value)}
-            onDeleteCustom={handleDeleteCable}
           />
           <RateSection
             title="Ceiling Type Multiplier"
