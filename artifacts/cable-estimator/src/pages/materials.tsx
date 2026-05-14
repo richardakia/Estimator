@@ -5,6 +5,7 @@ import {
   useUpdateMaterial,
   useDeleteMaterial,
   useGetRates,
+  useUpdateRates,
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -58,6 +59,14 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { CABLE_TYPES } from "@/lib/options";
+
+function slugify(label: string): string {
+  return label
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_|_$/g, "");
+}
 
 const CLASSIFICATIONS = [
   "Cable",
@@ -125,6 +134,14 @@ export default function MaterialsEditor() {
   const createMutation = useCreateMaterial();
   const updateMutation = useUpdateMaterial();
   const deleteMutation = useDeleteMaterial();
+  const updateRatesMutation = useUpdateRates();
+
+  // Add Cable Type dialog state
+  const [addCableOpen, setAddCableOpen] = useState(false);
+  const [newCableLabel, setNewCableLabel] = useState("");
+  const [newCablePull, setNewCablePull] = useState(3.0);
+  const [newCableTerm, setNewCableTerm] = useState(5.0);
+  const [newCableError, setNewCableError] = useState("");
 
   const [search, setSearch] = useState("");
   const [filterClass, setFilterClass] = useState<string>("all");
@@ -156,6 +173,56 @@ export default function MaterialsEditor() {
 
   function cableTypeLabel(value: string): string {
     return cableTypeOptions.find((t) => t.value === value)?.label ?? value;
+  }
+
+  async function handleAddCableType() {
+    const label = newCableLabel.trim();
+    if (!label) {
+      setNewCableError("Please enter a name for the cable type.");
+      return;
+    }
+    const value = slugify(label);
+    if (!value) {
+      setNewCableError("Name must contain at least one letter or number.");
+      return;
+    }
+    if (cableTypeOptions.some((t) => t.value === value)) {
+      setNewCableError(`A cable type named "${label}" already exists.`);
+      return;
+    }
+    const currentRates = rates as Record<string, unknown> | undefined;
+    if (!currentRates) {
+      setNewCableError("Rates not loaded yet — try again in a moment.");
+      return;
+    }
+    const existingCustom = (currentRates.customCableTypes as { value: string; label: string }[] | undefined) ?? [];
+    const newRates = {
+      ...currentRates,
+      customCableTypes: [...existingCustom, { value, label }],
+      pullMinutesPer10Ft: {
+        ...((currentRates.pullMinutesPer10Ft as Record<string, number>) ?? {}),
+        [value]: newCablePull,
+      },
+      terminationMinutesPerEnd: {
+        ...((currentRates.terminationMinutesPerEnd as Record<string, number>) ?? {}),
+        [value]: newCableTerm,
+      },
+    };
+    try {
+      await updateRatesMutation.mutateAsync({
+        data: newRates as Parameters<typeof updateRatesMutation.mutateAsync>[0]["data"],
+      });
+      await queryClient.invalidateQueries({ queryKey: ["/api/rates"] });
+      setField("cableType", value);
+      setAddCableOpen(false);
+      setNewCableLabel("");
+      setNewCablePull(3.0);
+      setNewCableTerm(5.0);
+      setNewCableError("");
+      toast({ title: `Cable type "${label}" added` });
+    } catch {
+      setNewCableError("Failed to save — please try again.");
+    }
   }
 
   function setField<K extends keyof MaterialFormState>(k: K, v: MaterialFormState[K]) {
@@ -666,13 +733,31 @@ export default function MaterialsEditor() {
 
             {/* Cable Type — shown only when classification is Cable */}
             {form.classification === "Cable" && (
-              <div className="space-y-1 rounded-lg border border-border bg-muted/30 p-3">
-                <Label htmlFor="mat-cable-type" className="text-sm font-medium">
-                  Cable Type
-                </Label>
-                <p className="text-xs text-muted-foreground mb-2">
+              <div className="space-y-2 rounded-lg border border-border bg-muted/30 p-3">
+                <div className="flex items-center justify-between gap-2">
+                  <Label htmlFor="mat-cable-type" className="text-sm font-medium">
+                    Cable Type
+                  </Label>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    className="h-7 text-xs px-2"
+                    onClick={() => {
+                      setNewCableLabel("");
+                      setNewCablePull(3.0);
+                      setNewCableTerm(5.0);
+                      setNewCableError("");
+                      setAddCableOpen(true);
+                    }}
+                  >
+                    <Plus className="w-3 h-3 mr-1" />
+                    Add Cable Type
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground">
                   Link this material to a cable type so the Cabling Estimator can use its unit
-                  cost for material estimates. Cable types are managed in the Rate Editor.
+                  cost for material estimates.
                 </p>
                 <Select
                   value={form.cableType}
@@ -763,6 +848,90 @@ export default function MaterialsEditor() {
             </Button>
             <Button onClick={handleSave} disabled={isBusy}>
               {isBusy ? "Saving…" : editingId !== null ? "Save Changes" : "Add Material"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Cable Type Dialog */}
+      <Dialog
+        open={addCableOpen}
+        onOpenChange={(open) => {
+          if (!open) {
+            setAddCableOpen(false);
+            setNewCableLabel("");
+            setNewCablePull(3.0);
+            setNewCableTerm(5.0);
+            setNewCableError("");
+          }
+        }}
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Add Cable Type</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-1">
+              <Label htmlFor="new-cable-label">Cable Name</Label>
+              <Input
+                id="new-cable-label"
+                placeholder="e.g. 18/2 Plenum, HDMI, Shielded Cable"
+                value={newCableLabel}
+                onChange={(e) => {
+                  setNewCableLabel(e.target.value);
+                  setNewCableError("");
+                }}
+                onKeyDown={(e) => e.key === "Enter" && handleAddCableType()}
+              />
+              {newCableLabel.trim() && (
+                <p className="text-xs text-muted-foreground">
+                  Key: <span className="font-mono">{slugify(newCableLabel)}</span>
+                </p>
+              )}
+              {newCableError && (
+                <p className="text-xs text-destructive">{newCableError}</p>
+              )}
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1">
+                <Label htmlFor="new-cable-pull">Pull Time (min / 10 ft)</Label>
+                <Input
+                  id="new-cable-pull"
+                  type="number"
+                  step={0.5}
+                  min={0.1}
+                  className="font-mono"
+                  value={newCablePull}
+                  onChange={(e) => setNewCablePull(Number(e.target.value) || 0)}
+                />
+              </div>
+              <div className="space-y-1">
+                <Label htmlFor="new-cable-term">Termination (min / end)</Label>
+                <Input
+                  id="new-cable-term"
+                  type="number"
+                  step={0.5}
+                  min={0.1}
+                  className="font-mono"
+                  value={newCableTerm}
+                  onChange={(e) => setNewCableTerm(Number(e.target.value) || 0)}
+                />
+              </div>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Pull and termination times can be adjusted later in the Rate Editor.
+            </p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setAddCableOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={handleAddCableType}
+              disabled={updateRatesMutation.isPending}
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              {updateRatesMutation.isPending ? "Saving…" : "Add Cable Type"}
             </Button>
           </DialogFooter>
         </DialogContent>

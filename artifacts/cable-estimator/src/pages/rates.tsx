@@ -102,11 +102,6 @@ export default function RatesEditor() {
   const queryClient = useQueryClient();
   const { data: rates } = useGetRates();
   const [draft, setDraft] = useState<RatesShape | null>(null);
-  const [addDialogOpen, setAddDialogOpen] = useState(false);
-  const [newLabel, setNewLabel] = useState("");
-  const [newPull, setNewPull] = useState(3.0);
-  const [newTerm, setNewTerm] = useState(5);
-  const [addError, setAddError] = useState("");
 
   useEffect(() => {
     if (rates && !draft) setDraft(rates as RatesShape);
@@ -173,36 +168,6 @@ export default function RatesEditor() {
     ...customCables.map((c) => ({ value: c.value, label: c.label })),
   ];
 
-  const handleAddCable = () => {
-    const label = newLabel.trim();
-    if (!label) {
-      setAddError("Please enter a name for the cable type.");
-      return;
-    }
-    const value = slugify(label);
-    if (!value) {
-      setAddError("Name must contain at least one letter or number.");
-      return;
-    }
-    if (allCableOptions.some((c) => c.value === value)) {
-      setAddError(`A cable type with key "${value}" already exists.`);
-      return;
-    }
-    setDraft({
-      ...draft,
-      customCableTypes: [...customCables, { value, label }],
-      pullMinutesPer10Ft: { ...draft.pullMinutesPer10Ft, [value]: newPull },
-      terminationMinutesPerEnd: {
-        ...draft.terminationMinutesPerEnd,
-        [value]: newTerm,
-      },
-    });
-    setNewLabel("");
-    setNewPull(3.0);
-    setNewTerm(5);
-    setAddError("");
-    setAddDialogOpen(false);
-  };
 
   const handleDeleteCable = (cableValue: string) => {
     const updatedCustom = customCables.filter((c) => c.value !== cableValue);
@@ -360,7 +325,6 @@ export default function RatesEditor() {
             unit="min / 10 ft"
             customKeys={customCables.map((c) => c.value)}
             onDeleteCustom={handleDeleteCable}
-            onAddCustom={() => setAddDialogOpen(true)}
           />
           <RateSection
             title="Termination Time (minutes per end)"
@@ -1005,91 +969,6 @@ export default function RatesEditor() {
         </div>
       </section>
 
-      {/* Add Cable Type Dialog */}
-      <Dialog
-        open={addDialogOpen}
-        onOpenChange={(open) => {
-          setAddDialogOpen(open);
-          if (!open) {
-            setNewLabel("");
-            setNewPull(3.0);
-            setNewTerm(5);
-            setAddError("");
-          }
-        }}
-      >
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Add Cable Type</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 py-2">
-            <div className="space-y-1">
-              <Label htmlFor="new-cable-label">Cable Name</Label>
-              <Input
-                id="new-cable-label"
-                placeholder="e.g. 18/2 Plenum, HDMI, Shielded Cable"
-                value={newLabel}
-                onChange={(e) => {
-                  setNewLabel(e.target.value);
-                  setAddError("");
-                }}
-                data-testid="input-new-cable-label"
-              />
-              {newLabel.trim() && (
-                <p className="text-xs text-muted-foreground">
-                  Key: <span className="font-mono">{slugify(newLabel)}</span>
-                </p>
-              )}
-              {addError && (
-                <p className="text-xs text-destructive">{addError}</p>
-              )}
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1">
-                <Label htmlFor="new-cable-pull">
-                  Pull Time (min / 10 ft)
-                </Label>
-                <Input
-                  id="new-cable-pull"
-                  type="number"
-                  step={0.5}
-                  min={0.1}
-                  className="font-mono"
-                  value={newPull}
-                  onChange={(e) => setNewPull(Number(e.target.value) || 0)}
-                  data-testid="input-new-cable-pull"
-                />
-              </div>
-              <div className="space-y-1">
-                <Label htmlFor="new-cable-term">
-                  Termination (min / end)
-                </Label>
-                <Input
-                  id="new-cable-term"
-                  type="number"
-                  step={0.5}
-                  min={0.1}
-                  className="font-mono"
-                  value={newTerm}
-                  onChange={(e) => setNewTerm(Number(e.target.value) || 0)}
-                  data-testid="input-new-cable-term"
-                />
-              </div>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setAddDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button
-              onClick={handleAddCable}
-              data-testid="button-confirm-add-cable"
-            >
-              <Plus className="w-4 h-4 mr-2" /> Add Cable Type
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
