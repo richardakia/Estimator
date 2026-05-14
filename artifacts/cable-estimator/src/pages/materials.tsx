@@ -4,6 +4,7 @@ import {
   useCreateMaterial,
   useUpdateMaterial,
   useDeleteMaterial,
+  useGetRates,
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -56,6 +57,7 @@ import {
   ChevronsUpDown,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { CABLE_TYPES } from "@/lib/options";
 
 const CLASSIFICATIONS = [
   "Cable",
@@ -75,6 +77,7 @@ interface MaterialFormState {
   description: string;
   cost: string;
   classification: string;
+  cableType: string;
   manufacturer: string;
   partNumber: string;
   unit: string;
@@ -89,6 +92,7 @@ const EMPTY_FORM: MaterialFormState = {
   description: "",
   cost: "0",
   classification: "",
+  cableType: "",
   manufacturer: "",
   partNumber: "",
   unit: "ea",
@@ -116,6 +120,7 @@ export default function MaterialsEditor() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const { data: materials = [], isLoading } = useListMaterials();
+  const { data: rates } = useGetRates();
 
   const createMutation = useCreateMaterial();
   const updateMutation = useUpdateMaterial();
@@ -135,8 +140,33 @@ export default function MaterialsEditor() {
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [deleteName, setDeleteName] = useState("");
 
+  // Build merged cable type list: built-in + any custom types from Rate Editor
+  const cableTypeOptions = useMemo(() => {
+    const builtIn = CABLE_TYPES.map((t) => ({ value: t.value, label: t.label }));
+    const custom: { value: string; label: string }[] =
+      (rates?.customCableTypes ?? []).map((ct: { value: string; label: string }) => ({
+        value: ct.value,
+        label: ct.label,
+      }));
+    // Merge, deduplicating by value
+    const seen = new Set(builtIn.map((t) => t.value));
+    const extras = custom.filter((t) => !seen.has(t.value));
+    return [...builtIn, ...extras];
+  }, [rates]);
+
+  function cableTypeLabel(value: string): string {
+    return cableTypeOptions.find((t) => t.value === value)?.label ?? value;
+  }
+
   function setField<K extends keyof MaterialFormState>(k: K, v: MaterialFormState[K]) {
-    setForm((f) => ({ ...f, [k]: v }));
+    setForm((f) => {
+      const next = { ...f, [k]: v };
+      // Clear cableType when classification changes away from Cable
+      if (k === "classification" && v !== "Cable") {
+        next.cableType = "";
+      }
+      return next;
+    });
     setFormError("");
   }
 
@@ -227,6 +257,7 @@ export default function MaterialsEditor() {
       description: m.description ?? "",
       cost: String(m.cost),
       classification: m.classification ?? "",
+      cableType: m.cableType ?? "",
       manufacturer: m.manufacturer ?? "",
       partNumber: m.partNumber ?? "",
       unit: m.unit ?? "ea",
@@ -259,6 +290,7 @@ export default function MaterialsEditor() {
       description: form.description.trim() || null,
       cost: Number(form.cost) || 0,
       classification: form.classification || null,
+      cableType: form.classification === "Cable" && form.cableType ? form.cableType : null,
       manufacturer: form.manufacturer.trim() || null,
       partNumber: form.partNumber.trim() || null,
       unit: form.unit || null,
@@ -395,7 +427,7 @@ export default function MaterialsEditor() {
           ) : filtered.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground">
               {(materials as NonNullable<typeof materials>).length === 0
-                ? "No materials yet. Click \"Add Material\" to get started."
+                ? 'No materials yet. Click "Add Material" to get started.'
                 : "No materials match the current filters."}
             </div>
           ) : (
@@ -469,14 +501,25 @@ export default function MaterialsEditor() {
                         {m.tags && m.tags.length > 0 && (
                           <div className="flex flex-wrap gap-1 mt-1">
                             {m.tags.map((t) => (
-                              <Badge key={t} variant="secondary" className="text-[10px] px-1 py-0">
+                              <Badge
+                                key={t}
+                                variant="secondary"
+                                className="text-[10px] px-1 py-0"
+                              >
                                 {t}
                               </Badge>
                             ))}
                           </div>
                         )}
                       </TableCell>
-                      <TableCell className="text-sm">{m.classification ?? "—"}</TableCell>
+                      <TableCell className="text-sm">
+                        <div>{m.classification ?? "—"}</div>
+                        {m.classification === "Cable" && m.cableType && (
+                          <div className="text-xs text-muted-foreground mt-0.5">
+                            {cableTypeLabel(m.cableType)}
+                          </div>
+                        )}
+                      </TableCell>
                       <TableCell className="text-sm">{m.manufacturer ?? "—"}</TableCell>
                       <TableCell className="text-sm font-mono">{m.partNumber ?? "—"}</TableCell>
                       <TableCell className="text-right font-mono text-sm">
@@ -485,7 +528,10 @@ export default function MaterialsEditor() {
                       <TableCell className="text-sm">{m.unit ?? "—"}</TableCell>
                       <TableCell className="text-sm">{m.supplier ?? "—"}</TableCell>
                       <TableCell>
-                        <Badge variant={m.isActive ? "default" : "outline"} className="text-xs">
+                        <Badge
+                          variant={m.isActive ? "default" : "outline"}
+                          className="text-xs"
+                        >
                           {m.isActive ? "Active" : "Inactive"}
                         </Badge>
                       </TableCell>
@@ -529,7 +575,7 @@ export default function MaterialsEditor() {
           </DialogHeader>
 
           <div className="space-y-4 py-2">
-            {/* Required */}
+            {/* Name + Cost + Unit */}
             <div className="grid grid-cols-2 gap-4">
               <div className="col-span-2 space-y-1">
                 <Label htmlFor="mat-name">
@@ -618,6 +664,34 @@ export default function MaterialsEditor() {
               </div>
             </div>
 
+            {/* Cable Type — shown only when classification is Cable */}
+            {form.classification === "Cable" && (
+              <div className="space-y-1 rounded-lg border border-border bg-muted/30 p-3">
+                <Label htmlFor="mat-cable-type" className="text-sm font-medium">
+                  Cable Type
+                </Label>
+                <p className="text-xs text-muted-foreground mb-2">
+                  Link this material to a cable type so the Cabling Estimator can use its unit
+                  cost for material estimates. Cable types are managed in the Rate Editor.
+                </p>
+                <Select
+                  value={form.cableType}
+                  onValueChange={(v) => setField("cableType", v)}
+                >
+                  <SelectTrigger id="mat-cable-type">
+                    <SelectValue placeholder="Select cable type…" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {cableTypeOptions.map((t) => (
+                      <SelectItem key={t.value} value={t.value}>
+                        {t.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
             {/* Part # + Supplier */}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1">
@@ -700,7 +774,8 @@ export default function MaterialsEditor() {
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Material</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete <strong>{deleteName}</strong>? This cannot be undone.
+              Are you sure you want to delete <strong>{deleteName}</strong>? This cannot be
+              undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

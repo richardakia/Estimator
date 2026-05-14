@@ -22,6 +22,11 @@ export interface CreateMaterialBody {
   manufacturer?: string | null;
   /** @maxLength 100 */
   partNumber?: string | null;
+  /**
+   * Cable type key (e.g. category, fiber). Only applicable when classification is Cable
+   * @maxLength 100
+   */
+  cableType?: string | null;
   /** @maxLength 50 */
   unit?: string | null;
   /** @maxLength 200 */

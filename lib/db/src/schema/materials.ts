@@ -17,6 +17,7 @@ export const materialsTable = pgTable("materials", {
   partNumber: text("part_number"),
   unit: text("unit"),
   supplier: text("supplier"),
+  cableType: text("cable_type"),
   notes: text("notes"),
   tags: text("tags").array(),
   isActive: boolean("is_active").notNull().default(true),

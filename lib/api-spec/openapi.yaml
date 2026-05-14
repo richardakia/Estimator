@@ -1719,6 +1719,10 @@ components:
         partNumber:
           type: string
           nullable: true
+        cableType:
+          type: string
+          nullable: true
+          description: "Cable type key linking this material to a cable type in the Rate Editor (only applicable when classification is Cable)"
         unit:
           type: string
           nullable: true
@@ -1763,6 +1767,11 @@ components:
           type: string
           nullable: true
           maxLength: 100
+        cableType:
+          type: string
+          nullable: true
+          maxLength: 100
+          description: "Cable type key (e.g. category, fiber). Only applicable when classification is Cable"
         unit:
           type: string
           nullable: true
@@ -1805,6 +1814,11 @@ components:
           type: string
           nullable: true
           maxLength: 100
+        cableType:
+          type: string
+          nullable: true
+          maxLength: 100
+          description: "Cable type key (e.g. category, fiber). Only applicable when classification is Cable"
         unit:
           type: string
           nullable: true

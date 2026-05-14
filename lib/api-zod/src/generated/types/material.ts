@@ -22,6 +22,8 @@ export interface Material {
   classification?: string | null;
   manufacturer?: string | null;
   partNumber?: string | null;
+  /** Cable type key linking this material to a cable type in the Rate Editor (only applicable when classification is Cable) */
+  cableType?: string | null;
   /** Unit of measure e.g. ea, ft, box, roll, spool */
   unit?: string | null;
   supplier?: string | null;

@@ -1706,6 +1706,12 @@ export const ListMaterialsResponseItem = zod
       ),
     manufacturer: zod.string().nullish(),
     partNumber: zod.string().nullish(),
+    cableType: zod
+      .string()
+      .nullish()
+      .describe(
+        "Cable type key linking this material to a cable type in the Rate Editor (only applicable when classification is Cable)",
+      ),
     unit: zod
       .string()
       .nullish()
@@ -1735,6 +1741,8 @@ export const createMaterialBodyManufacturerMax = 200;
 
 export const createMaterialBodyPartNumberMax = 100;
 
+export const createMaterialBodyCableTypeMax = 100;
+
 export const createMaterialBodyUnitMax = 50;
 
 export const createMaterialBodySupplierMax = 200;
@@ -1755,6 +1763,13 @@ export const CreateMaterialBody = zod.object({
     .nullish(),
   manufacturer: zod.string().max(createMaterialBodyManufacturerMax).nullish(),
   partNumber: zod.string().max(createMaterialBodyPartNumberMax).nullish(),
+  cableType: zod
+    .string()
+    .max(createMaterialBodyCableTypeMax)
+    .nullish()
+    .describe(
+      "Cable type key (e.g. category, fiber). Only applicable when classification is Cable",
+    ),
   unit: zod.string().max(createMaterialBodyUnitMax).nullish(),
   supplier: zod.string().max(createMaterialBodySupplierMax).nullish(),
   notes: zod.string().max(createMaterialBodyNotesMax).nullish(),
@@ -1788,6 +1803,12 @@ export const GetMaterialResponse = zod
       ),
     manufacturer: zod.string().nullish(),
     partNumber: zod.string().nullish(),
+    cableType: zod
+      .string()
+      .nullish()
+      .describe(
+        "Cable type key linking this material to a cable type in the Rate Editor (only applicable when classification is Cable)",
+      ),
     unit: zod
       .string()
       .nullish()
@@ -1820,6 +1841,8 @@ export const updateMaterialBodyManufacturerMax = 200;
 
 export const updateMaterialBodyPartNumberMax = 100;
 
+export const updateMaterialBodyCableTypeMax = 100;
+
 export const updateMaterialBodyUnitMax = 50;
 
 export const updateMaterialBodySupplierMax = 200;
@@ -1838,6 +1861,13 @@ export const UpdateMaterialBody = zod.object({
     .nullish(),
   manufacturer: zod.string().max(updateMaterialBodyManufacturerMax).nullish(),
   partNumber: zod.string().max(updateMaterialBodyPartNumberMax).nullish(),
+  cableType: zod
+    .string()
+    .max(updateMaterialBodyCableTypeMax)
+    .nullish()
+    .describe(
+      "Cable type key (e.g. category, fiber). Only applicable when classification is Cable",
+    ),
   unit: zod.string().max(updateMaterialBodyUnitMax).nullish(),
   supplier: zod.string().max(updateMaterialBodySupplierMax).nullish(),
   notes: zod.string().max(updateMaterialBodyNotesMax).nullish(),
@@ -1864,6 +1894,12 @@ export const UpdateMaterialResponse = zod
       ),
     manufacturer: zod.string().nullish(),
     partNumber: zod.string().nullish(),
+    cableType: zod
+      .string()
+      .nullish()
+      .describe(
+        "Cable type key linking this material to a cable type in the Rate Editor (only applicable when classification is Cable)",
+      ),
     unit: zod
       .string()
       .nullish()

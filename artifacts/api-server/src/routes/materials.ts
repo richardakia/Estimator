@@ -5,30 +5,29 @@ import { apiSchemas } from "@workspace/api-zod";
 
 const router: IRouter = Router();
 
-router.get("/materials", async (req, res): Promise<void> => {
-  const rows = await db
-    .select()
-    .from(materialsTable)
-    .orderBy(materialsTable.name);
+function serializeRow(r: typeof materialsTable.$inferSelect) {
+  return {
+    id: r.id,
+    name: r.name,
+    description: r.description,
+    cost: r.cost,
+    classification: r.classification,
+    manufacturer: r.manufacturer,
+    partNumber: r.partNumber,
+    cableType: r.cableType,
+    unit: r.unit,
+    supplier: r.supplier,
+    notes: r.notes,
+    tags: r.tags,
+    isActive: r.isActive,
+    createdAt: r.createdAt.toISOString(),
+    updatedAt: r.updatedAt.toISOString(),
+  };
+}
 
-  res.json(
-    rows.map((r) => ({
-      id: r.id,
-      name: r.name,
-      description: r.description,
-      cost: r.cost,
-      classification: r.classification,
-      manufacturer: r.manufacturer,
-      partNumber: r.partNumber,
-      unit: r.unit,
-      supplier: r.supplier,
-      notes: r.notes,
-      tags: r.tags,
-      isActive: r.isActive,
-      createdAt: r.createdAt.toISOString(),
-      updatedAt: r.updatedAt.toISOString(),
-    })),
-  );
+router.get("/materials", async (_req, res): Promise<void> => {
+  const rows = await db.select().from(materialsTable).orderBy(materialsTable.name);
+  res.json(rows.map(serializeRow));
 });
 
 router.post("/materials", async (req, res): Promise<void> => {
@@ -47,6 +46,7 @@ router.post("/materials", async (req, res): Promise<void> => {
       classification: parsed.data.classification ?? null,
       manufacturer: parsed.data.manufacturer ?? null,
       partNumber: parsed.data.partNumber ?? null,
+      cableType: parsed.data.cableType ?? null,
       unit: parsed.data.unit ?? null,
       supplier: parsed.data.supplier ?? null,
       notes: parsed.data.notes ?? null,
@@ -60,22 +60,7 @@ router.post("/materials", async (req, res): Promise<void> => {
     return;
   }
 
-  res.status(201).json({
-    id: created.id,
-    name: created.name,
-    description: created.description,
-    cost: created.cost,
-    classification: created.classification,
-    manufacturer: created.manufacturer,
-    partNumber: created.partNumber,
-    unit: created.unit,
-    supplier: created.supplier,
-    notes: created.notes,
-    tags: created.tags,
-    isActive: created.isActive,
-    createdAt: created.createdAt.toISOString(),
-    updatedAt: created.updatedAt.toISOString(),
-  });
+  res.status(201).json(serializeRow(created));
 });
 
 router.get("/materials/:id", async (req, res): Promise<void> => {
@@ -95,22 +80,7 @@ router.get("/materials/:id", async (req, res): Promise<void> => {
     return;
   }
 
-  res.json({
-    id: row.id,
-    name: row.name,
-    description: row.description,
-    cost: row.cost,
-    classification: row.classification,
-    manufacturer: row.manufacturer,
-    partNumber: row.partNumber,
-    unit: row.unit,
-    supplier: row.supplier,
-    notes: row.notes,
-    tags: row.tags,
-    isActive: row.isActive,
-    createdAt: row.createdAt.toISOString(),
-    updatedAt: row.updatedAt.toISOString(),
-  });
+  res.json(serializeRow(row));
 });
 
 router.put("/materials/:id", async (req, res): Promise<void> => {
@@ -135,6 +105,7 @@ router.put("/materials/:id", async (req, res): Promise<void> => {
       classification: parsed.data.classification ?? null,
       manufacturer: parsed.data.manufacturer ?? null,
       partNumber: parsed.data.partNumber ?? null,
+      cableType: parsed.data.cableType ?? null,
       unit: parsed.data.unit ?? null,
       supplier: parsed.data.supplier ?? null,
       notes: parsed.data.notes ?? null,
@@ -150,22 +121,7 @@ router.put("/materials/:id", async (req, res): Promise<void> => {
     return;
   }
 
-  res.json({
-    id: updated.id,
-    name: updated.name,
-    description: updated.description,
-    cost: updated.cost,
-    classification: updated.classification,
-    manufacturer: updated.manufacturer,
-    partNumber: updated.partNumber,
-    unit: updated.unit,
-    supplier: updated.supplier,
-    notes: updated.notes,
-    tags: updated.tags,
-    isActive: updated.isActive,
-    createdAt: updated.createdAt.toISOString(),
-    updatedAt: updated.updatedAt.toISOString(),
-  });
+  res.json(serializeRow(updated));
 });
 
 router.delete("/materials/:id", async (req, res): Promise<void> => {
